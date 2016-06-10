@@ -22,6 +22,7 @@ import org.grails.datastore.gorm.events.DefaultApplicationEventPublisher;
 import org.grails.datastore.gorm.events.DomainEventListener;
 import org.grails.datastore.gorm.neo4j.config.Neo4jDriverConfigBuilder;
 import org.grails.datastore.gorm.neo4j.util.EmbeddedNeo4jServer;
+import org.grails.datastore.gorm.validation.constraints.registry.DefaultValidatorRegistry;
 import org.grails.datastore.mapping.config.Property;
 import org.grails.datastore.mapping.core.AbstractDatastore;
 import org.grails.datastore.mapping.core.Session;
@@ -275,7 +276,12 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
     }
 
     protected static Neo4jMappingContext createMappingContext(PropertyResolver configuration, Class[] classes) {
-        return new Neo4jMappingContext(configuration.getProperty(SETTING_DEFAULT_MAPPING, Closure.class, null), classes);
+        Neo4jMappingContext neo4jMappingContext = new Neo4jMappingContext(configuration.getProperty(SETTING_DEFAULT_MAPPING, Closure.class, null), classes);
+
+//        neo4jMappingContext.setValidatorRegistry(
+//                new DefaultValidatorRegistry(neo4jMappingContext, configuration)
+//        );
+        return neo4jMappingContext;
     }
 
     protected static Driver createGraphDatabaseDriver(PropertyResolver configuration) {

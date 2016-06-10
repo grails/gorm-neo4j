@@ -98,6 +98,13 @@ subprojects { project ->
 
     configurations {
         documentation
+
+        all {
+            resolutionStrategy {
+                cacheDynamicVersionsFor 0, 'hours'
+                cacheChangingModulesFor 0, 'hours'
+            }
+        }        
     }
 
     if(isPluginProject) {

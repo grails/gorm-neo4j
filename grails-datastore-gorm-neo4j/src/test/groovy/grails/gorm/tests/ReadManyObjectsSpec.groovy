@@ -11,7 +11,7 @@ import javax.persistence.FlushModeType
 /**
  * @author Graeme Rocher
  */
-//@Ignore
+@Ignore
 class ReadManyObjectsSpec extends GormDatastoreSpec {
 
 

@@ -4,6 +4,7 @@ sourceSets.main.groovy.srcDirs += ["src/main/java"]
 dependencies {
     compile 'org.neo4j.driver:neo4j-java-driver:1.0.1'
 
+    compile "org.grails:grails-datastore-gorm-validation:$gormVersion"
     compile "org.grails:grails-datastore-gorm:$gormVersion",
             "org.grails:grails-datastore-web:$gormVersion"
 
@@ -22,12 +23,14 @@ dependencies {
 test {
     if (isTravisBuild) {
         maxParallelForks = 1
+        forkEvery = 10
     }
     else {
         maxParallelForks = 2
+        forkEvery = 10
     }
-    forkEvery = 10
-    jvmArgs = ['-server', '-Xmx1028M', '-XX:MaxPermSize=256m']
+
+    jvmArgs = ['-Xmx1028M']
     afterSuite {
         System.out.print('.')
         System.out.flush()
