@@ -12,4 +12,4 @@ For more information see the following links:
 For the current development version see the following links:
 
 * [Beta Documentation](http://gorm.grails.org/snapshot/neo4j/manual)
-* [Beta API](http://gorm.grails.org/snapshot/neo4j/manual)
+* [Beta API](http://gorm.grails.org/snapshot/neo4j/api)
