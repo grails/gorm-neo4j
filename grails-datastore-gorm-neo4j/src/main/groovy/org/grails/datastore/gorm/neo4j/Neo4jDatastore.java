@@ -49,6 +49,7 @@ import org.springframework.core.env.StandardEnvironment;
 import javax.annotation.PreDestroy;
 import javax.persistence.FlushModeType;
 import java.io.Closeable;
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
@@ -298,9 +299,10 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
         if(DATABASE_TYPE_EMBEDDED.equalsIgnoreCase(type)) {
             if(ClassUtils.isPresent("org.neo4j.harness.ServerControls") && EmbeddedNeo4jServer.isAvailable()) {
                 final String location = configuration.getProperty(SETTING_NEO4J_LOCATION, String.class, null);
+                final File dataDir = location != null ? new File(location) : null;
                 ServerControls serverControls;
                 try {
-                    serverControls = url != null ? EmbeddedNeo4jServer.start(url, location) : EmbeddedNeo4jServer.start(DEFAULT_URL, location);
+                    serverControls = url != null ? EmbeddedNeo4jServer.start(url, dataDir) : EmbeddedNeo4jServer.start(dataDir);
                 } catch (Throwable e) {
                     throw new DatastoreConfigurationException("Unable to start embedded Neo4j server: " + e.getMessage(), e);
                 }
