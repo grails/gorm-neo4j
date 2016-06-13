@@ -63,6 +63,7 @@ import java.util.*;
 public class Neo4jDatastore extends AbstractDatastore implements Closeable, StatelessDatastore, GraphDatastore {
 
     public static final String DEFAULT_URL = "bolt://localhost:7687";
+    @Deprecated
     public static final String DEFAULT_LOCATION = "data/neo4j";
     public static final String SETTING_NEO4J_URL = "grails.neo4j.url";
     public static final String SETTING_NEO4J_BUILD_INDEX = "grails.neo4j.buildIndex";
@@ -296,7 +297,7 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
         final String type = configuration.getProperty(SETTING_NEO4J_TYPE, String.class, DEFAULT_DATABASE_TYPE);
         if(DATABASE_TYPE_EMBEDDED.equalsIgnoreCase(type)) {
             if(ClassUtils.isPresent("org.neo4j.harness.ServerControls") && EmbeddedNeo4jServer.isAvailable()) {
-                final String location = configuration.getProperty(SETTING_NEO4J_LOCATION, String.class, DEFAULT_LOCATION);
+                final String location = configuration.getProperty(SETTING_NEO4J_LOCATION, String.class, null);
                 ServerControls serverControls;
                 try {
                     serverControls = url != null ? EmbeddedNeo4jServer.start(url, location) : EmbeddedNeo4jServer.start(DEFAULT_URL, location);

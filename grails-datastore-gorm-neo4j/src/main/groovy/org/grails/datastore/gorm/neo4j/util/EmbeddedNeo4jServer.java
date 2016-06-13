@@ -3,6 +3,7 @@ package org.grails.datastore.gorm.neo4j.util;
 import org.grails.datastore.gorm.neo4j.Neo4jDatastore;
 import org.grails.datastore.mapping.reflect.ClassUtils;
 import org.neo4j.harness.ServerControls;
+import org.neo4j.harness.TestServerBuilder;
 import org.neo4j.harness.TestServerBuilders;
 import org.neo4j.harness.internal.Ports;
 import org.neo4j.server.ServerStartupException;
@@ -85,7 +86,7 @@ public class EmbeddedNeo4jServer {
      * @return The {@link ServerControls}
      */
     public static ServerControls start(String host, int port) {
-        return start(host, port, Neo4jDatastore.DEFAULT_LOCATION);
+        return start(host, port, null);
     }
     /**
      * Start a server on the given address
@@ -98,12 +99,15 @@ public class EmbeddedNeo4jServer {
     public static ServerControls start(String host, int port, String dataLocation) {
         String myBoltAddress = String.format("%s:%d", host, port);
 
-        ServerControls serverControls = TestServerBuilders.newInProcessBuilder()
+        TestServerBuilder serverBuilder = TestServerBuilders.newInProcessBuilder()
                 .withConfig(boltConnector("0").enabled, "true")
                 .withConfig(boltConnector("0").encryption_level, DISABLED.name())
-                .withConfig(boltConnector("0").address, myBoltAddress)
-                .withConfig(data_directory,  dataLocation)
-                .newServer();
+                .withConfig(boltConnector("0").address, myBoltAddress);
+        if(dataLocation != null) {
+            serverBuilder = serverBuilder.withConfig(data_directory,  dataLocation);
+        }
+        ServerControls serverControls = serverBuilder
+                                            .newServer();
 
         return serverControls;
     }
