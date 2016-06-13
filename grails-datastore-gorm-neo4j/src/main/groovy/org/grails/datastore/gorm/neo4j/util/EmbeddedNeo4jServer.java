@@ -1,5 +1,6 @@
 package org.grails.datastore.gorm.neo4j.util;
 
+import org.grails.datastore.gorm.neo4j.Neo4jDatastore;
 import org.grails.datastore.mapping.reflect.ClassUtils;
 import org.neo4j.harness.ServerControls;
 import org.neo4j.harness.TestServerBuilders;
@@ -12,6 +13,7 @@ import java.net.URI;
 
 import static org.neo4j.graphdb.factory.GraphDatabaseSettings.BoltConnector.EncryptionLevel.DISABLED;
 import static org.neo4j.graphdb.factory.GraphDatabaseSettings.boltConnector;
+import static org.neo4j.dbms.DatabaseManagementSystemSettings.data_directory;
 
 /**
  * Helper class for starting a Neo4j 3.x embedded server
@@ -65,18 +67,42 @@ public class EmbeddedNeo4jServer {
     /**
      * Start a server on the given address
      *
+     * @param address The address
+     *
+     * @return The {@link ServerControls}
+     */
+    public static ServerControls start(String address, String dataLocation) {
+        URI uri = URI.create(address);
+        return start(uri.getHost(), uri.getPort(), dataLocation);
+    }
+
+    /**
+     * Start a server on the given address
+     *
      * @param host The host
      * @param port The port
      *
      * @return The {@link ServerControls}
      */
     public static ServerControls start(String host, int port) {
+        return start(host, port, Neo4jDatastore.DEFAULT_LOCATION);
+    }
+    /**
+     * Start a server on the given address
+     *
+     * @param host The host
+     * @param port The port
+     *
+     * @return The {@link ServerControls}
+     */
+    public static ServerControls start(String host, int port, String dataLocation) {
         String myBoltAddress = String.format("%s:%d", host, port);
 
         ServerControls serverControls = TestServerBuilders.newInProcessBuilder()
                 .withConfig(boltConnector("0").enabled, "true")
                 .withConfig(boltConnector("0").encryption_level, DISABLED.name())
                 .withConfig(boltConnector("0").address, myBoltAddress)
+                .withConfig(data_directory,  dataLocation)
                 .newServer();
 
         return serverControls;

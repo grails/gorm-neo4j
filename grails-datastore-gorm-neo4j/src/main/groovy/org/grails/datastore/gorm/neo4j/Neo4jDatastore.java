@@ -22,6 +22,8 @@ import org.grails.datastore.gorm.events.DefaultApplicationEventPublisher;
 import org.grails.datastore.gorm.events.DomainEventListener;
 import org.grails.datastore.gorm.neo4j.config.Neo4jDriverConfigBuilder;
 import org.grails.datastore.gorm.neo4j.util.EmbeddedNeo4jServer;
+import org.grails.datastore.gorm.validation.constraints.MappingContextAwareConstraintFactory;
+import org.grails.datastore.gorm.validation.constraints.builtin.UniqueConstraint;
 import org.grails.datastore.gorm.validation.constraints.registry.DefaultValidatorRegistry;
 import org.grails.datastore.mapping.config.Property;
 import org.grails.datastore.mapping.core.AbstractDatastore;
@@ -61,8 +63,7 @@ import java.util.*;
 public class Neo4jDatastore extends AbstractDatastore implements Closeable, StatelessDatastore, GraphDatastore {
 
     public static final String DEFAULT_URL = "bolt://localhost:7687";
-    @Deprecated
-    public static final String DEFAULT_LOCATION = DEFAULT_URL;
+    public static final String DEFAULT_LOCATION = "data/neo4j";
     public static final String SETTING_NEO4J_URL = "grails.neo4j.url";
     public static final String SETTING_NEO4J_BUILD_INDEX = "grails.neo4j.buildIndex";
     public static final String SETTING_NEO4J_LOCATION = "grails.neo4j.location";
@@ -278,23 +279,28 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
     protected static Neo4jMappingContext createMappingContext(PropertyResolver configuration, Class[] classes) {
         Neo4jMappingContext neo4jMappingContext = new Neo4jMappingContext(configuration.getProperty(SETTING_DEFAULT_MAPPING, Closure.class, null), classes);
 
-//        neo4jMappingContext.setValidatorRegistry(
-//                new DefaultValidatorRegistry(neo4jMappingContext, configuration)
-//        );
+        DefaultValidatorRegistry defaultValidatorRegistry = new DefaultValidatorRegistry(neo4jMappingContext, configuration);
+        defaultValidatorRegistry.addConstraintFactory(
+                new MappingContextAwareConstraintFactory(UniqueConstraint.class, defaultValidatorRegistry.getMessageSource(), neo4jMappingContext)
+        );
+        neo4jMappingContext.setValidatorRegistry(
+                defaultValidatorRegistry
+        );
         return neo4jMappingContext;
     }
 
     protected static Driver createGraphDatabaseDriver(PropertyResolver configuration) {
-        final String url = configuration.getProperty(SETTING_NEO4J_LOCATION, configuration.getProperty(SETTING_NEO4J_URL, (String)null));
+        final String url = configuration.getProperty(SETTING_NEO4J_URL, String.class, null);
         final String username = configuration.getProperty(SETTING_NEO4J_USERNAME, String.class, null);
         final String password = configuration.getProperty(SETTING_NEO4J_PASSWORD, String.class, null);
         final String type = configuration.getProperty(SETTING_NEO4J_TYPE, String.class, DEFAULT_DATABASE_TYPE);
         if(DATABASE_TYPE_EMBEDDED.equalsIgnoreCase(type)) {
             if(ClassUtils.isPresent("org.neo4j.harness.ServerControls") && EmbeddedNeo4jServer.isAvailable()) {
+                final String location = configuration.getProperty(SETTING_NEO4J_LOCATION, String.class, DEFAULT_LOCATION);
                 ServerControls serverControls;
                 try {
-                    serverControls = url != null ? EmbeddedNeo4jServer.start(url) : EmbeddedNeo4jServer.start();
-                } catch (IOException e) {
+                    serverControls = url != null ? EmbeddedNeo4jServer.start(url, location) : EmbeddedNeo4jServer.start(DEFAULT_URL, location);
+                } catch (Throwable e) {
                     throw new DatastoreConfigurationException("Unable to start embedded Neo4j server: " + e.getMessage(), e);
                 }
 
