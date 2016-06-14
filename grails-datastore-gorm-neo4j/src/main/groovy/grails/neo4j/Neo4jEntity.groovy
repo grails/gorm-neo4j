@@ -16,20 +16,16 @@
 package grails.neo4j
 
 import groovy.transform.CompileStatic
-import org.grails.datastore.gorm.GormEnhancer
 import org.grails.datastore.gorm.GormEntity
-import org.grails.datastore.gorm.GormStaticApi
 import org.grails.datastore.gorm.neo4j.Neo4jDatastore
 import org.grails.datastore.gorm.neo4j.Neo4jSession
 import org.grails.datastore.gorm.neo4j.collection.Neo4jResultList
 import org.grails.datastore.gorm.neo4j.engine.Neo4jEntityPersister
 import org.grails.datastore.gorm.neo4j.extensions.Neo4jExtensions
-import org.grails.datastore.gorm.schemaless.DynamicAttributeHelper
 import org.grails.datastore.gorm.schemaless.DynamicAttributes
 import org.grails.datastore.mapping.core.AbstractDatastore
 import org.neo4j.driver.v1.StatementResult
 import org.neo4j.driver.v1.StatementRunner
-
 /**
  * Extends the default {@org.grails.datastore.gorm.GormEntity} trait, adding new methods specific to Neo4j
  *
@@ -38,23 +34,6 @@ import org.neo4j.driver.v1.StatementRunner
  */
 @CompileStatic
 trait Neo4jEntity<D> implements GormEntity<D>, DynamicAttributes {
-    /**
-     * @see DynamicAttributes#putAt(java.lang.String, java.lang.Object)
-     */
-    @Override
-    void putAt(String name, Object val) {
-        def old = DynamicAttributes.super.getAt(name)
-        DynamicAttributes.super.putAt(name, val)
-        if(old != val) {
-            GormStaticApi staticApi = GormEnhancer.findStaticApi(getClass())
-            if(val instanceof Neo4jEntity) {
-                ((Neo4jEntity)val).save()
-            } else if (Neo4jSession.isCollectionWithPersistentEntities(val, staticApi.getGormPersistentEntity().getMappingContext())) {
-                staticApi.saveAll((Iterable)val)
-            }
-        }
-    }
-
 
     /**
      * Allows accessing to dynamic properties with the dot operator
@@ -75,7 +54,7 @@ trait Neo4jEntity<D> implements GormEntity<D>, DynamicAttributes {
      * @param val The value
      */
     def propertyMissing(String name, val) {
-        putAt(name, val)
+        DynamicAttributes.super.putAt(name, val)
     }
 
     /**

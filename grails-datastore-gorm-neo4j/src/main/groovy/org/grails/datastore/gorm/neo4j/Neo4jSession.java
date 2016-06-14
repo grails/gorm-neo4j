@@ -284,7 +284,7 @@ public class Neo4jSession extends AbstractSession<Session> {
                     }
                 }
 
-                Map<String, List<Object>> dynamicAssociations = amendMapWithUndeclaredProperties(simpleProps, object, mappingContext, nulls);
+                Map<String, List<Object>> dynamicAssociations = amendMapWithUndeclaredProperties(graphPersistentEntity, simpleProps, object, mappingContext, nulls);
                 processDynamicAssociations(graphPersistentEntity, access, mappingContext, dynamicAssociations, cascadingOperations, true);
                 processPendingRelationshipUpdates(graphPersistentEntity, access, id, cascadingOperations);
 
@@ -451,7 +451,7 @@ public class Neo4jSession extends AbstractSession<Session> {
         createCypher.append(cypher);
         params.put("props" + index, simpleProps);
 
-        Map<String, List<Object>> dynamicRelProps = amendMapWithUndeclaredProperties(simpleProps, obj, mappingContext);
+        Map<String, List<Object>> dynamicRelProps = amendMapWithUndeclaredProperties(graphEntity, simpleProps, obj, mappingContext);
         final EntityAccess access = entityInsert.getEntityAccess();
         // build a properties map for each CREATE statement
         for (PersistentProperty pp : persistentProperties) {
@@ -481,10 +481,11 @@ public class Neo4jSession extends AbstractSession<Session> {
 
                     final GraphPersistentEntity associated = (GraphPersistentEntity) mappingContext.getPersistentEntity(o.getClass().getName());
                     if(associated != null) {
-                        final Object identifier = getEntityPersister(o).getObjectIdentifier(o);
-                        if(identifier != null) {
-                            addPendingRelationshipInsert((Serializable)access.getIdentifier(), new DynamicToOneAssociation(graphEntity, mappingContext, e.getKey(), associated), (Serializable) identifier);
+                        Object identifier = getEntityPersister(o).getObjectIdentifier(o);
+                        if(identifier == null) {
+                            identifier = persist(o);
                         }
+                        addPendingRelationshipInsert((Serializable)access.getIdentifier(), new DynamicToOneAssociation(graphEntity, mappingContext, e.getKey(), associated), (Serializable) identifier);
                     }
                 }
             }
@@ -536,12 +537,13 @@ public class Neo4jSession extends AbstractSession<Session> {
         }
     }
 
-    protected Map<String, List<Object>> amendMapWithUndeclaredProperties(Map<String, Object> simpleProps, Object pojo, MappingContext mappingContext) {
-        return amendMapWithUndeclaredProperties(simpleProps, pojo, mappingContext, new ArrayList<String>());
+    protected Map<String, List<Object>> amendMapWithUndeclaredProperties(GraphPersistentEntity graphEntity, Map<String, Object> simpleProps, Object pojo, MappingContext mappingContext) {
+        return amendMapWithUndeclaredProperties(graphEntity, simpleProps, pojo, mappingContext, new ArrayList<String>());
     }
 
-    protected Map<String, List<Object>> amendMapWithUndeclaredProperties(Map<String, Object> simpleProps, Object pojo, MappingContext mappingContext, List<String> nulls) {
-        Map<String, List<Object>> dynRelProps = new LinkedHashMap<String, List<Object>>();
+    protected Map<String, List<Object>> amendMapWithUndeclaredProperties(GraphPersistentEntity graphEntity, Map<String, Object> simpleProps, Object pojo, MappingContext mappingContext, List<String> nulls) {
+        boolean hasDynamicAssociations = graphEntity.hasDynamicAssociations();
+        Map<String, List<Object>> dynRelProps =  hasDynamicAssociations ? new LinkedHashMap<String, List<Object>>() : Collections.<String, List<Object>>emptyMap();
         if(pojo instanceof DynamicAttributes) {
             Map<String,Object> map = ((DynamicAttributes)pojo).attributes();
             if (map!=null) {
@@ -553,13 +555,19 @@ public class Neo4jSession extends AbstractSession<Session> {
                         continue;
                     }
 
-                    if  (mappingContext.isPersistentEntity(value)) {
-                        List<Object> objects = getOrInit(dynRelProps, key);
-                        objects.add(value);
-                    } else if (isCollectionWithPersistentEntities(value, mappingContext)) {
-                        List<Object> objects = getOrInit(dynRelProps, key);
-                        objects.addAll((Collection) value);
-                    } else {
+                    if(hasDynamicAssociations) {
+                        if  (mappingContext.isPersistentEntity(value)) {
+                            List<Object> objects = getOrInit(dynRelProps, key);
+                            objects.add(value);
+                        } else if (isCollectionWithPersistentEntities(value, mappingContext)) {
+                            List<Object> objects = getOrInit(dynRelProps, key);
+                            objects.addAll((Collection) value);
+                        } else {
+                            simpleProps.put(key, ((Neo4jMappingContext)mappingContext).convertToNative(value));
+                        }
+
+                    }
+                    else {
                         simpleProps.put(key, ((Neo4jMappingContext)mappingContext).convertToNative(value));
                     }
                 }

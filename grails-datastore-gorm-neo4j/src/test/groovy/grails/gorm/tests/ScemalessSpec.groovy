@@ -1,14 +1,13 @@
 package grails.gorm.tests
 
-import org.grails.datastore.gorm.neo4j.engine.Neo4jQuery
 import org.grails.datastore.gorm.neo4j.util.IteratorUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import spock.lang.Issue
 
-class NonDeclaredPropertiesSpec extends GormDatastoreSpec {
+class ScemalessSpec extends GormDatastoreSpec {
 
-    private static Logger log = LoggerFactory.getLogger(NonDeclaredPropertiesSpec.class);
+    private static Logger log = LoggerFactory.getLogger(ScemalessSpec.class);
 
     @Override
     List getDomainClasses() {

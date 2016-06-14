@@ -192,7 +192,7 @@ public class Neo4jEntityPersister extends EntityPersister {
                     final EntityAccess entityAccess = entityAccesses.get(j);
                     entityAccess.setIdentifier(identifier);
                     idList.set(targetIndex, identifier);
-                    persistAssociationsOfEntity(pe, entityAccess, false);
+                    persistAssociationsOfEntity((GraphPersistentEntity) pe, entityAccess, false);
                 }
             }
         }
@@ -730,7 +730,7 @@ public class Neo4jEntityPersister extends EntityPersister {
                         throw new IdentityGenerationException("CREATE operation did not generate an identifier for entity " + entityAccess.getEntity());
                     }
                     entityAccess.setIdentifier(identifier);
-                    persistAssociationsOfEntity(pe, entityAccess, false);
+                    persistAssociationsOfEntity((GraphPersistentEntity) pe, entityAccess, false);
                 }
                 else {
                     throw new IdentityGenerationException("CREATE operation did not generate an identifier for entity " + entityAccess.getEntity());
@@ -739,7 +739,7 @@ public class Neo4jEntityPersister extends EntityPersister {
             }
             else {
                 session.addPendingInsert(pendingInsert);
-                persistAssociationsOfEntity(pe, entityAccess, false);
+                persistAssociationsOfEntity((GraphPersistentEntity) pe, entityAccess, false);
             }
 
         }
@@ -764,7 +764,7 @@ public class Neo4jEntityPersister extends EntityPersister {
         });
         session.addPendingUpdate(pendingUpdate);
 
-        persistAssociationsOfEntity(pe, entityAccess, true);
+        persistAssociationsOfEntity((GraphPersistentEntity) pe, entityAccess, true);
     }
 
     private boolean shouldIgnore(Neo4jSession session, Object obj) {
@@ -772,12 +772,40 @@ public class Neo4jEntityPersister extends EntityPersister {
         return session.isPendingAlready(obj) || (!isDirty);
     }
 
-    private void persistAssociationsOfEntity(PersistentEntity pe, EntityAccess entityAccess, boolean isUpdate) {
+    private void persistAssociationsOfEntity(GraphPersistentEntity pe, EntityAccess entityAccess, boolean isUpdate) {
 
         Object obj = entityAccess.getEntity();
         DirtyCheckable dirtyCheckable = null;
         if (obj instanceof DirtyCheckable) {
             dirtyCheckable = (DirtyCheckable)obj;
+        }
+
+        Neo4jSession neo4jSession = getSession();
+        if(pe.hasDynamicAssociations()) {
+            MappingContext mappingContext = pe.getMappingContext();
+            DynamicAttributes dynamicAttributes = (DynamicAttributes) obj;
+            Collection<Object> values = dynamicAttributes.attributes().values();
+            for (Object value : values) {
+                if(mappingContext.isPersistentEntity(value)) {
+                    if( ((DirtyCheckable)value).hasChanged() ) {
+                        neo4jSession.persist(value);
+                    }
+                }
+                else if(value instanceof Iterable) {
+                    boolean collectionChanged = false;
+                    for(Object o : ((Iterable)value)) {
+                        if(mappingContext.isPersistentEntity(o)) {
+                            collectionChanged = ((DirtyCheckable)o).hasChanged();
+                            if(collectionChanged) break;
+                        }
+                    }
+
+                    if(collectionChanged) {
+                        neo4jSession.persist((Iterable)value);
+                    }
+                }
+
+            }
         }
 
         for (PersistentProperty pp: pe.getAssociations()) {
@@ -845,8 +873,8 @@ public class Neo4jEntityPersister extends EntityPersister {
                         boolean reversed = RelationshipUtils.useReversedMappingFor(to);
 
                         if (!reversed) {
-                            final EntityAccess assocationAccess = getSession().createEntityAccess(to.getAssociatedEntity(), propertyValue);
-                            getSession().addPendingRelationshipInsert((Serializable) entityAccess.getIdentifier(), to, (Serializable) assocationAccess.getIdentifier());
+                            final EntityAccess assocationAccess = neo4jSession.createEntityAccess(to.getAssociatedEntity(), propertyValue);
+                            neo4jSession.addPendingRelationshipInsert((Serializable) entityAccess.getIdentifier(), to, (Serializable) assocationAccess.getIdentifier());
                         }
 
                     }
