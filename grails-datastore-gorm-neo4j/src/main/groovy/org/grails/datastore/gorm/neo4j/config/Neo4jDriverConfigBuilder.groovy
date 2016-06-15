@@ -1,6 +1,5 @@
 package org.grails.datastore.gorm.neo4j.config
 
-import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.grails.datastore.gorm.neo4j.Neo4jDatastore
@@ -20,7 +19,7 @@ import java.lang.reflect.Modifier
 @Slf4j
 class Neo4jDriverConfigBuilder {
     final PropertyResolver propertyResolver
-    private String prefix = Neo4jDatastore.SETTING_NEO4J_DB_PROPERTIES
+    private String prefix = Neo4jDatastore.SETTING_NEO4J_DRIVER_PROPERTIES
 
     Neo4jDriverConfigBuilder(PropertyResolver propertyResolver) {
         this.propertyResolver = propertyResolver

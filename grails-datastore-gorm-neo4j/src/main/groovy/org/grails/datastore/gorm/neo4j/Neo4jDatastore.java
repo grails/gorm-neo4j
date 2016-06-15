@@ -74,7 +74,8 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
     public static final String SETTING_NEO4J_USERNAME = "grails.neo4j.username";
     public static final String SETTING_NEO4J_PASSWORD = "grails.neo4j.password";
     public static final String SETTING_DEFAULT_MAPPING = "grails.neo4j.default.mapping";
-    public static final String SETTING_NEO4J_DB_PROPERTIES = "grails.neo4j.options";
+    public static final String SETTING_NEO4J_DRIVER_PROPERTIES = "grails.neo4j.options";
+    public static final String SETTING_NEO4J_EMBEDDED_DB_PROPERTIES = "grails.neo4j.embedded.options";
     public static final String DEFAULT_DATABASE_TYPE = "remote";
     public static final String DATABASE_TYPE_EMBEDDED = "embedded";
 
@@ -253,13 +254,7 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
      * @param classes The persistent classes
      */
     public Neo4jDatastore(Map<String, Object> configuration, ConfigurableApplicationEventPublisher eventPublisher,Class...classes) {
-        this(createPropertyResolver(configuration),eventPublisher, classes);
-    }
-
-    private static PropertyResolver createPropertyResolver(Map<String,Object> configuration) {
-        StandardEnvironment env = new StandardEnvironment();
-        env.getPropertySources().addFirst(new MapPropertySource("neo4j", configuration));
-        return env;
+        this(mapToPropertyResolver(configuration),eventPublisher, classes);
     }
 
     /**
@@ -299,10 +294,11 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
         if(DATABASE_TYPE_EMBEDDED.equalsIgnoreCase(type)) {
             if(ClassUtils.isPresent("org.neo4j.harness.ServerControls") && EmbeddedNeo4jServer.isAvailable()) {
                 final String location = configuration.getProperty(SETTING_NEO4J_LOCATION, String.class, null);
+                final Map options = configuration.getProperty(SETTING_NEO4J_EMBEDDED_DB_PROPERTIES, Map.class, Collections.emptyMap());
                 final File dataDir = location != null ? new File(location) : null;
                 ServerControls serverControls;
                 try {
-                    serverControls = url != null ? EmbeddedNeo4jServer.start(url, dataDir) : EmbeddedNeo4jServer.start(dataDir);
+                    serverControls = url != null ? EmbeddedNeo4jServer.start(url, dataDir, options) : EmbeddedNeo4jServer.start(dataDir, options);
                 } catch (Throwable e) {
                     throw new DatastoreConfigurationException("Unable to start embedded Neo4j server: " + e.getMessage(), e);
                 }

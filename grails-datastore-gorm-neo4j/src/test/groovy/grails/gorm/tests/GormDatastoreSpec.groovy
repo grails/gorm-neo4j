@@ -45,7 +45,8 @@ abstract class GormDatastoreSpec extends Specification {
         def allClasses = getDomainClasses() as Class[]
 
         neo4jDatastore = new Neo4jDatastore(
-                [(Neo4jDatastore.SETTING_NEO4J_TYPE): Neo4jDatastore.DATABASE_TYPE_EMBEDDED],
+                [(Neo4jDatastore.SETTING_NEO4J_TYPE): Neo4jDatastore.DATABASE_TYPE_EMBEDDED,
+                 'grails.neo4j.embedded.options.dbms.shell':'true'],
                 new ConfigurableApplicationContextEventPublisher(ctx),
                 allClasses
         )

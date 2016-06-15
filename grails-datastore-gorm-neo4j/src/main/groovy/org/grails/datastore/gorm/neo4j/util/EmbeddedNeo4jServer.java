@@ -11,6 +11,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.util.Collections;
+import java.util.Map;
 
 import static org.neo4j.graphdb.factory.GraphDatabaseSettings.BoltConnector.EncryptionLevel.DISABLED;
 import static org.neo4j.graphdb.factory.GraphDatabaseSettings.boltConnector;
@@ -38,8 +40,19 @@ public class EmbeddedNeo4jServer {
      * @param dataLocation The data location
      */
     public static ServerControls start(File dataLocation) throws IOException {
-        return attemptStartServer(0, dataLocation);
+        return attemptStartServer(0, dataLocation, Collections.<String, Object>emptyMap());
     }
+
+    /**
+     * Start a server on a random free port
+     *
+     * @return The server controls
+     * @param dataLocation The data location
+     */
+    public static ServerControls start(File dataLocation, Map<String, Object> options) throws IOException {
+        return attemptStartServer(0, dataLocation, options);
+    }
+
 
 
     /**
@@ -64,6 +77,16 @@ public class EmbeddedNeo4jServer {
         return start(inetAddr.getHostName(),inetAddr.getPort(), dataLocation);
     }
 
+    /**
+     * Start a server on the given address
+     *
+     * @param inetAddr The inet address
+     *
+     * @return The {@link ServerControls}
+     */
+    public static ServerControls start(InetSocketAddress inetAddr, File dataLocation, Map<String, Object> options) {
+        return start(inetAddr.getHostName(),inetAddr.getPort(), dataLocation,options);
+    }
 
     /**
      * Start a server on the given address
@@ -89,6 +112,19 @@ public class EmbeddedNeo4jServer {
         return start(uri.getHost(), uri.getPort(), dataLocation);
     }
 
+
+    /**
+     * Start a server on the given address
+     *
+     * @param address The address
+     *
+     * @return The {@link ServerControls}
+     */
+    public static ServerControls start(String address, File dataLocation,Map<String, Object> options) {
+        URI uri = URI.create(address);
+        return start(uri.getHost(), uri.getPort(), dataLocation, options);
+    }
+
     /**
      * Start a server on the given address
      *
@@ -109,6 +145,18 @@ public class EmbeddedNeo4jServer {
      * @return The {@link ServerControls}
      */
     public static ServerControls start(String host, int port, File dataLocation) {
+        return start(host, port, dataLocation, Collections.<String, Object>emptyMap());
+    }
+
+    /**
+     * Start a server on the given address
+     *
+     * @param host The host
+     * @param port The port
+     *
+     * @return The {@link ServerControls}
+     */
+    public static ServerControls start(String host, int port, File dataLocation, Map<String, Object> options) {
         String myBoltAddress = String.format("%s:%d", host, port);
 
         TestServerBuilder serverBuilder = TestServerBuilders.newInProcessBuilder()
@@ -118,22 +166,26 @@ public class EmbeddedNeo4jServer {
         if(dataLocation != null) {
             serverBuilder = serverBuilder.withConfig(data_directory,  dataLocation.getPath());
         }
+
+        for (String name : options.keySet()) {
+            serverBuilder.withConfig(name, options.get(name).toString());
+        }
         ServerControls serverControls = serverBuilder
-                                            .newServer();
+                .newServer();
 
         return serverControls;
     }
 
-    private static ServerControls attemptStartServer(int retryCount, File dataLocation) throws IOException {
+    private static ServerControls attemptStartServer(int retryCount, File dataLocation, Map<String, Object> options) throws IOException {
 
         try {
             InetSocketAddress inetAddr = Ports.findFreePort("localhost", new int[]{7687, 64 * 1024 - 1});
 
-            ServerControls serverControls = start(inetAddr, dataLocation);
+            ServerControls serverControls = start(inetAddr, dataLocation, options);
             return serverControls;
         } catch (ServerStartupException sse) {
             if(retryCount < 4) {
-                return attemptStartServer(++retryCount, dataLocation);
+                return attemptStartServer(++retryCount, dataLocation, options);
             }
             else {
                 throw sse;

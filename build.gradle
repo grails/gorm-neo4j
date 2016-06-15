@@ -289,7 +289,7 @@ class PublishingConvention {
 
     String projectArtifactId
     String projectName = 'GORM for Neo4j'
-    String projectDescription = 'Provides a GORM Object Mapping implementations for the Neo4j Graph Database'
+    String projectDescription = 'Provides a GORM Object Mapping implementation for the Neo4j Graph Database'
     String projectURL = 'https://gorm.grails.org/latest/neo4j'
     String projectIssueTrackerUrl = 'https://github.com/grails/gorm-neo4j/issues'
     String projectVcsUrl = 'https://github.com/grails/gorm-neo4j'
