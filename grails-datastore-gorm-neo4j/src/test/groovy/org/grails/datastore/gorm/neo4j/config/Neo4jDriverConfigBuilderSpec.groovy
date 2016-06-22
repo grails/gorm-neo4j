@@ -10,7 +10,7 @@ import spock.lang.Specification
  */
 class Neo4jDriverConfigBuilderSpec extends Specification {
 
-    void "test mongo client settings builder"() {
+    void "test neo4j client settings builder"() {
         when:"using a property resolver"
         StandardEnvironment resolver = new StandardEnvironment()
         Map myMap = ['grails.neo4j.options.maxSessions': '10',
