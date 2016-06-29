@@ -1,5 +1,5 @@
 = GORM for Neo4j
-Stefan Armbruster, Graeme Rocher:version: 6.0.0.BUILD-SNAPSHOT
+Stefan Armbruster, Graeme Rocher
 :imagesdir: ./images
 :source-highlighter: coderay
 :last-update-label!:
