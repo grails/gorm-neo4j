@@ -2,7 +2,6 @@
 Stefan Armbruster, Graeme Rocher
 :imagesdir: ./images
 :source-highlighter: coderay
-:last-update-label!:
 
 [[introduction]]
 == Introduction
