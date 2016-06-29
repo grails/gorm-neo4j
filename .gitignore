@@ -3,7 +3,9 @@
 build/
 target/
 *.zip
+grails-datastore-gorm-neo4j/data/
 grails2-plugin/plugins/
+grails2-plugin/plugin.xml
 
 # Ignore Gradle GUI config
 gradle-app.setting
