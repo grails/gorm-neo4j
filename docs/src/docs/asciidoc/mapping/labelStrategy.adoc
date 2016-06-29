@@ -1,0 +1,41 @@
+The default strategy for defining labels is to use the class name, however the strategy to define labels for a given node is completely configurable. For example you can use static mapping to define you labels:
+
+[source,groovy]
+----
+class Person {
+    static mapping = {
+        labels "Person", "People"
+    }
+}
+----
+
+You can also define labels dynamically. For example:
+
+[source,groovy]
+----
+class Person {
+    static mapping = {
+        labels { GraphPersistentEntity pe -> "`${pe.javaClass.name}`" }
+    }
+}
+----
+
+Or mix static and dynamic labels:
+
+[source,groovy]
+----
+static mapping = {
+    labels "People", { GraphPersistentEntity pe -> "`${pe.javaClass.name}`" }
+}
+----
+
+At a small read/write performance cost you can define dynamic labels based on an instance:
+
+[source,groovy]
+----
+static mapping = {
+    labels { GraphPersistentEntity pe, instance ->  // 2 arguments: instance dependent label
+        "`${instance.profession}`"
+    }
+}
+----

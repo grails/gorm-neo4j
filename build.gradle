@@ -10,6 +10,7 @@ buildscript {
         classpath "io.github.groovylang.groovydoc:groovydoc-gradle-plugin:1.0.1"
         classpath "org.grails:grails-gradle-plugin:3.1.8"
         classpath "org.grails:grails-gradle-plugin:2.2.0.RC1"
+        classpath 'org.asciidoctor:asciidoctor-gradle-plugin:1.5.3'
     }
 }
 
@@ -113,6 +114,10 @@ subprojects { project ->
     else {
         group "org.grails"        
     }
+
+    if(project.name == 'docs') {
+        return
+    }       
 
     if(isGrails3PluginProject) {
         apply plugin: "org.grails.grails-plugin"       

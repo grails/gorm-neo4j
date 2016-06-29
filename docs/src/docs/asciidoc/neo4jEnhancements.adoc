@@ -1,0 +1,22 @@
+Neo4j Grails contains some enhancements to the Neo4j core API.
+
+
+==== Setting properties on nodes/relationships
+
+
+Assigning an arbitrary property onto a Neo4j node or relationship can be simply done by using Groovy's property
+mechanism:
+[source,groovy]
+----
+def node = graphDatabaseService.createNode()
+node.myProperty = myValue
+----
+
+The same applies for getting properties:
+
+[source,groovy]
+----
+def node = ...
+def value = node.myProperty
+----
+

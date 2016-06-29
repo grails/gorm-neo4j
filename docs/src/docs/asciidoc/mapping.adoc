@@ -1,0 +1,28 @@
+GORM for Neo4j will map each Grails domain instance to a Node in the node space. For example given the following domain class:
+
+
+[source,groovy]
+----
+class Pet {
+    String name
+}
+----
+
+When an instance of `Pet` is saved:
+
+[source,groovy]
+----
+def p = new Pet(name:"Dino")
+p.save(flush:true)
+----
+
+Then the following Cypher CREATE is issued:
+
+[source,groovy]
+----
+CREATE (n2:Pet {props})
+----
+
+The properties of the class are converted to native Neo4j types and set as the `props` parameter to the query.
+
+NOTE: If you want to see what queries GORM for Neo4j generates, enabling logging for the `org.grails.datastore.gorm.neo4j` package
