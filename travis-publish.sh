@@ -70,7 +70,7 @@ if [[ $TRAVIS_REPO_SLUG == "grails/gorm-neo4j" && $TRAVIS_PULL_REQUEST == 'false
     fi
 
 
-    git commit -a -m "Updating MongoDB Docs for Travis build: https://travis-ci.org/$TRAVIS_REPO_SLUG/builds/$TRAVIS_BUILD_ID"
+    git commit -a -m "Updating Neo4j Docs for Travis build: https://travis-ci.org/$TRAVIS_REPO_SLUG/builds/$TRAVIS_BUILD_ID"
     git push origin HEAD
     cd ../../..
     rm -rf gh-pages
