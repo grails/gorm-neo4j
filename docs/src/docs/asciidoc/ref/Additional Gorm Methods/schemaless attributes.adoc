@@ -1,16 +1,7 @@
-
-===== schemaless attributes
-
-
-
 ===== Purpose
 
 
-For domain classes mapped by Neo4j you can put and get arbitrary attributes on a instances by using the dot operator or
-map semantics on the domain instance.
-
-NOTE: Setting arbitrary attribute in only allowed when the domain instance is persisted (aka `save` has been called)!
-
+For domain classes mapped by Neo4j you can put and get arbitrary attributes on a instances by using the dot operator or map semantics on the domain instance.
 
 ===== Example
 
@@ -26,7 +17,7 @@ class Person implements Serializable {
 ----
 
 
-===== using map semantics
+===== Using Map Semantics
 
 [source,groovy]
 ----
@@ -50,7 +41,7 @@ person['someDoubleArray'] == [0.9, 1.0, 1.1]
 ----
 
 
-===== using dot operator
+===== Using Dot Operator
 
 [source,groovy]
 ----
@@ -80,7 +71,6 @@ person.someDoubleArray == [0.9, 1.0, 1.1]
 ===== Description
 
 
-The non declared attribtes are stored a regular properties on the domain instance's node. The values of the schemaless
-attributes must be a valid type for Neo4j property (String, primitives and arrays of the former two).
+The non declared attribtes are stored a regular properties on the domain instance's node. The values of the schemaless attributes must be a valid type for Neo4j property (String, primitives and arrays of the former two).
 
 

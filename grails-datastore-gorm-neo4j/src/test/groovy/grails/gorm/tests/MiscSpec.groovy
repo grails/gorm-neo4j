@@ -480,14 +480,28 @@ class Club implements Neo4jEntity<Club> {
     List teams
     League league
     static belongsTo = [league:League]
-    static hasMany = [teams: Team ]
-
+    static hasMany = [teams: Team,attributes: Attribute ]
+    static constraints = {
+        attributes nullable: true
+    }
     // TODO: maybe refactor this into a AST
     protected Object writeReplace()
                            throws ObjectStreamException {
         return get(id)
     }
 }
+
+@Entity
+class Attribute {
+
+    String name
+    String description
+
+    static constraints = {
+        description nullable: true
+    }
+}
+
 
 @Entity
 @DirtyCheck

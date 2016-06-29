@@ -1,22 +1,28 @@
-Neo4j Grails contains some enhancements to the Neo4j core API.
+GORM for Neo4j contains some enhancements to the Neo4j Bolt Driver API.
 
 
-==== Setting properties on nodes/relationships
+==== Getting Properties from Nodes
 
 
-Assigning an arbitrary property onto a Neo4j node or relationship can be simply done by using Groovy's property
-mechanism:
-[source,groovy]
-----
-def node = graphDatabaseService.createNode()
-node.myProperty = myValue
-----
-
-The same applies for getting properties:
+The dot operator can be used to obtain properties from a node:
 
 [source,groovy]
 ----
-def node = ...
+Node node = ...
 def value = node.myProperty
+
+// or
+
+def value = node['myProperty']
 ----
 
+==== Cast a Node to a Map
+
+Nodes can be cast to maps:
+
+
+[source,groovy]
+----
+Node node = ...
+Map myMap = node as Map
+----

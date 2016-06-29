@@ -2,26 +2,56 @@ To get started with GORM for Neo4j you need to install the plugin into a Grails 
 
 For Grails 3.x you need to edit your `build.gradle` file and add the plugin as a dependency:
 
-[source,groovy]
+[source,groovy,subs="attributes"]
 ----
 dependencies {
-	compile 'org.grails.plugins:neo4j:VERSION'
+	compile 'org.grails.plugins:neo4j:{version}'
 }
 ----
 
+NOTE: GORM for Neo4j requires Grails 2.5.x or above and Neo4j 3.0.x or above, if you wish to use Neo4j 2.3.x use the http://gorm.grails.org/5.0.x[5.x version] of GORM
 
-To do so for Grails 2.x edit the `grails-app/conf/BuildConfig.groovy` file and add the following plugin definition, where `VERSION` is the version of the plugin you plan to use:
 
+To configure the plugin for Grails 2.x edit the `grails-app/conf/BuildConfig.groovy` file and add the following plugin definitions:
+
+
+[source,groovy,subs="attributes"]
+----
+plugins {
+    compile ':neo4j:{version}'
+    build ':tomcat:8.22'
+}
+----
+
+WARNING: Grails 2.5.x must be configured with Tomcat 8 when using Neo4j in `embedded` mode, since the Neo4j server depends newer versions of the Servlet API and will not work with Tomcat 7.
+
+By default the Grails plugin assumes you have a Neo4j instance running on port `7687`, however you can run Neo4j embedded by including the following configuration in `grails-app/conf/application.yml`:
+
+[source,yaml]
+----
+grails:
+    neo4j:
+        type: embedded
+----
+
+And then adding the Neo4j test harness to your `provided` dependencies:
 
 [source,groovy]
 ----
-plugins {
-    compile ':neo4j:VERSION'
-}
+provided 'org.neo4j.test:neo4j-harness:3.0.2'
 ----
 
-NOTE: GORM for Neo4j requires Grails 2.5.x or above and Neo4j 2.3.x or above
+WARNING: The Neo4j server uses Jetty, so when you add Neo4j as embedded Grails will also use Jetty (not Tomcat) as the container since it discovered on the classpath, therefore it is not recommended to use Neo4j embedded.
 
-By default Neo4j will used as embedded database inside the JVM, the default directory for the Neo4j datastore is `data/neo4j`.
+To configure the Neo4j server URL you can use the `grails.neo4j.url` setting in `grails-app/conf/application.yml`:
+
+[source,yaml]
+----
+grails:
+    neo4j:
+        url: bolt://localhost:7687
+----
+
+
 
 

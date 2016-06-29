@@ -8,6 +8,15 @@ class Pet {
 }
 ----
 
+Each domain class will implement the link:../api/grails/neo4j/Neo4jEntity.html[Neo4jEntity] trait. You can define this explicitly if you prefer:
+
+[source,groovy]
+----
+class Pet implements Neo4jEntity<Pet> {
+    String name
+}
+----
+
 When an instance of `Pet` is saved:
 
 [source,groovy]
@@ -16,7 +25,7 @@ def p = new Pet(name:"Dino")
 p.save(flush:true)
 ----
 
-Then the following Cypher CREATE is issued:
+Then the following Cypher `CREATE` is issued:
 
 [source,groovy]
 ----

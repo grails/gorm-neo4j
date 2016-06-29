@@ -1,0 +1,7 @@
+If you are upgrading from a previous version of the plugin to the {version}, you will need to take into account the following changes.
+
+==== Configuration Changes
+
+==== Bolt Java Driver and API Changes
+
+==== General Neo4j 3.x Changes

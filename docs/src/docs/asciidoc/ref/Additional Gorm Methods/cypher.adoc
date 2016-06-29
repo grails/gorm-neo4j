@@ -1,13 +1,6 @@
-
-===== cypher
-
-
-
 ===== Purpose
 
-
 Execute a cypher query.
-
 
 ===== Example
 
@@ -29,12 +22,14 @@ then:
 result.iterator().size() == 1
 ----
 
-
 ===== Description
 
 
-`cypher` is invoked on any domain instance and returns a http://api.neo4j.org/current/org/neo4j/cypher/javacompat/ExecutionResult.html[ExecutionResult] The parameters passed are:
-* cypher query string. The query string might use a implizit `this` parameter pointing to the instance's node
+`cypher` is invoked on any domain instance and returns a http://neo4j.com/docs/api/java-driver/1.0/org/neo4j/driver/v1/StatementResult.html[org.neo4j.driver.v1.StatementResult]
+
+The parameters passed are:
+
+* cypher query string. The query string might use a implicit `this` parameter pointing to the instance's node
 * a optional map of cypher parameters
 
 

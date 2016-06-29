@@ -1,6 +1,15 @@
+==== 6.0.x
+
+* Support for Neo4j 3.0.x or above
+* Rewritten for Neo4j Bolt Java Driver
+* Refactored Bootstrapping
+* Uses new DynamicAttributes trait
+
+==== 5.0.x
+
 The following new features are available in this release.
 
-* Support for Neo4j Neo4j 2.3.x or above
+* Support for Neo4j 2.3.x or above
 * Ability to query using Cypher with the default GORM methods (find, findAll)
 * Robust Spring Transaction Management
 * Support for Lazy & Eager Loading using OPTIONAL MATCH
@@ -11,3 +20,26 @@ If you are using an older version of the plugin, and looking to upgrade the foll
 
 * Neo4j JDBC is no longer used and the corresponding CypherEngine interface was removed
 * Dynamic associations are disabled by default, you can re-enable them in your entity mapping
+
+==== 4.0.x
+
+* Rewritten for Groovy traits & Grails 3
+
+==== 3.0.x
+
+* Initial support for Neo4j 2.0.x
+* Support for Cypher via Neo4j JDBC
+
+==== 2.0.x
+
+* Refinements from 1.0.x
+
+==== 1.0.x
+
+* works with Neo4j HA
+* implementing new GORM property criteria filters
+* uses Neo4j 1.8.2
+* first GORM compliant version of the plugin
+* works with embedded and REST Neo4j databases
+* exposing traversal options to domain classes
+

@@ -6,6 +6,6 @@ The goal of GORM for Neo4j is to provide a 'as-complete-as-possible' GORM implem
 * Support for GORM dynamic finders, criteria and named queries
 * Session-managed transactions
 * access to Neo4j's traversal capabilities
-* Access the Neo4j graph database in all flavours (Embedded, REST and HA)
+* Access the Neo4j graph database via the Bolt Java Driver
 * Neo4j autoindexing
 
