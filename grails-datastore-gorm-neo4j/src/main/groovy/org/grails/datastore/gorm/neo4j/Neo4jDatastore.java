@@ -14,47 +14,45 @@
  */
 package org.grails.datastore.gorm.neo4j;
 
-import groovy.lang.Closure;
 import org.grails.datastore.gorm.GormEnhancer;
+import org.grails.datastore.gorm.GormInstanceApi;
+import org.grails.datastore.gorm.GormStaticApi;
 import org.grails.datastore.gorm.events.AutoTimestampEventListener;
 import org.grails.datastore.gorm.events.ConfigurableApplicationEventPublisher;
 import org.grails.datastore.gorm.events.DefaultApplicationEventPublisher;
 import org.grails.datastore.gorm.events.DomainEventListener;
-import org.grails.datastore.gorm.neo4j.config.Neo4jDriverConfigBuilder;
 import org.grails.datastore.gorm.neo4j.connections.Neo4jConnectionSourceFactory;
 import org.grails.datastore.gorm.neo4j.connections.Neo4jConnectionSourceSettings;
 import org.grails.datastore.gorm.neo4j.connections.Neo4jConnectionSourceSettingsBuilder;
-import org.grails.datastore.gorm.neo4j.util.EmbeddedNeo4jServer;
 import org.grails.datastore.gorm.validation.constraints.MappingContextAwareConstraintFactory;
 import org.grails.datastore.gorm.validation.constraints.builtin.UniqueConstraint;
 import org.grails.datastore.gorm.validation.constraints.registry.DefaultValidatorRegistry;
 import org.grails.datastore.mapping.config.Property;
 import org.grails.datastore.mapping.config.Settings;
 import org.grails.datastore.mapping.core.AbstractDatastore;
+import org.grails.datastore.mapping.core.Datastore;
 import org.grails.datastore.mapping.core.DatastoreUtils;
-import org.grails.datastore.mapping.core.Session;
 import org.grails.datastore.mapping.core.StatelessDatastore;
 import org.grails.datastore.mapping.core.connections.*;
+import org.grails.datastore.mapping.core.exceptions.ConfigurationException;
 import org.grails.datastore.mapping.graph.GraphDatastore;
 import org.grails.datastore.mapping.model.DatastoreConfigurationException;
 import org.grails.datastore.mapping.model.MappingContext;
 import org.grails.datastore.mapping.model.PersistentEntity;
 import org.grails.datastore.mapping.model.PersistentProperty;
 import org.grails.datastore.mapping.model.types.Simple;
-import org.grails.datastore.mapping.reflect.ClassUtils;
-import org.neo4j.driver.v1.*;
+import org.neo4j.driver.v1.Driver;
+import org.neo4j.driver.v1.Session;
+import org.neo4j.driver.v1.Transaction;
 import org.neo4j.driver.v1.exceptions.Neo4jException;
-import org.neo4j.harness.ServerControls;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.env.PropertyResolver;
 import org.springframework.core.env.StandardEnvironment;
 
 import javax.annotation.PreDestroy;
 import javax.persistence.FlushModeType;
 import java.io.Closeable;
-import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
@@ -101,17 +99,68 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
         }
 
         transactionManager = new Neo4jDatastoreTransactionManager(this);
-        gormEnhancer = new GormEnhancer(this, transactionManager, settings.isFailOnError());
 
-        registerEventListeners(eventPublisher);
 
-        mappingContext.addMappingContextListener(new MappingContext.Listener() {
+        this.gormEnhancer = initialize(settings);
+    }
+
+    protected GormEnhancer initialize(Neo4jConnectionSourceSettings settings) {
+        registerEventListeners(this.eventPublisher);
+
+        this.mappingContext.addMappingContextListener(new MappingContext.Listener() {
             @Override
             public void persistentEntityAdded(PersistentEntity entity) {
                 gormEnhancer.registerEntity(entity);
             }
         });
+
+        return new GormEnhancer(this, transactionManager, settings.isFailOnError()) {
+            @Override
+            public Set<String> allQualifiers(Datastore datastore, PersistentEntity entity) {
+                LinkedHashSet<String> allConnectionSources = new LinkedHashSet<>(ConnectionSourcesSupport.getConnectionSourceNames(entity));
+                allConnectionSources.add(ConnectionSource.DEFAULT);
+                return allConnectionSources;
+            }
+
+            @Override
+            protected <D> GormStaticApi<D> getStaticApi(Class<D> cls, String qualifier) {
+                Neo4jDatastore neo4jDatastore = getDatastoreForQualifier(cls, qualifier);
+                return new GormStaticApi<>(cls, neo4jDatastore, getFinders(), transactionManager);
+            }
+
+            @Override
+            protected <D> GormInstanceApi<D> getInstanceApi(Class<D> cls, String qualifier) {
+                Neo4jDatastore neo4jDatastore = getDatastoreForQualifier(cls, qualifier);
+                return new GormInstanceApi<>(cls,neo4jDatastore);
+            }
+
+            private <D> Neo4jDatastore getDatastoreForQualifier(Class<D> cls, String qualifier) {
+                String defaultConnectionSourceName = ConnectionSourcesSupport.getDefaultConnectionSourceName(getMappingContext().getPersistentEntity(cls.getName()));
+                boolean isDefaultQualifier = qualifier.equals(ConnectionSource.DEFAULT);
+                if(isDefaultQualifier && defaultConnectionSourceName.equals(ConnectionSource.DEFAULT)) {
+                    return Neo4jDatastore.this;
+                }
+                else {
+                    if(isDefaultQualifier) {
+                        qualifier = defaultConnectionSourceName;
+                    }
+                    ConnectionSource<Driver, Neo4jConnectionSourceSettings> connectionSource = connectionSources.getConnectionSource(qualifier);
+                    if(connectionSource == null) {
+                        throw new ConfigurationException("Invalid connection ["+defaultConnectionSourceName+"] configured for class ["+cls+"]");
+                    }
+                    SingletonConnectionSources<Driver, Neo4jConnectionSourceSettings> newConnectionSources = new SingletonConnectionSources<>(connectionSource, connectionSources.getBaseConfiguration());
+                    return new Neo4jDatastore(newConnectionSources, (Neo4jMappingContext) getMappingContext(), eventPublisher) {
+                        @Override
+                        protected GormEnhancer initialize(Neo4jConnectionSourceSettings settings) {
+                            // no-op
+                            return null;
+                        }
+                    };
+                }
+            }
+        };
     }
+
     /**
      * Configures a new {@link Neo4jDatastore} for the given arguments
      *
@@ -278,7 +327,7 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
     }
 
     @Override
-    protected Session createSession(PropertyResolver connectionDetails) {
+    protected org.grails.datastore.mapping.core.Session createSession(PropertyResolver connectionDetails) {
         final Neo4jSession neo4jSession = new Neo4jSession(this, mappingContext, eventPublisher, false, boltDriver);
         neo4jSession.setFlushMode(defaultFlushMode);
         return neo4jSession;

@@ -15,7 +15,9 @@
  */
 package grails.neo4j
 
+import grails.gorm.api.GormAllOperations
 import groovy.transform.CompileStatic
+import org.grails.datastore.gorm.GormEnhancer
 import org.grails.datastore.gorm.GormEntity
 import org.grails.datastore.gorm.neo4j.Neo4jDatastore
 import org.grails.datastore.gorm.neo4j.Neo4jSession
@@ -292,6 +294,21 @@ trait Neo4jEntity<D> implements GormEntity<D>, DynamicAttributes {
             return (D)resultList.get(0)
         }
         return null
+    }
+
+    /**
+     * Perform an operation with the given connection
+     *
+     * @param connectionName The name of the connection
+     * @param callable The operation
+     * @return The return value of the closure
+     */
+    static <T> T withConnection(String connectionName, @DelegatesTo(GormAllOperations)Closure callable) {
+        def staticApi = GormEnhancer.findStaticApi(this, connectionName)
+        return (T)staticApi.withNewSession {
+            callable.setDelegate(staticApi)
+            return callable.call()
+        }
     }
 
     private static StatementRunner getStatementRunner(Neo4jSession session) {
