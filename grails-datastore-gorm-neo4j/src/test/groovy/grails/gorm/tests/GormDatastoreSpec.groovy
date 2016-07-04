@@ -34,7 +34,7 @@ abstract class GormDatastoreSpec extends Specification {
     @Shared Driver boltDriver
     @Shared GrailsApplication grailsApplication
     @Shared MappingContext mappingContext
-
+    @Shared File dataDir
     Neo4jSession session
 
     void setupSpec() {
@@ -42,9 +42,11 @@ abstract class GormDatastoreSpec extends Specification {
         ctx.refresh()
         def allClasses = getDomainClasses() as Class[]
 
+
+        def dataDir = File.createTempDir()
         neo4jDatastore = new Neo4jDatastore(
                 [(Settings.SETTING_NEO4J_TYPE)             : Settings.DATABASE_TYPE_EMBEDDED,
-                 (Settings.SETTING_NEO4J_LOCATION)             : "build/data",
+                 (Settings.SETTING_NEO4J_LOCATION)         : dataDir,
                  'grails.neo4j.embedded.options.dbms.shell':'true'],
                 new ConfigurableApplicationContextEventPublisher(ctx),
                 allClasses
@@ -56,6 +58,10 @@ abstract class GormDatastoreSpec extends Specification {
         grailsApplication = new DefaultGrailsApplication(allClasses, getClass().getClassLoader())
         grailsApplication.mainContext = ctx
         grailsApplication.initialise()
+    }
+
+    void cleanupSpec() {
+        dataDir?.deleteOnExit()
     }
 
     void setupValidator(Class entityClass, Validator validator = null) {

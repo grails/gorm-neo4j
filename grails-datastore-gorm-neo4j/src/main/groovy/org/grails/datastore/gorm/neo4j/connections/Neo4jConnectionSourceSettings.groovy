@@ -20,7 +20,7 @@ class Neo4jConnectionSourceSettings extends ConnectionSourceSettings implements 
     /**
      * The URL to connect to
      */
-    String url = DEFAULT_URL
+    String url
 
     /**
      * The username to use

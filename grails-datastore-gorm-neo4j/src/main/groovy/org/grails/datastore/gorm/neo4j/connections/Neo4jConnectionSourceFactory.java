@@ -19,6 +19,7 @@ import org.springframework.core.env.PropertyResolver;
 
 import java.io.File;
 import java.io.Serializable;
+import java.net.URI;
 import java.util.Map;
 
 /**
@@ -55,8 +56,9 @@ public class Neo4jConnectionSourceFactory implements ConnectionSourceFactory<Dri
                 ServerControls serverControls;
                 try {
                     serverControls = url != null ? EmbeddedNeo4jServer.start(url, dataDir, options) : EmbeddedNeo4jServer.start(dataDir, options);
-
-                    Driver driver =  GraphDatabase.driver(serverControls.boltURI(), Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig());
+                    Config config = Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig();
+                    URI boltURI = serverControls.boltURI();
+                    Driver driver =  GraphDatabase.driver(boltURI, config);
                     return new Neo4jEmbeddedConnectionSource(name, driver, settings, serverControls);
                 } catch (Throwable e) {
                     throw new DatastoreConfigurationException("Unable to start embedded Neo4j server: " + e.getMessage(), e);
@@ -74,7 +76,7 @@ public class Neo4jConnectionSourceFactory implements ConnectionSourceFactory<Dri
         }
 
 
-        Driver driver = GraphDatabase.driver(url, authToken, settings.getOptions().build());
+        Driver driver = GraphDatabase.driver(url != null ? url : Settings.DEFAULT_URL, authToken, settings.getOptions().build());
         return new DefaultConnectionSource<>(name, driver, settings);
 
     }

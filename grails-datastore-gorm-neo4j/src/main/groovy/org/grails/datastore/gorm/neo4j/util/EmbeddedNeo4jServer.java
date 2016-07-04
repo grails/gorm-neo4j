@@ -170,6 +170,7 @@ public class EmbeddedNeo4jServer {
         for (String name : options.keySet()) {
             serverBuilder.withConfig(name, options.get(name).toString());
         }
+        
         ServerControls serverControls = serverBuilder
                 .newServer();
 
