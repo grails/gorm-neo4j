@@ -5,11 +5,8 @@ import grails.neo4j.Neo4jEntity
 import grails.persistence.Entity
 import groovy.beans.Bindable
 import groovyx.gpars.GParsPool
-import org.grails.datastore.gorm.Setup
+
 import org.grails.datastore.gorm.neo4j.util.IteratorUtil
-import org.neo4j.driver.v1.Session
-import org.neo4j.driver.v1.Transaction
-import org.neo4j.graphdb.DynamicLabel
 import org.neo4j.graphdb.Label
 import spock.lang.Ignore
 import spock.lang.IgnoreIf

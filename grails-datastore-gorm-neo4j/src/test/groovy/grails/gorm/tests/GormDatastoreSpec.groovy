@@ -3,7 +3,7 @@ package grails.gorm.tests
 import grails.core.DefaultGrailsApplication
 import grails.core.GrailsApplication
 import org.grails.datastore.gorm.events.ConfigurableApplicationContextEventPublisher
-import org.grails.datastore.gorm.neo4j.proxy.HashcodeEqualsAwareProxyFactory
+import org.grails.datastore.gorm.neo4j.config.Settings
 import org.grails.datastore.gorm.neo4j.Neo4jDatastore
 import org.grails.datastore.gorm.neo4j.Neo4jSession
 import org.grails.datastore.mapping.core.DatastoreUtils
@@ -13,8 +13,6 @@ import org.grails.validation.GrailsDomainClassValidator
 import org.neo4j.driver.v1.Driver
 import org.neo4j.harness.ServerControls
 import org.springframework.context.support.GenericApplicationContext
-import org.springframework.core.env.MapPropertySource
-import org.springframework.core.env.StandardEnvironment
 import org.springframework.validation.Validator
 import spock.lang.AutoCleanup
 import spock.lang.Shared
@@ -45,12 +43,13 @@ abstract class GormDatastoreSpec extends Specification {
         def allClasses = getDomainClasses() as Class[]
 
         neo4jDatastore = new Neo4jDatastore(
-                [(Neo4jDatastore.SETTING_NEO4J_TYPE): Neo4jDatastore.DATABASE_TYPE_EMBEDDED,
+                [(Settings.SETTING_NEO4J_TYPE)             : Settings.DATABASE_TYPE_EMBEDDED,
+                 (Settings.SETTING_NEO4J_LOCATION)             : "build/data",
                  'grails.neo4j.embedded.options.dbms.shell':'true'],
                 new ConfigurableApplicationContextEventPublisher(ctx),
                 allClasses
         )
-        serverControls = (ServerControls)Neo4jDatastore.embeddedServer
+        serverControls = (ServerControls)neo4jDatastore.connectionSources.defaultConnectionSource.serverControls
         boltDriver = neo4jDatastore.boltDriver
         mappingContext = neo4jDatastore.mappingContext
 

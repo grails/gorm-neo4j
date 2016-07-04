@@ -3,12 +3,9 @@ package grails.gorm.tests
 import grails.gorm.dirty.checking.DirtyCheck
 import grails.neo4j.Neo4jEntity
 import grails.persistence.Entity
-import org.grails.datastore.gorm.Setup
+
 import org.grails.datastore.gorm.neo4j.GraphPersistentEntity
 import org.grails.datastore.gorm.neo4j.util.IteratorUtil
-import org.grails.datastore.mapping.core.Session
-import org.neo4j.graphdb.DynamicLabel
-import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.graphdb.Label
 import org.neo4j.graphdb.Transaction
 import spock.lang.Issue

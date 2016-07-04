@@ -1,7 +1,7 @@
 package grails.neo4j.bootstrap
 
 import grails.persistence.Entity
-import org.grails.datastore.gorm.neo4j.Neo4jDatastore
+import org.grails.datastore.gorm.neo4j.config.Settings
 import org.springframework.core.env.MapPropertySource
 import org.springframework.core.env.StandardEnvironment
 import spock.lang.Specification
@@ -30,7 +30,7 @@ class Neo4jDataStoreSpringInitializerSpec extends Specification {
         setup:"neo4j is initialised"
         def config = new StandardEnvironment()
         config.propertySources.addFirst(new MapPropertySource("test",
-                [(Neo4jDatastore.SETTING_NEO4J_TYPE): Neo4jDatastore.DATABASE_TYPE_EMBEDDED]
+                [(Settings.SETTING_NEO4J_TYPE): Settings.DATABASE_TYPE_EMBEDDED]
         ))
         def init = new Neo4jDataStoreSpringInitializer(config, Author, Book)
         def ctx = init.configure()
