@@ -1,6 +1,8 @@
 .gradle
 .idea
 build/
+grails2-plugin/data/
+boot-plugin/data/
 target/
 *.zip
 grails-datastore-gorm-neo4j/data/
