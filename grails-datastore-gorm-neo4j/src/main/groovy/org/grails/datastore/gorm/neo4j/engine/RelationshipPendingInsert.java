@@ -105,10 +105,11 @@ public class RelationshipPendingInsert extends PendingInsertAdapter<Object, Seri
                 cypher = String.format(CYPHER_DELETE_RELATIONSHIP, labelsFrom, relMatch);
             }
 
+            Map<String, Object> deleteParams = Collections.singletonMap(CypherBuilder.START, parentId);
             if(log.isDebugEnabled()) {
-                log.debug("DELETE Cypher [{}] for parameters [{}]", cypher, params);
+                log.debug("DELETE Cypher [{}] for parameters [{}]", cypher, deleteParams);
             }
-            boltTransaction.run(cypher, Collections.singletonMap(CypherBuilder.START,parentId));
+            boltTransaction.run(cypher, deleteParams);
         }
 
         StringBuilder cypherQuery = new StringBuilder("MATCH (from").append(labelsFrom).append("), (to").append(labelsTo).append(") WHERE ");
