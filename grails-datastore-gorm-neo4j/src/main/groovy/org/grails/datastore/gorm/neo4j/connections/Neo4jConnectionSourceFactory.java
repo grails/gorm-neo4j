@@ -6,6 +6,7 @@ import org.grails.datastore.gorm.neo4j.config.Settings;
 import org.grails.datastore.gorm.neo4j.util.EmbeddedNeo4jServer;
 import org.grails.datastore.mapping.core.connections.ConnectionSource;
 import org.grails.datastore.mapping.core.connections.ConnectionSourceFactory;
+import org.grails.datastore.mapping.core.connections.ConnectionSourceSettings;
 import org.grails.datastore.mapping.core.connections.DefaultConnectionSource;
 import org.grails.datastore.mapping.model.DatastoreConfigurationException;
 import org.grails.datastore.mapping.reflect.ClassUtils;
@@ -36,8 +37,7 @@ public class Neo4jConnectionSourceFactory implements ConnectionSourceFactory<Dri
         return create(name, configuration, null);
     }
 
-    @Override
-    public ConnectionSource<Driver, Neo4jConnectionSourceSettings> create(String name, PropertyResolver configuration, Neo4jConnectionSourceSettings fallbackSettings) {
+    public <F extends ConnectionSourceSettings> ConnectionSource<Driver, Neo4jConnectionSourceSettings> create(String name, PropertyResolver configuration, F fallbackSettings) {
         final boolean isDefaultConnection = ConnectionSource.DEFAULT.equals(name);
         String prefix = isDefaultConnection ? Settings.PREFIX : Settings.SETTING_CONNECTIONS + "." + name;
         Neo4jConnectionSourceSettingsBuilder settingsBuilder = new Neo4jConnectionSourceSettingsBuilder(configuration, prefix, fallbackSettings);
@@ -78,7 +78,6 @@ public class Neo4jConnectionSourceFactory implements ConnectionSourceFactory<Dri
 
         Driver driver = GraphDatabase.driver(url != null ? url : Settings.DEFAULT_URL, authToken, settings.getOptions().build());
         return new DefaultConnectionSource<>(name, driver, settings);
-
     }
 
     @Override
