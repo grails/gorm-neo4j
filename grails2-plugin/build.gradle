@@ -68,7 +68,7 @@ project.tasks.withType(PublishToMavenRepository) { task ->
     task.dependsOn("assemble")
 }
 
-
+//test.jvmOptions.jvmArgs "-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005", "-Xdebug"
 
 class GrailsPluginComponent implements SoftwareComponentInternal {
 
