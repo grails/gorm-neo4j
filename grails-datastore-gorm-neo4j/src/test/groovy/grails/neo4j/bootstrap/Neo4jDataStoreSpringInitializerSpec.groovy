@@ -61,7 +61,7 @@ class Neo4jDataStoreSpringInitializerSpec extends Specification {
     void "Test configuration from map Neo4jDataStoreSpringInitializer loads neo4j correctly"() {
         when:"neo4j is initialised"
 
-        def config = [grails: [neo4j: [url: "jdbc:foo:bar", options:[one:"two"]]]]
+        def config = [ (Settings.SETTING_NEO4J_URL):"jdbc:foo:bar", (Settings.SETTING_NEO4J_DRIVER_PROPERTIES):[one:"two"]]
         def init = new Neo4jDataStoreSpringInitializer(config,Book)
 //        init.configure()
 
