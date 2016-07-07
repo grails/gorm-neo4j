@@ -4,10 +4,7 @@ import groovy.transform.CompileStatic;
 import groovy.util.logging.Slf4j;
 import org.grails.datastore.gorm.neo4j.config.Settings;
 import org.grails.datastore.gorm.neo4j.util.EmbeddedNeo4jServer;
-import org.grails.datastore.mapping.core.connections.ConnectionSource;
-import org.grails.datastore.mapping.core.connections.ConnectionSourceFactory;
-import org.grails.datastore.mapping.core.connections.ConnectionSourceSettings;
-import org.grails.datastore.mapping.core.connections.DefaultConnectionSource;
+import org.grails.datastore.mapping.core.connections.*;
 import org.grails.datastore.mapping.model.DatastoreConfigurationException;
 import org.grails.datastore.mapping.reflect.ClassUtils;
 import org.neo4j.driver.v1.AuthToken;
@@ -31,24 +28,23 @@ import java.util.Map;
  */
 @CompileStatic
 @Slf4j
-public class Neo4jConnectionSourceFactory implements ConnectionSourceFactory<Driver, Neo4jConnectionSourceSettings> {
-    @Override
-    public ConnectionSource<Driver, Neo4jConnectionSourceSettings> create(String name, PropertyResolver configuration) {
-        return create(name, configuration, null);
-    }
+public class Neo4jConnectionSourceFactory extends AbstractConnectionSourceFactory<Driver, Neo4jConnectionSourceSettings> {
 
-    public <F extends ConnectionSourceSettings> ConnectionSource<Driver, Neo4jConnectionSourceSettings> create(String name, PropertyResolver configuration, F fallbackSettings) {
-        final boolean isDefaultConnection = ConnectionSource.DEFAULT.equals(name);
-        String prefix = isDefaultConnection ? Settings.PREFIX : Settings.SETTING_CONNECTIONS + "." + name;
+    @Override
+    protected <F extends ConnectionSourceSettings> Neo4jConnectionSourceSettings buildSettings(String name, PropertyResolver configuration, F fallbackSettings, boolean isDefaultDataSource) {
+        String prefix = isDefaultDataSource? Settings.PREFIX : Settings.SETTING_CONNECTIONS + "." + name;
         Neo4jConnectionSourceSettingsBuilder settingsBuilder = new Neo4jConnectionSourceSettingsBuilder(configuration, prefix, fallbackSettings);
         Neo4jConnectionSourceSettings settings = settingsBuilder.build();
+        return settings;
+    }
 
-
+    @Override
+    public ConnectionSource<Driver, Neo4jConnectionSourceSettings> create(String name, Neo4jConnectionSourceSettings settings) {
         final String url = settings.getUrl();
         final String username = settings.getUsername();
         final String password = settings.getPassword();
         final Neo4jConnectionSourceSettings.ConnectionType type = settings.getType();
-        if(type == Neo4jConnectionSourceSettings.ConnectionType.embedded && isDefaultConnection) {
+        if(type == Neo4jConnectionSourceSettings.ConnectionType.embedded && ConnectionSource.DEFAULT.equals(name)) {
             if(ClassUtils.isPresent("org.neo4j.harness.ServerControls") && EmbeddedNeo4jServer.isAvailable()) {
                 final String location = settings.getLocation();
                 final Map options = settings.getEmbedded().getOptions();
