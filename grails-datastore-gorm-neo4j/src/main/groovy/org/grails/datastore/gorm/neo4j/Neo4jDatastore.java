@@ -75,7 +75,7 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
     protected final Neo4jDatastoreTransactionManager transactionManager;
     protected final GormEnhancer gormEnhancer;
     protected final ConnectionSources<Driver, Neo4jConnectionSourceSettings> connectionSources;
-
+    protected final Map<String, Neo4jDatastore> datastoresByConnectionSource = new LinkedHashMap<>();
 
     /**
      * Configures a new {@link Neo4jDatastore} for the given arguments
@@ -99,7 +99,27 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
         }
 
         transactionManager = new Neo4jDatastoreTransactionManager(this);
+        if(!(connectionSources instanceof SingletonConnectionSources)) {
 
+            Iterable<ConnectionSource<Driver, Neo4jConnectionSourceSettings>> allConnectionSources = connectionSources.getAllConnectionSources();
+            for (ConnectionSource<Driver, Neo4jConnectionSourceSettings> connectionSource : allConnectionSources) {
+                SingletonConnectionSources singletonConnectionSources = new SingletonConnectionSources(connectionSource, connectionSources.getBaseConfiguration());
+                Neo4jDatastore childDatastore;
+
+                if(ConnectionSource.DEFAULT.equals(connectionSource.getName())) {
+                    childDatastore = this;
+                }
+                else {
+                    childDatastore = new Neo4jDatastore(singletonConnectionSources, mappingContext, eventPublisher) {
+                        @Override
+                        protected GormEnhancer initialize(Neo4jConnectionSourceSettings settings) {
+                            return null;
+                        }
+                    };
+                }
+                datastoresByConnectionSource.put(connectionSource.getName(), childDatastore);
+            }
+        }
 
         this.gormEnhancer = initialize(settings);
     }
@@ -114,18 +134,12 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
             }
         });
 
-        return new GormEnhancer(this, transactionManager, settings.isFailOnError()) {
-            @Override
-            public Set<String> allQualifiers(Datastore datastore, PersistentEntity entity) {
-                LinkedHashSet<String> allConnectionSources = new LinkedHashSet<>(ConnectionSourcesSupport.getConnectionSourceNames(entity));
-                allConnectionSources.add(ConnectionSource.DEFAULT);
-                return allConnectionSources;
-            }
+        return new GormEnhancer(this, transactionManager, settings) {
 
             @Override
             protected <D> GormStaticApi<D> getStaticApi(Class<D> cls, String qualifier) {
                 Neo4jDatastore neo4jDatastore = getDatastoreForQualifier(cls, qualifier);
-                return new GormStaticApi<>(cls, neo4jDatastore, getFinders(), transactionManager);
+                return new GormStaticApi<>(cls, neo4jDatastore, getFinders(), neo4jDatastore.getTransactionManager());
             }
 
             @Override
@@ -148,14 +162,7 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
                     if(connectionSource == null) {
                         throw new ConfigurationException("Invalid connection ["+defaultConnectionSourceName+"] configured for class ["+cls+"]");
                     }
-                    SingletonConnectionSources<Driver, Neo4jConnectionSourceSettings> newConnectionSources = new SingletonConnectionSources<>(connectionSource, connectionSources.getBaseConfiguration());
-                    return new Neo4jDatastore(newConnectionSources, (Neo4jMappingContext) getMappingContext(), eventPublisher) {
-                        @Override
-                        protected GormEnhancer initialize(Neo4jConnectionSourceSettings settings) {
-                            // no-op
-                            return null;
-                        }
-                    };
+                    return Neo4jDatastore.this.datastoresByConnectionSource.get(qualifier);
                 }
             }
         };

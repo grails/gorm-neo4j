@@ -72,7 +72,8 @@ public class Neo4jConnectionSourceFactory extends AbstractConnectionSourceFactor
         }
 
 
-        Driver driver = GraphDatabase.driver(url != null ? url : Settings.DEFAULT_URL, authToken, settings.getOptions().build());
+        Config driverConfig = settings.getOptions().build();
+        Driver driver = GraphDatabase.driver(url != null ? url : Settings.DEFAULT_URL, authToken, driverConfig);
         return new DefaultConnectionSource<>(name, driver, settings);
     }
 
