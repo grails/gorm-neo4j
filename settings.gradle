@@ -1,4 +1,7 @@
 include "grails-datastore-gorm-neo4j", "boot-plugin", 'grails2-plugin', 'grails-plugin', 'docs'
 
+// examples
+include 'examples/grails31-neo4j'
+
 findProject(':boot-plugin').name = 'gorm-neo4j-spring-boot'
 

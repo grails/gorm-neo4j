@@ -91,7 +91,7 @@ class SingleTenancySpec extends Specification {
  * Created by graemerocher on 30/06/16.
  */
 @Entity
-class CompanyB implements Neo4jEntity<CompanyB>, MultiTenant<CompanyB> {
+class CompanyB implements Neo4jEntity<CompanyB>, MultiTenant {
     Long id
     String name
 }
