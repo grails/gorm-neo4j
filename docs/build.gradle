@@ -24,7 +24,7 @@ dependencies {
         documentation "org.grails:grails-datastore-$p:$gormVersion"
     }
     project.rootProject.subprojects.each { subproject ->
-        if(subproject.name != "docs" && !subproject.name.startsWith('grails2')) {
+        if(subproject.name != "docs" && !subproject.name.startsWith('grails2') && !subproject.name.startsWith('examples')) {
             documentation project(":$subproject.name")
         }
     }
@@ -94,7 +94,7 @@ task groovydoc(type:GroovydocTask, dependsOn:fetchSource) {
         }
     }
     project.rootProject.subprojects.each { subproject ->
-        if(subproject.name.startsWith('grails2')) return
+        if(subproject.name.startsWith('grails2') && subproject.name.startsWith('examples')) return
         if(subproject.file('src/main/groovy').exists()) {
             files += subproject.files("src/main/groovy")
         }
