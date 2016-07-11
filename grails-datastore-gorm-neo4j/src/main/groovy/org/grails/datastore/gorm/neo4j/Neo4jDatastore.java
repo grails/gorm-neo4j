@@ -14,6 +14,7 @@
  */
 package org.grails.datastore.gorm.neo4j;
 
+import groovy.lang.Closure;
 import org.grails.datastore.gorm.GormEnhancer;
 import org.grails.datastore.gorm.GormInstanceApi;
 import org.grails.datastore.gorm.GormStaticApi;
@@ -41,6 +42,9 @@ import org.grails.datastore.mapping.model.MappingContext;
 import org.grails.datastore.mapping.model.PersistentEntity;
 import org.grails.datastore.mapping.model.PersistentProperty;
 import org.grails.datastore.mapping.model.types.Simple;
+import org.grails.datastore.mapping.multitenancy.MultiTenancySettings;
+import org.grails.datastore.mapping.multitenancy.MultiTenantCapableDatastore;
+import org.grails.datastore.mapping.multitenancy.TenantResolver;
 import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.Session;
 import org.neo4j.driver.v1.Transaction;
@@ -54,6 +58,7 @@ import javax.annotation.PreDestroy;
 import javax.persistence.FlushModeType;
 import java.io.Closeable;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -64,7 +69,7 @@ import java.util.*;
  *
  * @since 1.0
  */
-public class Neo4jDatastore extends AbstractDatastore implements Closeable, StatelessDatastore, GraphDatastore, Settings, ConnectionSourcesProvider<Driver, Neo4jConnectionSourceSettings> {
+public class Neo4jDatastore extends AbstractDatastore implements Closeable, StatelessDatastore, GraphDatastore, Settings, MultiTenantCapableDatastore<Driver, Neo4jConnectionSourceSettings> {
 
     private static Logger log = LoggerFactory.getLogger(Neo4jDatastore.class);
 
@@ -76,6 +81,8 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
     protected final GormEnhancer gormEnhancer;
     protected final ConnectionSources<Driver, Neo4jConnectionSourceSettings> connectionSources;
     protected final Map<String, Neo4jDatastore> datastoresByConnectionSource = new LinkedHashMap<>();
+    protected final TenantResolver tenantResolver;
+    protected final MultiTenancySettings.MultiTenancyMode multiTenancyMode;
 
     /**
      * Configures a new {@link Neo4jDatastore} for the given arguments
@@ -88,11 +95,14 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
         this.connectionSources = connectionSources;
         ConnectionSource<Driver, Neo4jConnectionSourceSettings> defaultConnectionSource = connectionSources.getDefaultConnectionSource();
         Neo4jConnectionSourceSettings settings = defaultConnectionSource.getSettings();
+        MultiTenancySettings multiTenancySettings = settings.getMultiTenancy();
 
         this.boltDriver = defaultConnectionSource.getSource();
         this.eventPublisher = eventPublisher;
         this.defaultFlushMode = settings.getFlushMode();
         this.skipIndexSetup = !settings.isBuildIndex();
+        this.multiTenancyMode = multiTenancySettings.getMode();
+        this.tenantResolver = multiTenancySettings.getTenantResolver();
 
         if(!skipIndexSetup) {
             setupIndexing();
@@ -438,5 +448,36 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
     @Override
     public ConnectionSources<Driver, Neo4jConnectionSourceSettings> getConnectionSources() {
         return this.connectionSources;
+    }
+
+    @Override
+    public MultiTenancySettings.MultiTenancyMode getMultiTenancyMode() {
+        return this.multiTenancyMode;
+    }
+
+    @Override
+    public TenantResolver getTenantResolver() {
+        return this.tenantResolver;
+    }
+
+    @Override
+    public Neo4jDatastore getDatastoreForTenantId(Serializable tenantId) {
+        if(getMultiTenancyMode() == MultiTenancySettings.MultiTenancyMode.SINGLE) {
+            return this.datastoresByConnectionSource.get(tenantId.toString());
+        }
+        return this;
+    }
+
+    @Override
+    public <T1> T1 withNewSession(Serializable tenantId, Closure<T1> callable) {
+        Neo4jDatastore neo4jDatastore = getDatastoreForTenantId(tenantId);
+        org.grails.datastore.mapping.core.Session session = neo4jDatastore.connect();
+        try {
+            DatastoreUtils.bindNewSession(session);
+            return callable.call(session);
+        }
+        finally {
+            DatastoreUtils.unbindSession(session);
+        }
     }
 }
