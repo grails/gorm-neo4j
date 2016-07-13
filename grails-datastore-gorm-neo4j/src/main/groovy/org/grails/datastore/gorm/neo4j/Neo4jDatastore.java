@@ -134,6 +134,179 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
         this.gormEnhancer = initialize(settings);
     }
 
+    /**
+     * Configures a new {@link Neo4jDatastore} for the given arguments
+     *
+     * @param eventPublisher The Spring ApplicationContext
+     * @param classes The persistent classes
+     */
+    public Neo4jDatastore(ConnectionSources<Driver, Neo4jConnectionSourceSettings> connectionSources,  ConfigurableApplicationEventPublisher eventPublisher, Class...classes) {
+        this(connectionSources, createMappingContext(connectionSources,classes), eventPublisher);
+    }
+
+    /**
+     * Configures a new {@link Neo4jDatastore} for the given arguments
+     *
+     * @param classes The persistent classes
+     */
+    public Neo4jDatastore(ConnectionSources<Driver, Neo4jConnectionSourceSettings> connectionSources, Class...classes) {
+        this(connectionSources, createMappingContext(connectionSources,classes), new DefaultApplicationEventPublisher());
+    }
+
+    /**
+     * Configures a new {@link Neo4jDatastore} for the given arguments
+     *
+     * @param boltDriver The driver
+     * @param configuration The configuration for the datastore
+     * @param eventPublisher The Spring ApplicationContext
+     * @param classes The persistent classes
+     */
+    public Neo4jDatastore(Driver boltDriver, PropertyResolver configuration, ConfigurableApplicationEventPublisher eventPublisher, Class...classes) {
+        this(createDefaultConnectionSources(boltDriver, configuration), eventPublisher, classes);
+    }
+
+
+    /**
+     * Configures a new {@link Neo4jDatastore} for the given arguments
+     *
+     * @param boltDriver The driver
+     * @param eventPublisher The Spring ApplicationContext
+     * @param classes The persistent classes
+     */
+    public Neo4jDatastore(Driver boltDriver, ConfigurableApplicationEventPublisher eventPublisher, Class...classes) {
+        this(createDefaultConnectionSources(boltDriver, DatastoreUtils.createPropertyResolver(null)), eventPublisher, classes);
+    }
+
+    /**
+     * Configures a new {@link Neo4jDatastore} for the given arguments
+     *
+     * @param boltDriver The driver
+     * @param configuration The configuration for the datastore
+     * @param classes The persistent classes
+     */
+    public Neo4jDatastore(Driver boltDriver, PropertyResolver configuration, Class...classes) {
+        this(boltDriver, configuration, new DefaultApplicationEventPublisher(), classes);
+    }
+    /**
+     * Configures a new {@link Neo4jDatastore} for the given arguments
+     *
+     * @param boltDriver The driver
+     * @param classes The persistent classes
+     */
+    public Neo4jDatastore(Driver boltDriver, Class...classes) {
+        this(boltDriver, DatastoreUtils.createPropertyResolver(null), new DefaultApplicationEventPublisher(), classes);
+    }
+
+    /**
+     * Configures a new {@link Neo4jDatastore} for the given arguments
+     *
+     * @param configuration The configuration for the datastore
+     * @param connectionSourceFactory The {@link Neo4jConnectionSourceFactory} to use to configure Neo4j
+     * @param eventPublisher The Spring ApplicationContext
+     * @param classes The persistent classes
+     */
+    public Neo4jDatastore(PropertyResolver configuration, Neo4jConnectionSourceFactory connectionSourceFactory, ConfigurableApplicationEventPublisher eventPublisher, Class...classes) {
+        this(ConnectionSourcesInitializer.create(connectionSourceFactory, configuration), eventPublisher, classes);
+    }
+
+    /**
+     * Configures a new {@link Neo4jDatastore} for the given arguments
+     *
+     * @param configuration The configuration for the datastore
+     * @param eventPublisher The Spring ApplicationContext
+     * @param classes The persistent classes
+     */
+    public Neo4jDatastore(PropertyResolver configuration, ConfigurableApplicationEventPublisher eventPublisher, Class...classes) {
+        this(ConnectionSourcesInitializer.create(new Neo4jConnectionSourceFactory(), configuration), eventPublisher, classes);
+    }
+
+
+    /**
+     * Configures a new {@link Neo4jDatastore} for the given arguments
+     *
+     * @param configuration The configuration for the datastore
+     * @param classes The persistent classes
+     */
+    public Neo4jDatastore(PropertyResolver configuration, Class...classes) {
+        this(configuration, new DefaultApplicationEventPublisher(), classes);
+    }
+
+    /**
+     * Configures a new {@link Neo4jDatastore} for the given arguments
+     *
+     * @param classes The persistent classes
+     */
+    public Neo4jDatastore(Class...classes) {
+        this(mapToPropertyResolver(null), classes);
+    }
+
+    /**
+     * Configures a new {@link Neo4jDatastore} for the given arguments
+     *
+     * @param configuration The configuration
+     * @param classes The persistent classes
+     */
+    public Neo4jDatastore(Map<String, Object> configuration, ConfigurableApplicationEventPublisher eventPublisher,Class...classes) {
+        this(mapToPropertyResolver(configuration),eventPublisher, classes);
+    }
+
+    /**
+     * Configures a new {@link Neo4jDatastore} for the given arguments
+     *
+     * @param configuration The configuration
+     * @param classes The persistent classes
+     */
+    public Neo4jDatastore(Map<String, Object> configuration, Class...classes) {
+        this(configuration, new DefaultApplicationEventPublisher(), classes);
+    }
+
+
+    /**
+     * @return The transaction manager
+     */
+    public Neo4jDatastoreTransactionManager getTransactionManager() {
+        return transactionManager;
+    }
+
+    @Override
+    public ConfigurableApplicationEventPublisher getApplicationEventPublisher() {
+        return this.eventPublisher;
+    }
+
+
+    /**
+     * Creates the connection sources for an existing {@link Driver}
+     *
+     * @param driver The {@link Driver}
+     * @param configuration The configuration
+     * @return The {@link ConnectionSources}
+     */
+    protected static ConnectionSources<Driver, Neo4jConnectionSourceSettings> createDefaultConnectionSources(Driver driver, PropertyResolver configuration) {
+        Neo4jConnectionSourceSettingsBuilder builder = new Neo4jConnectionSourceSettingsBuilder(configuration);
+        Neo4jConnectionSourceSettings settings = builder.build();
+        ConnectionSource<Driver, Neo4jConnectionSourceSettings> defaultConnectionSource = new DefaultConnectionSource<>(ConnectionSource.DEFAULT, driver, settings);
+        return new InMemoryConnectionSources<>(defaultConnectionSource, new Neo4jConnectionSourceFactory(), configuration);
+    }
+
+    protected static Neo4jMappingContext createMappingContext(ConnectionSources<Driver, Neo4jConnectionSourceSettings> connectionSources, Class... classes) {
+        ConnectionSource<Driver, Neo4jConnectionSourceSettings> defaultConnectionSource = connectionSources.getDefaultConnectionSource();
+        Neo4jMappingContext neo4jMappingContext = new Neo4jMappingContext(defaultConnectionSource.getSettings(), classes);
+        PropertyResolver configuration = connectionSources.getBaseConfiguration();
+        DefaultValidatorRegistry defaultValidatorRegistry = new DefaultValidatorRegistry(neo4jMappingContext, configuration);
+        defaultValidatorRegistry.addConstraintFactory(
+                new MappingContextAwareConstraintFactory(UniqueConstraint.class, defaultValidatorRegistry.getMessageSource(), neo4jMappingContext)
+        );
+        neo4jMappingContext.setValidatorRegistry(
+                defaultValidatorRegistry
+        );
+        return neo4jMappingContext;
+    }
+    protected void registerEventListeners(ConfigurableApplicationEventPublisher eventPublisher) {
+        eventPublisher.addApplicationListener(new DomainEventListener(this));
+        eventPublisher.addApplicationListener(new AutoTimestampEventListener(this));
+    }
+
+
     protected GormEnhancer initialize(Neo4jConnectionSourceSettings settings) {
         registerEventListeners(this.eventPublisher);
 
@@ -176,167 +349,6 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
                 }
             }
         };
-    }
-
-    /**
-     * Configures a new {@link Neo4jDatastore} for the given arguments
-     *
-     * @param eventPublisher The Spring ApplicationContext
-     * @param classes The persistent classes
-     */
-    public Neo4jDatastore(ConnectionSources<Driver, Neo4jConnectionSourceSettings> connectionSources,  ConfigurableApplicationEventPublisher eventPublisher, Class...classes) {
-        this(connectionSources, createMappingContext(connectionSources,classes), eventPublisher);
-    }
-
-    /**
-     * Configures a new {@link Neo4jDatastore} for the given arguments
-     *
-     * @param classes The persistent classes
-     */
-    public Neo4jDatastore(ConnectionSources<Driver, Neo4jConnectionSourceSettings> connectionSources, Class...classes) {
-        this(connectionSources, createMappingContext(connectionSources,classes), new DefaultApplicationEventPublisher());
-    }
-
-
-    /**
-     * Configures a new {@link Neo4jDatastore} for the given arguments
-     *
-     * @param boltDriver The driver
-     * @param configuration The configuration for the datastore
-     * @param eventPublisher The Spring ApplicationContext
-     * @param classes The persistent classes
-     */
-    public Neo4jDatastore(Driver boltDriver, PropertyResolver configuration, ConfigurableApplicationEventPublisher eventPublisher, Class...classes) {
-        this(createDefaultConnectionSources(boltDriver, configuration), eventPublisher, classes);
-    }
-
-    /**
-     * Configures a new {@link Neo4jDatastore} for the given arguments
-     *
-     * @param boltDriver The driver
-     * @param eventPublisher The Spring ApplicationContext
-     * @param classes The persistent classes
-     */
-    public Neo4jDatastore(Driver boltDriver, ConfigurableApplicationEventPublisher eventPublisher, Class...classes) {
-        this(createDefaultConnectionSources(boltDriver, DatastoreUtils.createPropertyResolver(null)), eventPublisher, classes);
-    }
-    /**
-     * Configures a new {@link Neo4jDatastore} for the given arguments
-     *
-     * @param boltDriver The driver
-     * @param configuration The configuration for the datastore
-     * @param classes The persistent classes
-     */
-    public Neo4jDatastore(Driver boltDriver, PropertyResolver configuration, Class...classes) {
-        this(boltDriver, configuration, new DefaultApplicationEventPublisher(), classes);
-    }
-
-    /**
-     * Configures a new {@link Neo4jDatastore} for the given arguments
-     *
-     * @param boltDriver The driver
-     * @param classes The persistent classes
-     */
-    public Neo4jDatastore(Driver boltDriver, Class...classes) {
-        this(boltDriver, new StandardEnvironment(), new DefaultApplicationEventPublisher(), classes);
-    }
-
-
-    /**
-     * Configures a new {@link Neo4jDatastore} for the given arguments
-     *
-     * @param configuration The configuration for the datastore
-     * @param eventPublisher The Spring ApplicationContext
-     * @param classes The persistent classes
-     */
-    public Neo4jDatastore(PropertyResolver configuration, ConfigurableApplicationEventPublisher eventPublisher, Class...classes) {
-        this(ConnectionSourcesInitializer.create(new Neo4jConnectionSourceFactory(), configuration), eventPublisher, classes);
-    }
-
-    /**
-     * Configures a new {@link Neo4jDatastore} for the given arguments
-     *
-     * @param configuration The configuration for the datastore
-     * @param classes The persistent classes
-     */
-    public Neo4jDatastore(PropertyResolver configuration, Class...classes) {
-        this(configuration, new DefaultApplicationEventPublisher(), classes);
-    }
-
-    /**
-     * Configures a new {@link Neo4jDatastore} for the given arguments
-     *
-     * @param classes The persistent classes
-     */
-    public Neo4jDatastore(Class...classes) {
-        this(mapToPropertyResolver(null), classes);
-    }
-
-    /**
-     * Configures a new {@link Neo4jDatastore} for the given arguments
-     *
-     * @param configuration The configuration
-     * @param classes The persistent classes
-     */
-    public Neo4jDatastore(Map<String, Object> configuration, ConfigurableApplicationEventPublisher eventPublisher,Class...classes) {
-        this(mapToPropertyResolver(configuration),eventPublisher, classes);
-    }
-
-
-    /**
-     * Configures a new {@link Neo4jDatastore} for the given arguments
-     *
-     * @param configuration The configuration
-     * @param classes The persistent classes
-     */
-    public Neo4jDatastore(Map<String, Object> configuration, Class...classes) {
-        this(configuration, new DefaultApplicationEventPublisher(), classes);
-    }
-
-    /**
-     * @return The transaction manager
-     */
-    public Neo4jDatastoreTransactionManager getTransactionManager() {
-        return transactionManager;
-    }
-
-
-    @Override
-    public ConfigurableApplicationEventPublisher getApplicationEventPublisher() {
-        return this.eventPublisher;
-    }
-
-    /**
-     * Creates the connection sources for an existing {@link Driver}
-     *
-     * @param driver The {@link Driver}
-     * @param configuration The configuration
-     * @return The {@link ConnectionSources}
-     */
-    protected static ConnectionSources<Driver, Neo4jConnectionSourceSettings> createDefaultConnectionSources(Driver driver, PropertyResolver configuration) {
-        Neo4jConnectionSourceSettingsBuilder builder = new Neo4jConnectionSourceSettingsBuilder(configuration);
-        Neo4jConnectionSourceSettings settings = builder.build();
-        ConnectionSource<Driver, Neo4jConnectionSourceSettings> defaultConnectionSource = new DefaultConnectionSource<>(ConnectionSource.DEFAULT, driver, settings);
-        return new InMemoryConnectionSources<>(defaultConnectionSource, new Neo4jConnectionSourceFactory(), configuration);
-    }
-    protected static Neo4jMappingContext createMappingContext(ConnectionSources<Driver, Neo4jConnectionSourceSettings> connectionSources, Class... classes) {
-        ConnectionSource<Driver, Neo4jConnectionSourceSettings> defaultConnectionSource = connectionSources.getDefaultConnectionSource();
-        Neo4jMappingContext neo4jMappingContext = new Neo4jMappingContext(defaultConnectionSource.getSettings(), classes);
-        PropertyResolver configuration = connectionSources.getBaseConfiguration();
-        DefaultValidatorRegistry defaultValidatorRegistry = new DefaultValidatorRegistry(neo4jMappingContext, configuration);
-        defaultValidatorRegistry.addConstraintFactory(
-                new MappingContextAwareConstraintFactory(UniqueConstraint.class, defaultValidatorRegistry.getMessageSource(), neo4jMappingContext)
-        );
-        neo4jMappingContext.setValidatorRegistry(
-                defaultValidatorRegistry
-        );
-        return neo4jMappingContext;
-    }
-
-
-    protected void registerEventListeners(ConfigurableApplicationEventPublisher eventPublisher) {
-        eventPublisher.addApplicationListener(new DomainEventListener(this));
-        eventPublisher.addApplicationListener(new AutoTimestampEventListener(this));
     }
 
     public void setSkipIndexSetup(boolean skipIndexSetup) {

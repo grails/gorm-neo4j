@@ -22,6 +22,7 @@ import org.grails.datastore.gorm.bootstrap.AbstractDatastoreInitializer
 import org.grails.datastore.gorm.events.ConfigurableApplicationContextEventPublisher
 import org.grails.datastore.gorm.events.DefaultApplicationEventPublisher
 import org.grails.datastore.gorm.neo4j.Neo4jDatastore
+import org.grails.datastore.gorm.neo4j.connections.Neo4jConnectionSourceFactory
 import org.grails.datastore.gorm.plugin.support.PersistenceContextInterceptorAggregator
 import org.grails.datastore.gorm.support.AbstractDatastorePersistenceContextInterceptor
 import org.grails.datastore.gorm.support.DatastorePersistenceContextInterceptor
@@ -70,7 +71,8 @@ class Neo4jDataStoreSpringInitializer extends AbstractDatastoreInitializer {
             else {
                 eventPublisher = new DefaultApplicationEventPublisher()
             }
-            neo4jDatastore(Neo4jDatastore, configuration, eventPublisher, collectMappedClasses(DATASTORE_TYPE))
+            neo4jConnectionSourceFactory(Neo4jConnectionSourceFactory)
+            neo4jDatastore(Neo4jDatastore, configuration, ref("neo4jConnectionSourceFactory"), eventPublisher, collectMappedClasses(DATASTORE_TYPE))
             neo4jMappingContext(neo4jDatastore:"getMappingContext") {
                 validatorRegistry = new BeanFactoryValidatorRegistry((BeanFactory)beanDefinitionRegistry)
             }
