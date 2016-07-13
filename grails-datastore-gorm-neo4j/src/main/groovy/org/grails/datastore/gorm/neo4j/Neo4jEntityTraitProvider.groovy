@@ -30,5 +30,5 @@ import org.grails.datastore.mapping.reflect.ClassUtils
 @CompileStatic
 class Neo4jEntityTraitProvider implements GormEntityTraitProvider {
     final Class entityTrait = Neo4jEntity
-    final boolean available = ClassUtils.isPresent("org.neo4j.graphdb.GraphDatabaseService")
+    final boolean available = ClassUtils.isPresent("org.neo4j.driver.v1.Driver")
 }
