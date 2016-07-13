@@ -1,6 +1,8 @@
 package test
 
-class Book {
+import grails.neo4j.Neo4jEntity
+
+class Book implements Neo4jEntity<Book> {
 
     String title
 

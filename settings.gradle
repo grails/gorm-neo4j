@@ -1,7 +1,17 @@
-include "grails-datastore-gorm-neo4j", "boot-plugin", 'grails2-plugin', 'grails-plugin', 'docs'
+// core
+include "grails-datastore-gorm-neo4j"
+
+// plugins
+include "boot-plugin"
+include 'grails2-plugin'
+include 'grails-plugin'
+
+// documentation
+include 'docs'
 
 // examples
 include 'examples/grails31-neo4j'
+include 'examples/grails31-neo4j-hibernate'
 
 findProject(':boot-plugin').name = 'gorm-neo4j-spring-boot'
 
