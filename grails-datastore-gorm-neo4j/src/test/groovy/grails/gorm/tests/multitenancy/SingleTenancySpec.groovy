@@ -24,7 +24,7 @@ class SingleTenancySpec extends Specification {
 
     void setupSpec() {
         Map config = [
-                "grails.gorm.multiTenancy.mode":"SINGLE",
+                "grails.gorm.multiTenancy.mode":"DATABASE",
                 "grails.gorm.multiTenancy.tenantResolverClass":SystemPropertyTenantResolver,
                 "grails.neo4j.options.encryptionLevel":"NONE",
                 (Settings.SETTING_NEO4J_URL)        : "bolt://localhost:7687",
