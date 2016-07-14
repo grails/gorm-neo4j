@@ -181,7 +181,7 @@ class MiscSpec extends GormDatastoreSpec {
         GParsPool.withPool(concurrency) {
             (1..count).eachParallel { counter ->
                 Team.withTransaction {
-                    new Team(name: "Team $counter").save(flush:true, failOnError: true)
+                    new Team(name: "Team $counter").save(flush:true, failOnError: true,validate:false)
                 }
             }
         }
@@ -410,13 +410,13 @@ class MiscSpec extends GormDatastoreSpec {
         def c = new CommonTypes()
 
         then:
-        c.save(flush: true)
+        c.save(flush: true, validate:false)
     }
 
     def "changing one2many is consistent"() {
         setup:
-        def argentina = new Team(name: 'Argentina').save()
-        def germany = new Team(name: 'Germany').save()
+        def argentina = new Team(name: 'Argentina').save(validate:false)
+        def germany = new Team(name: 'Germany').save(validate:false)
         session.flush()
         session.clear()
 
@@ -431,7 +431,7 @@ class MiscSpec extends GormDatastoreSpec {
         session.clear()
         manuel = Player.findByName('Manuel Neuer')
         manuel.team = germany
-        manuel.save()
+        manuel.save(validate:false)
 
         session.flush()
         session.clear()

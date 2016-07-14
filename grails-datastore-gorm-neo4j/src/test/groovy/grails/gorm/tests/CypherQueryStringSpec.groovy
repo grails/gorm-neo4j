@@ -113,10 +113,10 @@ class CypherQueryStringSpec extends GormDatastoreSpec {
         club.addToTeams(new Team(name: 'FCB Team 1'))
         club.addToTeams(new Team(name: 'FCB Team 2'))
         def otherClub = new Club(name: 'Borussia Dortmund')
-        club.save()
+        club.save(validate:false)
         otherClub.addToTeams(new Team(name: 'BVB 1'))
         otherClub.addToTeams(new Team(name: 'BVB 2'))
-        otherClub.save(flush:true)
+        otherClub.save(flush:true,validate:false)
         session.clear()
     }
 

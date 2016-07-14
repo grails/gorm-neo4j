@@ -46,7 +46,7 @@ class ApiExtensionsSpec extends GormDatastoreSpec {
         def league = new League(name:"EPL")
         league.addToClubs(club)
         club.addToTeams(team)
-        club.save(flush: true)
+        club.save(flush: true,validate:false)
         session.clear()
 
         when:

@@ -35,7 +35,7 @@ class EagerFetchingSpec extends GormDatastoreSpec {
         def club = new Club(name: 'FC Bayern Muenchen', league: league)
         club.addToTeams(new Team(name: 'FCB Team 1'))
         club.addToTeams(new Team(name: 'FCB Team 2'))
-        club.save(flush:true)
+        club.save(flush:true,validate:false)
         session.clear()
 
         when:"an object query is executed"
@@ -83,11 +83,11 @@ class EagerFetchingSpec extends GormDatastoreSpec {
         def club = new Club(name: 'FC Bayern Muenchen')
         club.addToTeams(new Team(name: 'FCB Team 1'))
         club.addToTeams(new Team(name: 'FCB Team 2'))
-        club.save(flush:true)
+        club.save(flush:true,validate:false)
         League league = new League(name:"Bundesliga")
         league.addToClubs(club)
         league.teams.addAll(club.teams)
-        league.save(flush:true)
+        league.save(flush:true,validate:false)
         session.clear()
 
         when:"an object query is executed"
