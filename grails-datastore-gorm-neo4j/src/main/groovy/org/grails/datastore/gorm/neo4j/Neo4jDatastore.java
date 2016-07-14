@@ -474,7 +474,7 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
 
     @Override
     public Neo4jDatastore getDatastoreForTenantId(Serializable tenantId) {
-        if(getMultiTenancyMode() == MultiTenancySettings.MultiTenancyMode.SINGLE) {
+        if(getMultiTenancyMode() == MultiTenancySettings.MultiTenancyMode.DATABASE) {
             return this.datastoresByConnectionSource.get(tenantId.toString());
         }
         return this;
