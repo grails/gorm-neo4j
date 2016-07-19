@@ -46,6 +46,11 @@ class SingleTenancySpec extends Specification {
         datastore.close()
     }
 
+    void setup() {
+        System.setProperty(SystemPropertyTenantResolver.PROPERTY_NAME, "")
+    }
+
+
     void "Test no tenant id"() {
         when:
         CompanyB.count()

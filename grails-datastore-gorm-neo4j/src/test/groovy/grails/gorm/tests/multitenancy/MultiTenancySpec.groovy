@@ -38,7 +38,6 @@ class MultiTenancySpec extends Specification {
         System.setProperty(SystemPropertyTenantResolver.PROPERTY_NAME, "")
     }
 
-
     void "Test persist and retrieve entities with multi tenancy"() {
         when:"A tenant id is present"
         System.setProperty(SystemPropertyTenantResolver.PROPERTY_NAME, "test1")
