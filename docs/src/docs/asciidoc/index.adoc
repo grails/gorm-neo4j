@@ -101,6 +101,15 @@ include::querying/cypher.adoc[]
 
 include::querying/indexing.adoc[]
 
+[[multipleDataSources]]
+== Multiple Data Sources
+include::multipleDataSources/index.adoc[]
+
+[[multiTenancy]]
+== Multi-Tenancy
+include::multiTenancy/index.adoc[]
+
+
 [[neo4jEnhancements]]
 == Enhancements to Neo4j Java Driver API
 

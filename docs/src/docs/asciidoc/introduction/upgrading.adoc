@@ -2,6 +2,31 @@ If you are upgrading from a previous version of the plugin to the {version}, you
 
 ==== Configuration Changes
 
+Since the plugin now uses the Neo4j Bolt driver the configuration has been altered.
+
+The `grails.neo4j.options` setting no longer configures the Neo4j embedded options, but instead configures the Bolt driver options.
+
+If you want to continue to configure Neo4j in embedded mode you must use `grails.neo4j.embedded.options`.
+
 ==== Bolt Java Driver and API Changes
 
+The API has changed to accommodate the Neo4j Bolt driver and all references to the Neo4j server itself have been removed.
+
+Therefore you need to replace the usages of the following interfaces with their bolt equivalents:
+
+[format="csv", options="header"]
+|===
+
+Neo4j Class, Bolt Driver Replacement
+org.neo4j.graphdb.GraphDatabaseService, org.neo4j.driver.v1.Driver
+org.neo4j.graphdb.Transaction, org.neo4j.driver.v1.Transaction
+org.neo4j.graphdb.Node, org.neo4j.driver.v1.types.Node
+org.neo4j.graphdb.Relationship, org.neo4j.driver.v1.types.Relationship
+org.neo4j.graphdb.Result, org.neo4j.driver.v1.StatementResult
+|===
+
+There may be other classes that you need to replace references too. Generally the `org.neo4j.graphdb` package is considered the server-side API and only the `org.neo4j.driver.v1` package should be used in applications.
+
 ==== General Neo4j 3.x Changes
+
+Since GORM for Neo4j {version} is based on Neo4j 3.x, if you are upgrading from Neo4j 2.x there will be other changes related to Neo4j 3 that you may need to make. These are described in the https://neo4j.com/guides/upgrade/[upgrade guide] on the Neo4j website.

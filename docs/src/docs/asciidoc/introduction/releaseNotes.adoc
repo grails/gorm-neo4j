@@ -2,6 +2,8 @@
 
 * Support for Neo4j 3.0.x or above
 * Rewritten for Neo4j Bolt Java Driver
+* Support for Multiple Data Sources (Connections)
+* Multi Tenancy support for DATABASE and DISCRIMINATOR approaches
 * Refactored Bootstrapping
 * Uses new DynamicAttributes trait
 
