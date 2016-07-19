@@ -14,6 +14,7 @@ dependencies {
 
     compileOnly 'org.neo4j.test:neo4j-harness:3.0.2'
 
+
     testCompile 'org.neo4j.test:neo4j-harness:3.0.2'
     testCompile "org.grails:grails-datastore-gorm-test:$gormVersion",
                 "org.grails:grails-datastore-gorm-tck:$gormVersion"

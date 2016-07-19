@@ -379,7 +379,7 @@ public class Neo4jEntityPersister extends EntityPersister {
         for (PersistentProperty property: entityAccess.getPersistentEntity().getPersistentProperties()) {
 
             String propertyName = property.getName();
-            if (property instanceof Simple) {
+            if ( (property instanceof Simple) || (property instanceof TenantId)) {
                 // implicitly sets version property as well
                 if(node.containsKey(propertyName)) {
 

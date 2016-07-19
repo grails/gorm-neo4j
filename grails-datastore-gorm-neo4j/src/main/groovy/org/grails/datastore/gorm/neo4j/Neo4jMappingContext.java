@@ -97,6 +97,7 @@ public class Neo4jMappingContext extends AbstractMappingContext  {
         super();
         mappingFactory.setDefaultMapping(settings.getDefault().getMapping());
         mappingFactory.setDefaultConstraints(settings.getDefault().getConstraints());
+        initialize(settings);
         addPersistentEntities(classes);
     }
 

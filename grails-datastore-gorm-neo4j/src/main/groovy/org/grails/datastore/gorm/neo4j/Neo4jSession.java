@@ -20,6 +20,7 @@ import org.grails.datastore.mapping.model.config.GormProperties;
 import org.grails.datastore.mapping.model.types.Association;
 import org.grails.datastore.mapping.model.types.Custom;
 import org.grails.datastore.mapping.model.types.Simple;
+import org.grails.datastore.mapping.model.types.TenantId;
 import org.grails.datastore.mapping.query.Query;
 import org.grails.datastore.mapping.query.Restrictions;
 import org.grails.datastore.mapping.query.api.QueryableCriteria;
@@ -455,7 +456,7 @@ public class Neo4jSession extends AbstractSession<Session> {
         final EntityAccess access = entityInsert.getEntityAccess();
         // build a properties map for each CREATE statement
         for (PersistentProperty pp : persistentProperties) {
-            if (pp instanceof Simple) {
+            if ((pp instanceof Simple) || (pp instanceof TenantId) ) {
                 String name = pp.getName();
                 Object value = access.getProperty(name);
                 if (value != null) {

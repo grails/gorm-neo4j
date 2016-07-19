@@ -22,6 +22,7 @@ import org.grails.datastore.gorm.events.AutoTimestampEventListener;
 import org.grails.datastore.gorm.events.ConfigurableApplicationEventPublisher;
 import org.grails.datastore.gorm.events.DefaultApplicationEventPublisher;
 import org.grails.datastore.gorm.events.DomainEventListener;
+import org.grails.datastore.gorm.multitenancy.MultiTenantEventListener;
 import org.grails.datastore.gorm.neo4j.connections.Neo4jConnectionSourceFactory;
 import org.grails.datastore.gorm.neo4j.connections.Neo4jConnectionSourceSettings;
 import org.grails.datastore.gorm.neo4j.connections.Neo4jConnectionSourceSettingsBuilder;
@@ -301,9 +302,13 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
         );
         return neo4jMappingContext;
     }
+
     protected void registerEventListeners(ConfigurableApplicationEventPublisher eventPublisher) {
         eventPublisher.addApplicationListener(new DomainEventListener(this));
         eventPublisher.addApplicationListener(new AutoTimestampEventListener(this));
+        if(multiTenancyMode == MultiTenancySettings.MultiTenancyMode.DISCRIMINATOR) {
+            eventPublisher.addApplicationListener(new MultiTenantEventListener(this));
+        }
     }
 
 
