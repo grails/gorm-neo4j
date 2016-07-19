@@ -10,6 +10,7 @@ include 'grails-plugin'
 include 'docs'
 
 // examples
+include 'examples/grails25-neo4j-hibernate'
 include 'examples/grails31-neo4j'
 include 'examples/grails31-neo4j-hibernate'
 

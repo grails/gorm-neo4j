@@ -38,12 +38,19 @@ ext {
 
 
 subprojects { project ->
+    if(project.name.startsWith('examples/grails2')) {
+        project.tasks.all { Task t ->
+            t.onlyIf { Boolean.getBoolean("grails2.plugin.enabled" )}
+        }
+        return
+    }
+
     repositories {
         mavenLocal()
         maven { url "https://repo.grails.org/grails/core" }
     }
 
-    if(project.name.startsWith("examples")) {
+    if(project.name.startsWith("examples/grails3")) {
         apply plugin:"org.grails.grails-web"
         apply plugin:"org.grails.grails-gsp"
 
