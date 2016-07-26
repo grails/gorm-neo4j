@@ -392,7 +392,7 @@ class Neo4jQuery extends Query {
 
                          }
                          else {
-                             withMatch = "collect(DISTINCT ${associationName}Node) as ${associationName}Nodes"
+                             withMatch += "collect(DISTINCT ${associationName}Node) as ${associationName}Nodes"
                              cypherBuilder.addReturnColumn("${associationName}Nodes")
                              previousAssociations << "${associationName}Nodes"
                          }
