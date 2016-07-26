@@ -335,6 +335,7 @@ class Neo4jQuery extends Query {
                  int i = 0;
                  List<String> rs = []
                  List<String> os = []
+                 List previousAssociations = []
                  cypherBuilder.addReturnColumn(CypherBuilder.DEFAULT_RETURN_TYPES)
 
                  for(Association a in persistentEntity.associations) {
@@ -353,18 +354,23 @@ class Neo4jQuery extends Query {
                              rs.add(r)
                              os.add(o)
                              // if there are associations, add a join to get them
-                             cypherBuilder.addOptionalMatch("(n)${associationMatch}(${associationName}Node)")
+                             String withMatch = "WITH n, ${previousAssociations.size() > 0 ? previousAssociations.join(", ") + ", " : ""}"
                              if(isLazy) {
                                  if(graphPersistentEntity.idGenerator == null) {
-                                     cypherBuilder.addReturnColumn("collect(DISTINCT ID(${associationName}Node)) as ${associationName}Ids")
+                                     withMatch += "collect(DISTINCT ID(${associationName}Node)) as ${associationName}Ids"
                                  }
                                  else {
-                                     cypherBuilder.addReturnColumn("collect(DISTINCT ${associationName}Node.${CypherBuilder.IDENTIFIER}) as ${associationName}Ids")
+                                     withMatch += "collect(DISTINCT ${associationName}Node.${CypherBuilder.IDENTIFIER}) as ${associationName}Ids"
                                  }
+                                 cypherBuilder.addReturnColumn("${associationName}Ids")
+                                 previousAssociations << "${associationName}Ids"
                              }
                              else {
-                                 cypherBuilder.addReturnColumn("collect(DISTINCT ${associationName}Node) as ${associationName}Nodes")
+                                 withMatch += "collect(DISTINCT ${associationName}Node) as ${associationName}Nodes"
+                                 cypherBuilder.addReturnColumn("${associationName}Nodes")
+                                 previousAssociations << "${associationName}Nodes"
                              }
+                             cypherBuilder.addOptionalMatch("(n)${associationMatch}(${associationName}Node) ${withMatch}")
                          }
                      }
                      else if(a instanceof ToOne) {
@@ -372,19 +378,25 @@ class Neo4jQuery extends Query {
                          rs.add(r)
                          os.add(o)
                          // if there are associations, add a join to get them
-                         cypherBuilder.addOptionalMatch("(n)${associationMatch}(${associationName}Node)")
+                         def withMatch = "WITH n, ${previousAssociations.size() > 0 ? previousAssociations.join(", ") + ", " : ""}"
                          if(!fetchType.is(fetchType.EAGER)) {
                              if(graphPersistentEntity.idGenerator == null) {
-                                 cypherBuilder.addReturnColumn("collect(DISTINCT ID(${associationName}Node)) as ${associationName}Ids")
+                                 withMatch += "collect(DISTINCT ID(${associationName}Node)) as ${associationName}Ids"
                              }
                              else {
-                                 cypherBuilder.addReturnColumn("collect(DISTINCT ${associationName}Node.${CypherBuilder.IDENTIFIER}) as ${associationName}Ids")
+                                 withMatch += "collect(DISTINCT ${associationName}Node.${CypherBuilder.IDENTIFIER}) as ${associationName}Ids"
                              }
+                             cypherBuilder.addReturnColumn("${associationName}Ids")
+                             previousAssociations << "${associationName}Ids"
+
 
                          }
                          else {
-                             cypherBuilder.addReturnColumn("collect(DISTINCT ${associationName}Node) as ${associationName}Nodes")
+                             withMatch += "collect(DISTINCT ${associationName}Node) as ${associationName}Nodes"
+                             cypherBuilder.addReturnColumn("${associationName}Nodes")
+                             previousAssociations << "${associationName}Nodes"
                          }
+                         cypherBuilder.addOptionalMatch("(n)${associationMatch}(${associationName}Node) ${withMatch}")
                      }
                  }
              }
