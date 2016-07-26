@@ -38,7 +38,7 @@ public class CypherBuilder {
 
     private String forLabels;
     private Set<String> matches = new HashSet<String>();
-    private Set<String> optionalMatches = new HashSet<String>();
+    private List<String> optionalMatches = new ArrayList<String>();
     private String conditions;
     private String orderAndLimits;
     private List<String> returnColumns = new ArrayList<String>();
