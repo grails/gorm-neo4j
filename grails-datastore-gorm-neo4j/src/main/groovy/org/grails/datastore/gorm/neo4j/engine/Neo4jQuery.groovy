@@ -335,7 +335,7 @@ class Neo4jQuery extends Query {
                  int i = 0;
                  List<String> rs = []
                  List<String> os = []
-                 List<String> previousAssociations = []
+                 List previousAssociations = []
                  cypherBuilder.addReturnColumn(CypherBuilder.DEFAULT_RETURN_TYPES)
 
                  for(Association a in persistentEntity.associations) {
