@@ -265,7 +265,28 @@ class Neo4jQuery extends Query {
                 @Override
                 @CompileStatic
                 CypherExpression handle(PersistentEntity entity, Query.IsNull criterion, CypherBuilder builder, String prefix) {
-                    return new CypherExpression("EXISTS($prefix.${criterion.property})")
+                    return new CypherExpression("$prefix.${criterion.property} IS NULL")
+                }
+            },
+            (Query.IsEmpty): new CriterionHandler<Query.IsEmpty>() {
+                @Override
+                @CompileStatic
+                CypherExpression handle(PersistentEntity entity, Query.IsEmpty criterion, CypherBuilder builder, String prefix) {
+                    return new CypherExpression("length($prefix.${criterion.property}) = 0")
+                }
+            },
+            (Query.IsNotEmpty): new CriterionHandler<Query.IsNotEmpty>() {
+                @Override
+                @CompileStatic
+                CypherExpression handle(PersistentEntity entity, Query.IsNotEmpty criterion, CypherBuilder builder, String prefix) {
+                    return new CypherExpression("length($prefix.${criterion.property}) > 0")
+                }
+            },
+            (Query.IsNotNull): new CriterionHandler<Query.IsNotNull>() {
+                @Override
+                @CompileStatic
+                CypherExpression handle(PersistentEntity entity, Query.IsNotNull criterion, CypherBuilder builder, String prefix) {
+                    return new CypherExpression("$prefix.${criterion.property} IS NOT NULL")
                 }
             },
             (AssociationQuery): new AssociationQueryHandler(),
