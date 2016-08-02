@@ -342,7 +342,13 @@ public class Neo4jSession extends AbstractSession<Session> {
         }
         if(entity.hasDynamicAssociations()) {
             if(!pendingRelationshipInserts.isEmpty()) {
-                Set<RelationshipUpdateKey> relationshipUpdates = pendingRelationshipInserts.keySet();
+                List<RelationshipUpdateKey> relationshipUpdates = new ArrayList<RelationshipUpdateKey>(pendingRelationshipInserts.keySet());
+                Collections.sort(relationshipUpdates, new Comparator<RelationshipUpdateKey>() {
+                    @Override
+                    public int compare(RelationshipUpdateKey o1, RelationshipUpdateKey o2) {
+                        return o1.association.getName().compareTo(o2.association.getName());
+                    }
+                });
                 for (RelationshipUpdateKey relationshipUpdate : relationshipUpdates) {
                     Association association = relationshipUpdate.association;
                     if(association instanceof DynamicToOneAssociation) {
