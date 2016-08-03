@@ -486,13 +486,17 @@ public class Neo4jSession extends AbstractSession<Session> {
             for (final Map.Entry<String, List<Object>> e: dynamicRelProps.entrySet()) {
                 for (final Object o :  e.getValue()) {
 
-                    final GraphPersistentEntity associated = (GraphPersistentEntity) mappingContext.getPersistentEntity(o.getClass().getName());
-                    if(associated != null) {
-                        Object childId = getEntityPersister(o).getObjectIdentifier(o);
-                        if(childId == null) {
-                            childId = persist(o);
+                    if (((DirtyCheckable)access.getEntity()).hasChanged(e.getKey())) {
+                        final GraphPersistentEntity associated = (GraphPersistentEntity) mappingContext.getPersistentEntity(o.getClass().getName());
+                        if (associated != null) {
+                            Object childId = getEntityPersister(o).getObjectIdentifier(o);
+                            if (childId == null) {
+                                childId = persist(o);
+                            }
+                            addPendingRelationshipInsert(parentId,
+                                                         new DynamicToOneAssociation(graphEntity, mappingContext, e.getKey(), associated),
+                                                         (Serializable) childId);
                         }
-                        addPendingRelationshipInsert(parentId, new DynamicToOneAssociation(graphEntity, mappingContext, e.getKey(), associated), (Serializable) childId);
                     }
                 }
             }
