@@ -2,7 +2,7 @@ sourceSets.main.java.srcDirs = []
 sourceSets.main.groovy.srcDirs += ["src/main/java"]
 
 dependencies {
-    compile 'org.neo4j.driver:neo4j-java-driver:1.0.1'
+    compile "org.neo4j.driver:neo4j-java-driver:$neo4jDriverVersion"
 
     compile "org.grails:grails-datastore-gorm-validation:$gormVersion"
     compile "org.grails:grails-datastore-gorm:$gormVersion",
@@ -12,10 +12,10 @@ dependencies {
         exclude group:'org.grails', module:'grails-datastore-gorm-hibernate-core'
     }
 
-    compileOnly 'org.neo4j.test:neo4j-harness:3.0.2'
+    compileOnly 'org.neo4j.test:neo4j-harness:3.0.4'
 
 
-    testCompile 'org.neo4j.test:neo4j-harness:3.0.2'
+    testCompile 'org.neo4j.test:neo4j-harness:3.0.4'
     testCompile "org.grails:grails-datastore-gorm-test:$gormVersion",
                 "org.grails:grails-datastore-gorm-tck:$gormVersion"
 
