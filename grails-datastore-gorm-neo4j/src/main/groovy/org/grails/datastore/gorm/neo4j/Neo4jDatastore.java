@@ -428,7 +428,7 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
             throw new DatastoreConfigurationException("Error creating Neo4j index: " + e.getMessage(), e);
         }
         finally {
-            transaction.close();
+            boltSession.close();
         }
         if(log.isDebugEnabled()) {
             log.debug("done setting up indexes");
