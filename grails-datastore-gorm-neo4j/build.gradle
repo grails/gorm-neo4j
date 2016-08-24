@@ -12,10 +12,10 @@ dependencies {
         exclude group:'org.grails', module:'grails-datastore-gorm-hibernate-core'
     }
 
-    compileOnly 'org.neo4j.test:neo4j-harness:3.0.4'
+    compileOnly "org.neo4j.test:neo4j-harness:$neo4jVersion"
 
 
-    testCompile 'org.neo4j.test:neo4j-harness:3.0.4'
+    testCompile "org.neo4j.test:neo4j-harness:$neo4jVersion"
     testCompile "org.grails:grails-datastore-gorm-test:$gormVersion",
                 "org.grails:grails-datastore-gorm-tck:$gormVersion"
 
