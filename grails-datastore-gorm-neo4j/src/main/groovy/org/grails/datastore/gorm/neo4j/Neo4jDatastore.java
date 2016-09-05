@@ -327,7 +327,7 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
             @Override
             protected <D> GormStaticApi<D> getStaticApi(Class<D> cls, String qualifier) {
                 Neo4jDatastore neo4jDatastore = getDatastoreForQualifier(cls, qualifier);
-                return new GormStaticApi<>(cls, neo4jDatastore, getFinders(), neo4jDatastore.getTransactionManager());
+                return new GormStaticApi<>(cls, neo4jDatastore, createDynamicFinders(neo4jDatastore), neo4jDatastore.getTransactionManager());
             }
 
             @Override
