@@ -13,6 +13,7 @@ import org.grails.datastore.mapping.core.Session;
 import org.grails.datastore.mapping.core.impl.*;
 import org.grails.datastore.mapping.dirty.checking.DirtyCheckable;
 import org.grails.datastore.mapping.dirty.checking.DirtyCheckableCollection;
+import org.grails.datastore.mapping.dirty.checking.DirtyCheckingSupport;
 import org.grails.datastore.mapping.engine.EntityAccess;
 import org.grails.datastore.mapping.engine.EntityPersister;
 import org.grails.datastore.mapping.model.MappingContext;
@@ -564,7 +565,8 @@ public class Neo4jEntityPersister extends EntityPersister {
                             values.add(proxy);
                         }
                         // for single instances and singular property name do not use an array
-                        Object value = (values.size()==1) && isSingular(key.getType()) ? IteratorUtil.singleOrNull(values): values;
+                        Object value = (values.size()==1) && isSingular(key.getType()) ? IteratorUtil.singleOrNull(values):
+                                       DirtyCheckingSupport.wrap(values, (DirtyCheckable) entity, key.getType());
                         undeclared.put(key.getType(), value);
                     }
 
