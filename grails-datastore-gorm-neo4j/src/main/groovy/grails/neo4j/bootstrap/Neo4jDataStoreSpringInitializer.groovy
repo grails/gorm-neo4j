@@ -71,7 +71,9 @@ class Neo4jDataStoreSpringInitializer extends AbstractDatastoreInitializer {
             else {
                 eventPublisher = new DefaultApplicationEventPublisher()
             }
-            neo4jConnectionSourceFactory(Neo4jConnectionSourceFactory)
+            neo4jConnectionSourceFactory(Neo4jConnectionSourceFactory) { bean ->
+                bean.autowire = true
+            }
             neo4jDatastore(Neo4jDatastore, configuration, ref("neo4jConnectionSourceFactory"), eventPublisher, collectMappedClasses(DATASTORE_TYPE))
             neo4jMappingContext(neo4jDatastore:"getMappingContext") {
                 validatorRegistry = new BeanFactoryValidatorRegistry((BeanFactory)beanDefinitionRegistry)
