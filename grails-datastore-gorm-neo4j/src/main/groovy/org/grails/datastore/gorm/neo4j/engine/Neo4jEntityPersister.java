@@ -879,8 +879,7 @@ public class Neo4jEntityPersister extends EntityPersister {
 
                     }
                 } else {
-                    throw new IllegalArgumentException("wtf don't know how to handle " + pp + "(" + pp.getClass() +")" );
-
+                    throw new IllegalArgumentException("GORM for Neo4j doesn't support properties of the given type " + pp + "(" + pp.getClass().getSuperclass() +")" );
                 }
             }
 
