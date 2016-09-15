@@ -23,6 +23,7 @@ import org.grails.datastore.mapping.engine.EntityAccess
 import org.grails.datastore.mapping.model.types.Association
 import org.grails.datastore.mapping.model.types.ManyToMany
 import org.grails.datastore.mapping.model.types.ToOne
+import org.grails.datastore.mapping.proxy.ProxyFactory
 import org.grails.datastore.mapping.reflect.EntityReflector
 
 
@@ -56,12 +57,18 @@ class GraphAdapter {
         if(currentlyInitializing) return
 
         Neo4jSession session = (Neo4jSession)this.session
-        if (session.getMappingContext().getProxyFactory().isProxy(o)) {
-            return;
+        def childAccess = session.mappingContext.getEntityReflector(association.getAssociatedEntity())
+
+        def proxyFactory = session.getMappingContext().getProxyFactory()
+        Serializable id
+        if (proxyFactory.isProxy(o)) {
+            id = proxyFactory.getIdentifier(o)
         }
-        if (!reversed) {
-            def childAccess = session.mappingContext.getEntityReflector(association.getAssociatedEntity())
-            session.addPendingRelationshipDelete((Long)parentAccess.getIdentifier(), association, (Long)childAccess.getIdentifier(o) )
+        else {
+            id = (Serializable) childAccess.getIdentifier(o)
+        }
+        if (!reversed && id != null) {
+            session.addPendingRelationshipDelete((Serializable)parentAccess.getIdentifier(), association, id)
         }
     }
 

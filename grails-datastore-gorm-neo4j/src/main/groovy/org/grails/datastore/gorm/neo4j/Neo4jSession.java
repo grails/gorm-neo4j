@@ -3,6 +3,7 @@ package org.grails.datastore.gorm.neo4j;
 import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
 import com.googlecode.concurrentlinkedhashmap.EvictionListener;
 import org.grails.datastore.gorm.neo4j.engine.*;
+import org.grails.datastore.gorm.neo4j.mapping.config.DynamicAssociation;
 import org.grails.datastore.gorm.neo4j.mapping.config.DynamicToOneAssociation;
 import org.grails.datastore.gorm.schemaless.DynamicAttributes;
 import org.grails.datastore.mapping.core.AbstractSession;
@@ -341,6 +342,18 @@ public class Neo4jSession extends AbstractSession<Session> {
             processPendingRelationshipUpdates(access, id, association, cascadingOperations, isUpdate);
         }
         if(entity.hasDynamicAssociations()) {
+            if(!pendingRelationshipDeletes.isEmpty()) {
+                for (RelationshipUpdateKey relationshipUpdateKey : pendingRelationshipDeletes.keySet()) {
+                    Association association = relationshipUpdateKey.association;
+                    if(association instanceof DynamicAssociation) {
+                        if(association.getOwner().equals(entity)) {
+                            if(relationshipUpdateKey.id.equals(id)) {
+                                cascadingOperations.add(new RelationshipPendingDelete(access, association, pendingRelationshipDeletes.get(relationshipUpdateKey), getTransaction().getTransaction()));
+                            }
+                        }
+                    }
+                }
+            }
             if(!pendingRelationshipInserts.isEmpty()) {
                 List<RelationshipUpdateKey> relationshipUpdates = new ArrayList<RelationshipUpdateKey>(pendingRelationshipInserts.keySet());
                 Collections.sort(relationshipUpdates, new Comparator<RelationshipUpdateKey>() {

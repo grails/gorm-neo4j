@@ -4,6 +4,7 @@ import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.grails.datastore.gorm.GormEntity;
 import org.grails.datastore.gorm.neo4j.*;
 import org.grails.datastore.gorm.neo4j.collection.*;
+import org.grails.datastore.gorm.neo4j.mapping.config.DynamicToManyAssociation;
 import org.grails.datastore.gorm.neo4j.mapping.reflect.Neo4jNameUtils;
 import org.grails.datastore.gorm.neo4j.util.IteratorUtil;
 import org.grails.datastore.gorm.schemaless.DynamicAttributes;
@@ -13,7 +14,6 @@ import org.grails.datastore.mapping.core.Session;
 import org.grails.datastore.mapping.core.impl.*;
 import org.grails.datastore.mapping.dirty.checking.DirtyCheckable;
 import org.grails.datastore.mapping.dirty.checking.DirtyCheckableCollection;
-import org.grails.datastore.mapping.dirty.checking.DirtyCheckingSupport;
 import org.grails.datastore.mapping.engine.EntityAccess;
 import org.grails.datastore.mapping.engine.EntityPersister;
 import org.grails.datastore.mapping.model.MappingContext;
@@ -552,21 +552,29 @@ public class Neo4jEntityPersister extends EntityPersister {
                         String targetType = key.getTargetType();
                         Iterator<Collection<String>> labelIter = ((Iterable<Collection<String>>) labelsObject).iterator();
 
-                        Collection values = new ArrayList();
+                        List values = new ArrayList();
+                        GraphPersistentEntity associatedEntity = null;
                         while (idIter.hasNext() && labelIter.hasNext()) {
                             Serializable targetId = idIter.next();
                             Collection<String> nextLabels = labelIter.next();
                             Collection<String> labels = targetType != null ? Collections.singletonList(targetType) : nextLabels;
+                            associatedEntity = ((Neo4jMappingContext) getMappingContext()).findPersistentEntityForLabels(labels);
                             Object proxy = getMappingContext().getProxyFactory().createProxy(
                                     this.session,
-                                    ((Neo4jMappingContext) getMappingContext()).findPersistentEntityForLabels(labels).getJavaClass(),
+                                    associatedEntity.getJavaClass(),
                                     targetId
                             );
                             values.add(proxy);
                         }
                         // for single instances and singular property name do not use an array
-                        Object value = (values.size()==1) && isSingular(key.getType()) ? IteratorUtil.singleOrNull(values):
-                                       DirtyCheckingSupport.wrap(values, (DirtyCheckable) entity, key.getType());
+                        Object value;
+                        if(values.size() == 1 && isSingular(key.getType())) {
+                            value = IteratorUtil.singleOrNull(values);
+                        }
+                        else {
+                            DynamicToManyAssociation dynamicAssociation = new DynamicToManyAssociation(persistentEntity, persistentEntity.getMappingContext(), key.getType(), associatedEntity);
+                            value = new Neo4jList(entityAccess, dynamicAssociation, values, session);
+                        }
                         undeclared.put(key.getType(), value);
                     }
 

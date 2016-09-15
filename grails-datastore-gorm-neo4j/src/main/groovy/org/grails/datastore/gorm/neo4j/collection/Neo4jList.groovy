@@ -45,7 +45,13 @@ class Neo4jList extends DirtyCheckingList {
         this.graphAdapter = new GraphAdapter(session, parentAccess, association)
     }
 
-
+    @Override
+    void clear() {
+        for (Object o : target) {
+            adaptGraphUponRemove(o)
+        }
+        super.clear()
+    }
 
     @Override
     boolean add(Object o) {

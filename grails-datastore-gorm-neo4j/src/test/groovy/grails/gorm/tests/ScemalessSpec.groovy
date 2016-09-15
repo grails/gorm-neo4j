@@ -199,6 +199,39 @@ class ScemalessSpec extends GormDatastoreSpec {
 
         and: "using plural named properties returns an array"
         Pet.findByName("Cosima").buddies*.name == ["Lara"]
+
+    }
+
+    @Issue('https://github.com/grails/gorm-neo4j/issues/18')
+    def "test clear dynamic collection association"() {
+        setup:
+        def cosima = new Pet(name: 'Cosima')
+        def lara = new Pet(name: 'Lara')
+        def fred = new Pet(name: 'Fred')
+        cosima.buddies = [lara, fred]
+
+
+        cosima.save()
+        session.flush()
+        session.clear()
+
+        when:
+        def result = session.transaction.nativeTransaction.execute("MATCH (n:Pet {__id__:{1}})-[:buddies]->(l) return l", [cosima.id])
+
+        then:
+        IteratorUtil.count(result) == 2
+
+        when:"the relationship is cleared"
+        def pet = Pet.findByName("Cosima")
+        pet.buddies.clear()
+        pet.save(flush:true)
+        session.clear()
+        result = session.transaction.nativeTransaction.execute("MATCH (n:Pet {__id__:{1}})-[:buddies]->(l) return l", [cosima.id])
+
+        then:"The relationship is empty"
+        Pet.findByName("Cosima").buddies == []
+        IteratorUtil.count(result) == 0
+
     }
 
     def "dynamic properties pointing to arrays of domain classes should be a relationship"() {
