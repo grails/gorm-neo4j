@@ -5,7 +5,7 @@ For Grails 3.x you need to edit your `build.gradle` file and add the plugin as a
 [source,groovy,subs="attributes"]
 ----
 dependencies {
-	compile 'org.grails.plugins:neo4j:{version}'
+	compile 'org.grails.plugins:neo4j:{pluginVersion}'
 }
 ----
 
@@ -18,7 +18,7 @@ To configure the plugin for Grails 2.x edit the `grails-app/conf/BuildConfig.gro
 [source,groovy,subs="attributes"]
 ----
 plugins {
-    compile ':neo4j:{version}'
+    compile ':neo4j:{pluginVersion}'
     build ':tomcat:8.22'
 }
 ----
