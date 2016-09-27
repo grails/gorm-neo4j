@@ -38,10 +38,10 @@ repositories {
 
 
 dependencies {
-    compile "org.grails.plugins:hibernate4:$gormVersion",{
+    compile "org.grails.plugins:hibernate4:$hibernatePluginVersion",{
         exclude module: 'xml-apis'
     }
-    compile "org.grails.plugins:neo4j:$gormVersion"
+    compile "org.grails.plugins:neo4j:$rootProject.version"
     compile "javax.servlet:javax.servlet-api:3.1.0"
 
     test "org.spockframework:spock-core:1.0-groovy-2.4"

@@ -27,6 +27,8 @@ ext {
     neo4jDriverVersion = '1.0.5'
     neo4jVersion = '3.0.4'
     springVersion = "4.1.9.RELEASE"
+    hibernatePluginVersion = project.gormVersion - '.RELEASE'
+    
     isCiBuild = project.hasProperty("isCiBuild")
     isBuildSnapshot = version.endsWith("BUILD-SNAPSHOT")
 
@@ -105,15 +107,14 @@ subprojects { project ->
         }         
     }
        
-
     if(isPluginProject) {        
         group "org.grails.plugins"
+        version( rootProject.version - '.RELEASE' )
     }
     else {
         group "org.grails"
+        version rootProject.version
     }
-
-    version rootProject.version
 
     configurations {
         documentation
