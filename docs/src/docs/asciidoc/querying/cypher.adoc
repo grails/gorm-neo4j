@@ -10,7 +10,7 @@ Note that the first returned item should be the node itself. To execute cypher q
 
 [source,groovy]
 ----
-StatementResult result = Club.cypherStatic("MATCH n where n.name = {1} RETURN n", 'FC Bayern Muenchen')
+StatementResult result = Club.cypherStatic("MATCH n where n.name = {1} RETURN n", ['FC Bayern Muenchen'])
 ----
 
 When working with raw results, you can convert any `org.neo4j.driver.v1.types.Node` into a domain instance using the `as` keyword:
