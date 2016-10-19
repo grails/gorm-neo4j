@@ -54,6 +54,7 @@ class Neo4jTransaction implements Transaction<org.neo4j.driver.v1.Transaction>, 
         if(isActive() && !rollbackOnly) {
             log.debug("TX COMMIT: Neo4J success()")
             transaction.success()
+            close()
         }
     }
 
@@ -61,6 +62,7 @@ class Neo4jTransaction implements Transaction<org.neo4j.driver.v1.Transaction>, 
         if(isActive()) {
             log.debug("TX ROLLBACK: Neo4J failure()")
             transaction.failure()
+            close()
         }
     }
 
@@ -69,6 +71,7 @@ class Neo4jTransaction implements Transaction<org.neo4j.driver.v1.Transaction>, 
             rollbackOnly = true
             log.debug("TX ROLLBACK ONLY: Neo4J failure()")
             transaction.failure()
+            close()
         }
     }
 

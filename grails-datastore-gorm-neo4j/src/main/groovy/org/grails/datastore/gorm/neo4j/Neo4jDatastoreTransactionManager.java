@@ -42,25 +42,6 @@ public class Neo4jDatastoreTransactionManager extends DatastoreTransactionManage
     }
 
     /**
-     * Call {@link org.neo4j.graphdb.Transaction#close()} after completion
-     *
-     * @param transaction The transaction object
-     */
-    @Override
-    protected void doCleanupAfterCompletion(Object transaction) {
-        super.doCleanupAfterCompletion(transaction);
-        TransactionObject txObject = (TransactionObject) transaction;
-        Neo4jTransaction neo4jTransaction = (Neo4jTransaction) txObject.getTransaction();
-        if(!neo4jTransaction.isSessionCreated()) {
-            try {
-                neo4jTransaction.close();
-            } catch (IOException e) {
-                log.warn("Error closing transaction: " + e.getMessage(), e);
-            }
-        }
-    }
-
-    /**
      * same as superclass but passing through {@link org.springframework.transaction.TransactionDefinition}
      * to session.beginTransaction
      * @param o

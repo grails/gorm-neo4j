@@ -666,11 +666,29 @@ public class Neo4jSession extends AbstractSession<Session> {
 
     public Neo4jTransaction assertTransaction() {
         if(transaction == null || (wasTransactionTerminated() && !TransactionSynchronizationManager.isSynchronizationActive())) {
-            // start a new transaction upon termination
-            final DefaultTransactionDefinition transactionDefinition = createDefaultTransactionDefinition(null);
-            transaction = new Neo4jTransaction(boltSession, transactionDefinition, true);
+            SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager.getResource(getDatastore());
+            if(sessionHolder != null && sessionHolder.getSession().equals(this)) {
+                Transaction<?> transaction = sessionHolder.getTransaction();
+                if(transaction instanceof Neo4jTransaction) {
+                    this.transaction = transaction;
+                    return (Neo4jTransaction) transaction;
+                }
+                else {
+                    startDefaultTransaction();
+                }
+            }
+            else {
+                startDefaultTransaction();
+            }
+
         }
         return (Neo4jTransaction) transaction;
+    }
+
+    private void startDefaultTransaction() {
+        // start a new transaction upon termination
+        final DefaultTransactionDefinition transactionDefinition = createDefaultTransactionDefinition(null);
+        transaction = new Neo4jTransaction(boltSession, transactionDefinition, true);
     }
 
     protected DefaultTransactionDefinition createDefaultTransactionDefinition(TransactionDefinition other) {
