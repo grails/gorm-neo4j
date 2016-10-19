@@ -685,6 +685,11 @@ public class Neo4jSession extends AbstractSession<Session> {
         return (Neo4jTransaction) transaction;
     }
 
+    @Override
+    public boolean hasTransaction() {
+        return super.hasTransaction() && transaction.isActive();
+    }
+
     private void startDefaultTransaction() {
         // start a new transaction upon termination
         final DefaultTransactionDefinition transactionDefinition = createDefaultTransactionDefinition(null);
