@@ -38,7 +38,9 @@ public class Neo4jDatastoreTransactionManager extends DatastoreTransactionManage
         super.doSetRollbackOnly(status);
         TransactionObject txObject = (TransactionObject) status.getTransaction();
         Neo4jTransaction neo4jTransaction = (Neo4jTransaction) txObject.getTransaction();
-        neo4jTransaction.rollbackOnly();
+        if(neo4jTransaction != null) {
+            neo4jTransaction.rollbackOnly();
+        }
     }
 
     /**
