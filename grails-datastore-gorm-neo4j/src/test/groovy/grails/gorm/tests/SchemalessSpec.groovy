@@ -5,9 +5,9 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import spock.lang.Issue
 
-class ScemalessSpec extends GormDatastoreSpec {
+class SchemalessSpec extends GormDatastoreSpec {
 
-    private static Logger log = LoggerFactory.getLogger(ScemalessSpec.class);
+    private static Logger log = LoggerFactory.getLogger(SchemalessSpec.class);
 
     @Override
     List getDomainClasses() {

@@ -557,7 +557,7 @@ public class Neo4jEntityPersister extends EntityPersister {
                         while (idIter.hasNext() && labelIter.hasNext()) {
                             Serializable targetId = idIter.next();
                             Collection<String> nextLabels = labelIter.next();
-                            Collection<String> labels = targetType != null ? Collections.singletonList(targetType) : nextLabels;
+                            Collection<String> labels = nextLabels.isEmpty() ? Collections.singletonList(targetType) : nextLabels;
                             associatedEntity = ((Neo4jMappingContext) getMappingContext()).findPersistentEntityForLabels(labels);
                             Object proxy = getMappingContext().getProxyFactory().createProxy(
                                     this.session,
