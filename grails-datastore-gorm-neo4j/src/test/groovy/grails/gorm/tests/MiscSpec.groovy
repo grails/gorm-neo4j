@@ -480,6 +480,7 @@ class Club implements Neo4jEntity<Club> {
     static hasMany = [teams: Team,attributes: Attribute ]
     static constraints = {
         attributes nullable: true
+        league nullable: true
     }
     // TODO: maybe refactor this into a AST
     protected Object writeReplace()

@@ -18,6 +18,7 @@ import groovy.lang.Closure;
 import org.grails.datastore.gorm.GormEnhancer;
 import org.grails.datastore.gorm.GormInstanceApi;
 import org.grails.datastore.gorm.GormStaticApi;
+import org.grails.datastore.gorm.GormValidationApi;
 import org.grails.datastore.gorm.events.AutoTimestampEventListener;
 import org.grails.datastore.gorm.events.ConfigurableApplicationEventPublisher;
 import org.grails.datastore.gorm.events.DefaultApplicationEventPublisher;
@@ -328,6 +329,12 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
             protected <D> GormStaticApi<D> getStaticApi(Class<D> cls, String qualifier) {
                 Neo4jDatastore neo4jDatastore = getDatastoreForQualifier(cls, qualifier);
                 return new GormStaticApi<>(cls, neo4jDatastore, createDynamicFinders(neo4jDatastore), neo4jDatastore.getTransactionManager());
+            }
+
+            @Override
+            protected <D> GormValidationApi<D> getValidationApi(Class<D> cls, String qualifier) {
+                Neo4jDatastore neo4jDatastore = getDatastoreForQualifier(cls, qualifier);
+                return new GormValidationApi<>(cls, neo4jDatastore);
             }
 
             @Override

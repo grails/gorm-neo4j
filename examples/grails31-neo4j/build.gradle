@@ -22,6 +22,8 @@ dependencies {
     testRuntime "net.sourceforge.htmlunit:htmlunit:2.18"
 
     testRuntime 'org.neo4j.test:neo4j-harness:3.0.2'
+
+    profile "org.grails.profiles:web:3.1.9"
 }
 
 
