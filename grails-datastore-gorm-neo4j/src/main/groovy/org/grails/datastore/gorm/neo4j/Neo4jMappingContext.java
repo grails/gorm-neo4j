@@ -133,15 +133,14 @@ public class Neo4jMappingContext extends AbstractMappingContext  {
      * Finds an entity for the statically mapped set of labels
      *
      * @param labels The labels
-     * @return The entity
-     * @throws NonPersistentTypeException if no entity is found
+     * @return The entity or null if it is not found
      */
     public GraphPersistentEntity findPersistentEntityForLabels(Collection<String> labels) {
         final GraphPersistentEntity entity = entitiesByLabel.get(labels);
         if(entity != null) {
             return entity;
         }
-        throw new NonPersistentTypeException(labels.toString());
+        return null;
     }
 
 

@@ -16,6 +16,7 @@ import org.grails.datastore.mapping.dirty.checking.DirtyCheckable;
 import org.grails.datastore.mapping.dirty.checking.DirtyCheckableCollection;
 import org.grails.datastore.mapping.engine.EntityAccess;
 import org.grails.datastore.mapping.engine.EntityPersister;
+import org.grails.datastore.mapping.engine.NonPersistentTypeException;
 import org.grails.datastore.mapping.model.MappingContext;
 import org.grails.datastore.mapping.model.PersistentEntity;
 import org.grails.datastore.mapping.model.PersistentProperty;
@@ -558,7 +559,14 @@ public class Neo4jEntityPersister extends EntityPersister {
                             Serializable targetId = idIter.next();
                             Collection<String> nextLabels = labelIter.next();
                             Collection<String> labels = nextLabels.isEmpty() ? Collections.singletonList(targetType) : nextLabels;
-                            associatedEntity = ((Neo4jMappingContext) getMappingContext()).findPersistentEntityForLabels(labels);
+                            Neo4jMappingContext mappingContext = (Neo4jMappingContext) getMappingContext();
+                            associatedEntity = mappingContext.findPersistentEntityForLabels(labels);
+                            if(associatedEntity == null) {
+                                associatedEntity = mappingContext.findPersistentEntityForLabels(Collections.singletonList(targetType));
+                            }
+                            if(associatedEntity == null) {
+                                throw new NonPersistentTypeException(labels.toString());
+                            }
                             Object proxy = getMappingContext().getProxyFactory().createProxy(
                                     this.session,
                                     associatedEntity.getJavaClass(),
