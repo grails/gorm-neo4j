@@ -74,6 +74,19 @@ class Neo4jQuery extends Query {
                     return ProjectionHandler.COUNT
                 }
             },
+            (Query.IdProjection): new ProjectionHandler<Query.IdProjection>() {
+                @Override
+                @CompileStatic
+                String handle(PersistentEntity entity, Query.IdProjection projection, CypherBuilder builder) {
+                    GraphPersistentEntity graphEntity = (GraphPersistentEntity) entity
+                    if(graphEntity.idGenerator == null) {
+                        return "ID(n)"
+                    }
+                    else {
+                        return "n.${CypherBuilder.IDENTIFIER}"
+                    }
+                }
+            },
             (Query.CountDistinctProjection): new ProjectionHandler<Query.CountDistinctProjection>() {
                 @Override
                 @CompileStatic
