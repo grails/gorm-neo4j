@@ -27,6 +27,7 @@ import org.grails.datastore.gorm.multitenancy.MultiTenantEventListener;
 import org.grails.datastore.gorm.neo4j.connections.Neo4jConnectionSourceFactory;
 import org.grails.datastore.gorm.neo4j.connections.Neo4jConnectionSourceSettings;
 import org.grails.datastore.gorm.neo4j.connections.Neo4jConnectionSourceSettingsBuilder;
+import org.grails.datastore.gorm.utils.ClasspathEntityScanner;
 import org.grails.datastore.gorm.validation.constraints.MappingContextAwareConstraintFactory;
 import org.grails.datastore.gorm.validation.constraints.builtin.UniqueConstraint;
 import org.grails.datastore.gorm.validation.constraints.registry.DefaultValidatorRegistry;
@@ -216,10 +217,32 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
      *
      * @param configuration The configuration for the datastore
      * @param eventPublisher The Spring ApplicationContext
+     * @param packagesToScan The packages to scan
+     */
+    public Neo4jDatastore(PropertyResolver configuration, Neo4jConnectionSourceFactory connectionSourceFactory, ConfigurableApplicationEventPublisher eventPublisher, Package...packagesToScan) {
+        this(configuration,connectionSourceFactory, eventPublisher, new ClasspathEntityScanner().scan(packagesToScan));
+    }
+
+    /**
+     * Configures a new {@link Neo4jDatastore} for the given arguments
+     *
+     * @param configuration The configuration for the datastore
+     * @param eventPublisher The Spring ApplicationContext
      * @param classes The persistent classes
      */
     public Neo4jDatastore(PropertyResolver configuration, ConfigurableApplicationEventPublisher eventPublisher, Class...classes) {
         this(ConnectionSourcesInitializer.create(new Neo4jConnectionSourceFactory(), configuration), eventPublisher, classes);
+    }
+
+    /**
+     * Configures a new {@link Neo4jDatastore} for the given arguments
+     *
+     * @param configuration The configuration for the datastore
+     * @param eventPublisher The Spring ApplicationContext
+     * @param packagesToScan The packages to scan
+     */
+    public Neo4jDatastore(PropertyResolver configuration, ConfigurableApplicationEventPublisher eventPublisher, Package...packagesToScan) {
+        this(configuration, eventPublisher, new ClasspathEntityScanner().scan(packagesToScan));
     }
 
 
@@ -260,6 +283,36 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
      */
     public Neo4jDatastore(Map<String, Object> configuration, Class...classes) {
         this(configuration, new DefaultApplicationEventPublisher(), classes);
+    }
+
+
+    /**
+     * Construct a Mongo datastore scanning the given packages
+     *
+     * @param packagesToScan The packages to scan
+     */
+    public Neo4jDatastore(Package...packagesToScan) {
+        this(new ClasspathEntityScanner().scan(packagesToScan));
+    }
+
+    /**
+     * Construct a Mongo datastore scanning the given packages
+     *
+     * @param configuration The configuration
+     * @param packagesToScan The packages to scan
+     */
+    public Neo4jDatastore(PropertyResolver configuration, Package...packagesToScan) {
+        this(configuration, new ClasspathEntityScanner().scan(packagesToScan));
+    }
+
+    /**
+     * Construct a Mongo datastore scanning the given packages
+     *
+     * @param configuration The configuration
+     * @param packagesToScan The packages to scan
+     */
+    public Neo4jDatastore(Map<String,Object> configuration, Package...packagesToScan) {
+        this(DatastoreUtils.createPropertyResolver(configuration), packagesToScan);
     }
 
 
