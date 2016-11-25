@@ -14,9 +14,9 @@
  */
 package org.grails.datastore.gorm.neo4j
 
-import org.grails.datastore.gorm.neo4j.mapping.config.Neo4jEntity
+import org.grails.datastore.gorm.neo4j.mapping.config.Attribute
+import org.grails.datastore.gorm.neo4j.mapping.config.Node
 import org.grails.datastore.mapping.config.AbstractGormMappingFactory
-import org.grails.datastore.mapping.config.Property
 
 /**
  * A {@link org.grails.datastore.mapping.model.MappingFactory} for Neo4j
@@ -28,12 +28,12 @@ class GraphGormMappingFactory extends AbstractGormMappingFactory {
 
     @Override
     protected Class getPropertyMappedFormType() {
-        Property
+        Attribute
     }
 
     @Override
     protected Class getEntityMappedFormType() {
-        Neo4jEntity
+        Node
     }
 
 }

@@ -750,7 +750,7 @@ public class Neo4jSession extends AbstractSession<Session> {
             if(association.doesCascade(CascadeType.REMOVE)) {
 
                 String a = "a" + i++;
-                baseQuery.addOptionalMatch("(n)"+ Neo4jQuery.matchForAssociation(association)+"("+ a +")");
+                baseQuery.addOptionalMatch("(n)"+ RelationshipUtils.matchForAssociation(association)+"("+ a +")");
                 baseQuery.addDeleteColumn(a);
 
             }

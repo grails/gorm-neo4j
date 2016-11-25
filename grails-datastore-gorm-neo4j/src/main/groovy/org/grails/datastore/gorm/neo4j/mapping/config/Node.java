@@ -25,7 +25,7 @@ import org.grails.datastore.mapping.config.Entity;
  *
  * @since 1.0
  */
-public class Neo4jEntity extends Entity {
+public class Node extends Entity {
 
     private Object labels;
     private boolean dynamicAssociations;

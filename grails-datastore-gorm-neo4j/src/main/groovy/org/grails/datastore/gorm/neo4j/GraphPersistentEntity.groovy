@@ -1,18 +1,13 @@
 package org.grails.datastore.gorm.neo4j
 
 import groovy.transform.CompileStatic
-import org.grails.datastore.gorm.neo4j.identity.SnowflakeIdGenerator
-import org.grails.datastore.gorm.neo4j.mapping.config.Neo4jEntity
+import org.grails.datastore.gorm.neo4j.mapping.config.Node
 import org.grails.datastore.mapping.model.AbstractPersistentEntity
 import org.grails.datastore.mapping.model.ClassMapping
 import org.grails.datastore.mapping.model.DatastoreConfigurationException
 import org.grails.datastore.mapping.model.MappingContext
-import org.grails.datastore.mapping.model.PersistentEntity
 import org.grails.datastore.mapping.model.config.GormMappingConfigurationStrategy
 import org.springframework.util.ClassUtils
-
-import java.lang.reflect.Modifier
-
 
 /**
  * Represents an entity mapped to the Neo4j graph, adding support for dynamic labelling
@@ -24,10 +19,10 @@ import java.lang.reflect.Modifier
  *
  */
 @CompileStatic
-public class GraphPersistentEntity extends AbstractPersistentEntity<Neo4jEntity> {
+public class GraphPersistentEntity extends AbstractPersistentEntity<Node> {
 
     public static final String LABEL_SEPARATOR = ':'
-    protected final Neo4jEntity mappedForm;
+    protected final Node mappedForm;
     protected final Collection<String> staticLabels = []
     protected Collection<Object> labelObjects
     protected final boolean hasDynamicLabels
@@ -44,7 +39,7 @@ public class GraphPersistentEntity extends AbstractPersistentEntity<Neo4jEntity>
             this.mappedForm = null;
         }
         else {
-            this.mappedForm = (Neo4jEntity) context.getMappingFactory().createMappedForm(this);
+            this.mappedForm = (Node) context.getMappingFactory().createMappedForm(this);
         }
         this.hasDynamicAssociations = mappedForm.isDynamicAssociations()
         this.hasDynamicLabels = establishLabels()
@@ -92,7 +87,7 @@ public class GraphPersistentEntity extends AbstractPersistentEntity<Neo4jEntity>
     }
 
     @Override
-    public ClassMapping<Neo4jEntity> getMapping() {
+    public ClassMapping<Node> getMapping() {
         return this.classMapping
     }
 
