@@ -21,4 +21,22 @@ MATCH (from:Owner {__id__:{start}}), (to:Pet) WHERE to.__id__ IN {end} CREATE (f
 
 As you can see from the query the relationship is defined as `(from)-[r:PETS]->(to)`, with the direction of the association defined by who "owns" the association. Since `Pet` defines a `belongTo` association to `Owner`, this means that `Owner` owns the association and the relationship is from `Owner` to `Pet`.
 
-For more information on defining relationships with GORM, see the http://grails.github.io/grails-doc/latest/guide/GORM.html#gormAssociation[corresponding guide in the GORM documentation].
+You can customize the Neo4j relationship type and direction using the `mapping` block if necessary:
+
+[source,groovy]
+----
+import static grails.neo4j.Direction.*
+
+class Owner {
+    String name
+    static hasMany = [pets:Pet]
+
+    static mapping = {
+         pets type:"PETZ", direction:BOTH
+    }
+}
+----
+
+In this case a bidirectional relationship will be created  in the graph such as `(from)<-[r:PETZ]->(to)`.
+
+TIP: For more information on defining relationships with GORM, see the http://grails.github.io/grails-doc/latest/guide/GORM.html#gormAssociation[corresponding guide in the GORM documentation].

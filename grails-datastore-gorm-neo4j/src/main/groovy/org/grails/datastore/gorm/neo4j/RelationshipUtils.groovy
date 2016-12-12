@@ -16,10 +16,10 @@
 
 package org.grails.datastore.gorm.neo4j
 
+import grails.neo4j.Direction
 import groovy.transform.CompileStatic
-import groovy.transform.Memoized
+import org.grails.datastore.gorm.neo4j.mapping.config.Attribute
 import org.grails.datastore.gorm.neo4j.mapping.config.DynamicAssociation
-import org.grails.datastore.gorm.neo4j.mapping.config.DynamicToOneAssociation
 import org.grails.datastore.mapping.model.types.Association
 import org.grails.datastore.mapping.model.types.ManyToMany
 import org.grails.datastore.mapping.model.types.OneToMany
@@ -32,25 +32,108 @@ import org.grails.datastore.mapping.model.types.OneToMany
  */
 @CompileStatic
 class RelationshipUtils {
+    private static final char INCOMING_CHAR = '<'
+    private static final char OUTGOING_CHAR = '>'
+    private static final char OPEN_BRACE = '{'
+    private static final char CLOSE_BRACE = '}'
+    private static final char COMMA = ','
+    private static final char COLON = ':'
+    private static final String SINGLE_QUOTE = "'"
+    private static final String START_RELATIONSHIP = "-["
+    private static final String END_RELATIONSHIP = "]-"
 
-    @Memoized
-    public static boolean useReversedMappingFor(Association association) {
-        return association.isBidirectional() &&
-                ((association instanceof OneToMany) ||
-                        ((association instanceof ManyToMany) && (association.isOwningSide())));
+    /**
+     * Whether the association is inverse
+     *
+     * @param association The association
+     * @return True if it is
+     */
+    static boolean useReversedMappingFor(Association association) {
+        Attribute attr = (Attribute)association.getMapping()?.getMappedForm()
+        return isIncomingRelationship(association, attr)
     }
 
-    @Memoized
-    public static String relationshipTypeUsedFor(Association association) {
-        String name = useReversedMappingFor(association) ?
-                association.getReferencedPropertyName() :
-                association.getName()
+    /**
+     * Obtain the Neo4j relationship type for the giveen association
+     * @param association The association
+     * @return The Neo4j relationship type
+     */
+    static String relationshipTypeUsedFor(Association association) {
+        Attribute mappedForm = (Attribute) association.getMapping()?.getMappedForm()
+        return getRelationshipType( association, mappedForm )
+    }
 
-        if(association instanceof DynamicAssociation) {
-            return name
+    /**
+     * Build an association match for the given association, variable name and attributes
+     *
+     * @param association The association
+     * @param var The variable name
+     * @param attributes The attributes
+     * @return
+     */
+    static String matchForAssociation(Association association, String var = "", Map<String, String> attributes = Collections.emptyMap()) {
+        Attribute mappedForm = (Attribute) association.getMapping()?.getMappedForm()
+        final String relationshipType = getRelationshipType(association, mappedForm)
+        final boolean reversed = isIncomingRelationship(association, mappedForm)
+        StringBuilder sb = new StringBuilder()
+        if (reversed) {
+            sb.append(INCOMING_CHAR)
         }
-        else {
-            return name.toUpperCase()
+        sb.append(START_RELATIONSHIP).append(var).append(COLON).append(relationshipType)
+        if(!attributes.isEmpty()) {
+            sb.append(OPEN_BRACE)
+            def i = attributes.entrySet().iterator()
+            while(i.hasNext()) {
+                def entry = i.next()
+                sb.append(entry.key)
+                        .append(COLON).append(SINGLE_QUOTE)
+                        .append(entry.value)
+                        .append(SINGLE_QUOTE)
+
+                if(i.hasNext()) {
+                    sb.append(COMMA)
+                }
+            }
+            sb.append(CLOSE_BRACE)
+        }
+
+        sb.append(END_RELATIONSHIP)
+        Direction direction = mappedForm?.direction
+        if (direction == Direction.OUTGOING || direction == Direction.BOTH || !reversed) {
+            sb.append(OUTGOING_CHAR)
+        }
+        sb.toString()
+    }
+
+    protected static boolean isIncomingRelationship(Association association, Attribute mappedForm) {
+        def direction = mappedForm?.direction
+        if (direction == Direction.INCOMING || direction == Direction.BOTH) {
+            return true
+        } else {
+            return association.isBidirectional() &&
+                    ((association instanceof OneToMany) ||
+                            ((association instanceof ManyToMany) && (association.isOwningSide())))
+        }
+    }
+
+    protected static String getRelationshipType(Association association, Attribute mappedForm) {
+        String relationshipType = mappedForm?.getType()
+        if (relationshipType != null) {
+            return relationshipType
+        } else {
+            String name = useReversedMappingFor(association) ?
+                    association.getReferencedPropertyName() :
+                    association.getName()
+            if(name != null) {
+                if (association instanceof DynamicAssociation) {
+                    return name
+                } else {
+                    return name.toUpperCase()
+                }
+            }
+            else {
+                return association.getName()
+            }
         }
     }
 }
