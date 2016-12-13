@@ -292,7 +292,7 @@ public class Neo4jSession extends AbstractSession<Session> {
                 }
 
                 Map<String, List<Object>> dynamicAssociations = amendMapWithUndeclaredProperties(graphPersistentEntity, simpleProps, object, mappingContext, nulls);
-                processDynamicAssociations(graphPersistentEntity, access, mappingContext, dynamicAssociations, cascadingOperations, true);
+                getEntityPersister(object).processDynamicAssociations(graphPersistentEntity, access, mappingContext, dynamicAssociations, cascadingOperations, true);
                 processPendingRelationshipUpdates(graphPersistentEntity, access, id, cascadingOperations, true);
 
                 final boolean hasNoUpdates = simpleProps.isEmpty();
@@ -409,12 +409,11 @@ public class Neo4jSession extends AbstractSession<Session> {
             final Collection<PendingInsert> entityInserts = inserts.get(entity);
             for (final PendingInsert entityInsert : entityInserts) {
                 if(entityInsert.wasExecuted() || Relationship.class.isAssignableFrom(entityInsert.getEntity().getJavaClass())) {
-
-                    processPendingRelationshipUpdates((GraphPersistentEntity)entity, entityInsert.getEntityAccess(), (Serializable) entityInsert.getNativeKey(), cascadingOperations, false);
+                    GraphPersistentEntity graphEntity = (GraphPersistentEntity) entity;
+                    processPendingRelationshipUpdates(graphEntity, entityInsert.getEntityAccess(), (Serializable) entityInsert.getNativeKey(), cascadingOperations, false);
                     cascadingOperations.addAll(entityInsert.getCascadeOperations());
                 }
                 else {
-
                     List<PendingOperation> preOperations = entityInsert.getPreOperations();
                     for (PendingOperation preOperation : preOperations) {
                         preOperation.run();
@@ -499,32 +498,17 @@ public class Neo4jSession extends AbstractSession<Session> {
             }
         }
 
-        processDynamicAssociations(graphEntity, access, mappingContext, dynamicRelProps, cascadingOperations, false);
-        processPendingRelationshipUpdates((GraphPersistentEntity)entity, entityInsert.getEntityAccess(), (Serializable) entityInsert.getNativeKey(), cascadingOperations, false);
-    }
-
-    protected void processDynamicAssociations(GraphPersistentEntity graphEntity, EntityAccess access, Neo4jMappingContext mappingContext, Map<String, List<Object>> dynamicRelProps, List<PendingOperation<Object, Serializable>> cascadingOperations, boolean isUpdate) {
-        if(graphEntity.hasDynamicAssociations()) {
-            Serializable parentId = (Serializable) access.getIdentifier();
-            for (final Map.Entry<String, List<Object>> e: dynamicRelProps.entrySet()) {
-                for (final Object o :  e.getValue()) {
-
-                    if (((DirtyCheckable)access.getEntity()).hasChanged(e.getKey())) {
-                        final GraphPersistentEntity associated = (GraphPersistentEntity) mappingContext.getPersistentEntity(o.getClass().getName());
-                        if (associated != null) {
-                            Object childId = getEntityPersister(o).getObjectIdentifier(o);
-                            if (childId == null) {
-                                childId = persist(o);
-                            }
-                            addPendingRelationshipInsert(parentId,
-                                                         new DynamicToOneAssociation(graphEntity, mappingContext, e.getKey(), associated),
-                                                         (Serializable) childId);
-                        }
-                    }
-                }
-            }
+        Serializable parentId = (Serializable) entityInsert.getNativeKey();
+        // in the case of native ids the parent id will be null, so these operations have to be handled later
+        if(parentId != null) {
+            getEntityPersister(obj).processDynamicAssociations(graphEntity, access, mappingContext, dynamicRelProps, cascadingOperations, false);
+            processPendingRelationshipUpdates((GraphPersistentEntity)entity, entityInsert.getEntityAccess(), parentId, cascadingOperations, false);
+        }
+        else if(graphEntity.hasDynamicAssociations()) {
+            params.put(Neo4jEntityPersister.DYNAMIC_ASSOCIATION_PARAM, dynamicRelProps);
         }
     }
+
 
 
     @Override

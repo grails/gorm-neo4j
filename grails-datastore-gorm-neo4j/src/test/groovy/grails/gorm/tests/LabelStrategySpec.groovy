@@ -61,10 +61,7 @@ class LabelStrategySpec extends GormDatastoreSpec {
         verifyLabelsForId(d.id, [labelName])
 
 
-        and:
-        def graph = serverControls.graph()
-        graph.schema().getIndexes(Label.label(labelName))*.propertyKeys == [['__id__']]
-    }
+   }
 
     def "should static label mapping work"() {
         when:
@@ -74,8 +71,6 @@ class LabelStrategySpec extends GormDatastoreSpec {
         then:
         verifyLabelsForId(s.id, [labelName])
 
-        and:
-        serverControls.graph().schema().getIndexes(Label.label(labelName))*.propertyKeys == [['__id__']]
     }
 
     def "should static label mapping work for multiple labels"() {
@@ -86,10 +81,6 @@ class LabelStrategySpec extends GormDatastoreSpec {
         then:
         verifyLabelsForId(s.id, labels)
 
-        and:
-        labels.every {
-            serverControls.graph().schema().getIndexes(Label.label(it))*.propertyKeys == [['__id__']]
-        }
 
         when:
         def d = StaticLabels.findByName("dummy")
@@ -142,14 +133,6 @@ class LabelStrategySpec extends GormDatastoreSpec {
         s.hasErrors() == false
         verifyLabelsForId(s.id, ["InstanceDependentLabels", "${s.profession}"])
 
-        and:
-        serverControls.graph().schema().getIndexes(Label.label("MyLabel"))*.propertyKeys == [['__id__']]
-
-        and: "no index on instance label"
-        !serverControls.graph().schema().getIndexes(Label.label(s.name)).iterator().hasNext()
-
-        and: "there are no indexes on null"
-        serverControls.graph().schema().getIndexes().every { it.label.name() != 'null'}
 
         when: "create Sam again, now as policeman"
         def d = new InstanceDependentLabels(name:'Sam', profession: 'Policeman')
@@ -184,7 +167,7 @@ class LabelStrategySpec extends GormDatastoreSpec {
     }
 
     private def verifyLabelsForId(id, labelz) {
-        def cypherResult = session.transaction.nativeTransaction.run("MATCH (n {__id__:{1}}) return labels(n) as labels", ["1":id])
+        def cypherResult = session.transaction.nativeTransaction.run("MATCH (n ) WHERE ID(n) = {1} return labels(n) as labels", ["1":id])
 
         def result = IteratorUtil.single(cypherResult)
         def labelsObject = result["labels"].asList()

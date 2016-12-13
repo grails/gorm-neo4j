@@ -57,9 +57,14 @@ include::gettingStarted/springBoot.adoc[]
 include::gettingStarted/standalone.adoc[]
 
 [[mapping]]
-== Mapping Domain Classes to Neo4j Nodes
+== Mapping Domain Classes to Nodes
 
 include::mapping.adoc[]
+
+[[relationships]]
+== Mapping Domain Classes to Relationships
+
+include::relationships.adoc[]
 
 [[idGeneration]]
 === Neo4j ID generators

@@ -43,7 +43,7 @@ class MultipleConnectionsSpec extends Specification {
 
         then:
         def error = thrown(ClientException)
-        error.message.contains("port 7688")
+        error.message.contains("SSL Connection terminated")
 
         when:"An entity is saved"
         CompanyA.withConnection("test2") {
@@ -52,7 +52,7 @@ class MultipleConnectionsSpec extends Specification {
 
         then:
         def error2 = thrown(ClientException)
-        error2.message.contains("port 7689")
+        error2.message.contains("SSL Connection terminated")
     }
 
     List getDomainClasses() {

@@ -77,9 +77,8 @@ class SchemalessSpec extends GormDatastoreSpec {
 
     def "should non declared properties get persisted"() {
         setup:
-            def club = new Club(name: 'Cosima').save()
+            def club = new Club(name: 'Cosima').save(flush:true)
             club.buddy = 'Lara'
-
             def date = new Date()
             club.born = date
             club.save(flush:true)
@@ -100,7 +99,7 @@ class SchemalessSpec extends GormDatastoreSpec {
 
     def "test handling of non-declared properties"() {
         when:
-        def club = new Club(name:'person1').save()
+        def club = new Club(name:'person1').save(flush:true)
         club['notDeclaredProperty'] = 'someValue'   // n.b. the 'dot' notation is not valid for undeclared properties
         club['emptyArray'] = []
         club['someIntArray'] = [1,2,3]
@@ -189,7 +188,7 @@ class SchemalessSpec extends GormDatastoreSpec {
         session.clear()
 
         when:
-        def result = session.transaction.nativeTransaction.execute("MATCH (n:Pet {__id__:{1}})-[:buddy]->(l) return l", [cosima.id])
+        def result = session.transaction.nativeTransaction.execute("MATCH (n:Pet)-[:buddy]->(l) WHERE ID(n) = {1} return l", [cosima.id])
 
         then:
         IteratorUtil.count(result) == 1
@@ -216,7 +215,7 @@ class SchemalessSpec extends GormDatastoreSpec {
         session.clear()
 
         when:
-        def result = session.transaction.nativeTransaction.execute("MATCH (n:Pet {__id__:{1}})-[:buddies]->(l) return l", [cosima.id])
+        def result = session.transaction.nativeTransaction.execute("MATCH (n:Pet)-[:buddies]->(l) WHERE ID(n) = {1} return l", [cosima.id])
 
         then:
         IteratorUtil.count(result) == 2
@@ -226,7 +225,7 @@ class SchemalessSpec extends GormDatastoreSpec {
         pet.buddies.clear()
         pet.save(flush:true)
         session.clear()
-        result = session.transaction.nativeTransaction.execute("MATCH (n:Pet {__id__:{1}})-[:buddies]->(l) return l", [cosima.id])
+        result = session.transaction.nativeTransaction.execute("MATCH (n:Pet)-[:buddies]->(l) WHERE ID(n) = {1} return l", [cosima.id])
 
         then:"The relationship is empty"
         Pet.findByName("Cosima").buddies == []
@@ -246,7 +245,7 @@ class SchemalessSpec extends GormDatastoreSpec {
         session.clear()
 
         when:
-        def result = session.transaction.nativeTransaction.execute("MATCH (n:Pet {__id__:{1}})-[:buddies]->(l) return l", [cosima.id])
+        def result = session.transaction.nativeTransaction.execute("MATCH (n:Pet)-[:buddies]->(l) WHERE ID(n) = {1} return l", [cosima.id])
 
         then:
         IteratorUtil.count(result) == 2

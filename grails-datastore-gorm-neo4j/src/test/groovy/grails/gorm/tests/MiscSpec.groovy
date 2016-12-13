@@ -236,7 +236,7 @@ class MiscSpec extends GormDatastoreSpec {
         }
 
         then:
-        indexedProperties.containsAll(["__id__", "name"])
+        indexedProperties.containsAll(["name"])
 
     }
 

@@ -7,7 +7,7 @@ import grails.gorm.tests.*
 
 @RunWith(Suite)
 @SuiteClasses([
-DeleteAllSpec
+UniqueConstraintSpec
 ])
 class Neo4jSuite {
 }

@@ -83,7 +83,7 @@ class SingleTenancySpec extends Specification {
 
         then:"the correct tenant is used"
         def error = thrown(ClientException)
-        error.message.contains("port 7689")
+        error.message.contains("SSL Connection terminated")
 
     }
 

@@ -76,7 +76,8 @@ public class Neo4jMappingContext extends AbstractMappingContext  {
 
     protected Map<Collection<String>, GraphPersistentEntity> entitiesByLabel = new LinkedHashMap<Collection<String>, GraphPersistentEntity>();
 
-    protected IdGenerator idGenerator = new SnowflakeIdGenerator();
+    // default id generator strategy is native
+    protected IdGenerator idGenerator = null;
 
     public Neo4jMappingContext() {
         super();

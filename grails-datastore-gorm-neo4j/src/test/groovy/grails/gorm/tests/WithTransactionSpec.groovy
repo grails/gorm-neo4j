@@ -32,11 +32,13 @@ class WithTransactionSpec extends GormDatastoreSpec {
 
     void "Test rollback transaction"() {
         given:
-        TestEntity.withNewTransaction { status ->
-            new TestEntity(name:"Bob", age:50, child:new ChildEntity(name:"Bob Child")).save()
-            status.setRollbackOnly()
-            new TestEntity(name:"Fred", age:45, child:new ChildEntity(name:"Fred Child")).save()
-        }
+        Thread.start {
+            TestEntity.withNewTransaction { status ->
+                new TestEntity(name:"Bob", age:50, child:new ChildEntity(name:"Bob Child")).save()
+                status.setRollbackOnly()
+                new TestEntity(name:"Fred", age:45, child:new ChildEntity(name:"Fred Child")).save()
+            }
+        }.join()
 
         when:
         int count = TestEntity.count()
@@ -50,15 +52,18 @@ class WithTransactionSpec extends GormDatastoreSpec {
     void "Test rollback transaction with Runtime Exception"() {
         given:
         def ex
-        try {
-            TestEntity.withNewTransaction { status ->
-                new TestEntity(name:"Bob", age:50, child:new ChildEntity(name:"Bob Child")).save()
-                throw new RuntimeException("bad")
+        Thread.start {
+
+            try {
+                TestEntity.withNewTransaction { status ->
+                    new TestEntity(name:"Bob", age:50, child:new ChildEntity(name:"Bob Child")).save()
+                    throw new RuntimeException("bad")
+                }
             }
-        }
-        catch (e) {
-            ex = e
-        }
+            catch (e) {
+                ex = e
+            }
+        }.join()
 
         when:
         int count = TestEntity.count()
@@ -74,15 +79,18 @@ class WithTransactionSpec extends GormDatastoreSpec {
     void "Test rollback transaction with Exception"() {
         given:
         def ex
-        try {
-            TestEntity.withNewTransaction { status ->
-                new TestEntity(name:"Bob", age:50, child:new ChildEntity(name:"Bob Child")).save()
-                throw new TestCheckedException("bad")
+
+        Thread.start {
+            try {
+                TestEntity.withNewTransaction { status ->
+                    new TestEntity(name:"Bob", age:50, child:new ChildEntity(name:"Bob Child")).save()
+                    throw new TestCheckedException("bad")
+                }
             }
-        }
-        catch (e) {
-            ex = e
-        }
+            catch (e) {
+                ex = e
+            }
+        }.join()
 
         when:
         int count = TestEntity.count()

@@ -57,7 +57,7 @@ class OneToManyUpdateSpec extends GormDatastoreSpec {
 
         t = Tournament.get(t.id)
 
-        def result = Club.cypherStatic('MATCH (from:Tournament)-[r:TEAMS]->(to:Team) WHERE from.__id__ = {id}  RETURN r', [id:t.id])
+        def result = Club.cypherStatic('MATCH (from:Tournament)-[r:TEAMS]->(to:Team) WHERE ID(from) = {id}  RETURN r', [id:t.id])
         then: "the relationship is correct and no duplicates are added"
         t != null
         t.teams.size() == 2
@@ -71,7 +71,7 @@ class OneToManyUpdateSpec extends GormDatastoreSpec {
         session.clear()
 
         t = Tournament.get(t.id)
-        result = Club.cypherStatic('MATCH (from:Tournament)-[r:TEAMS]->(to:Team) WHERE from.__id__ = {id}  RETURN r', [id:t.id])
+        result = Club.cypherStatic('MATCH (from:Tournament)-[r:TEAMS]->(to:Team) WHERE ID(from) = {id}  RETURN r', [id:t.id])
         then: "the relationship is correct and no duplicates are added"
         t != null
         t.teams.size() == 1

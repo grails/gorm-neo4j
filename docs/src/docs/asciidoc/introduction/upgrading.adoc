@@ -1,5 +1,16 @@
 If you are upgrading from a previous version of the plugin to the {version}, you will need to take into account the following changes.
 
+==== Native Identifiers by Default
+
+Since 6.1, GORM for Neo4j uses native node and relationship identifiers by default for ids instead of the prevous snowflake id generation strategy. If you wish to revert to the previous strategy you can do so by applying the following configuration:
+
+[source,groovy]
+----
+grails.gorm.neo4j.default.mapping = {
+    id generator:'snowflake'
+}
+----
+
 ==== Configuration Changes
 
 Since the plugin now uses the Neo4j Bolt driver the configuration has been altered.
