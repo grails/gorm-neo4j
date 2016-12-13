@@ -17,14 +17,19 @@ package org.grails.datastore.gorm.neo4j.collection
 
 import groovy.transform.CompileStatic
 import org.grails.datastore.gorm.neo4j.CypherBuilder
+import org.grails.datastore.gorm.neo4j.RelationshipPersistentEntity
 import org.grails.datastore.gorm.neo4j.engine.Neo4jEntityPersister
 import org.grails.datastore.gorm.query.AbstractResultList
+import org.grails.datastore.mapping.engine.EntityPersister
+import org.grails.datastore.mapping.model.PersistentEntity
 import org.grails.datastore.mapping.model.types.Association
 import org.grails.datastore.mapping.query.QueryException
 import org.neo4j.driver.v1.Record
 import org.neo4j.driver.v1.StatementResult
 import org.neo4j.driver.v1.Value
+import org.neo4j.driver.v1.types.Entity
 import org.neo4j.driver.v1.types.Node
+import org.neo4j.driver.v1.types.Relationship
 
 import javax.persistence.LockModeType
 
@@ -84,12 +89,53 @@ class Neo4jResultList extends AbstractResultList {
         if (next instanceof Node) {
             Node node = (Node) next
             return entityPersister.unmarshallOrFromCache(entityPersister.getPersistentEntity(), node, EMPTY_RESULT_DATA, initializedAssociations, lockMode)
-        } else {
+        }
+        else if(next instanceof Relationship) {
+            PersistentEntity persistentEntity = entityPersister.getPersistentEntity()
+            if(persistentEntity instanceof RelationshipPersistentEntity) {
+                Relationship data = (Relationship) next
+                return entityPersister.unmarshallOrFromCache(entityPersister.getPersistentEntity(), data, initializedAssociations);
+            }
+            else {
+                throw new QueryException("Query must return a node as the first column of the RETURN statement")
+            }
+        }
+        else {
             Record record = (Record) next
             if (record.containsKey(CypherBuilder.NODE_DATA)) {
                 Node data = (Node) record.get(CypherBuilder.NODE_DATA).asNode();
                 return entityPersister.unmarshallOrFromCache(entityPersister.getPersistentEntity(), data, record.asMap(), initializedAssociations, lockMode)
-            } else {
+            }
+            else if(record.containsKey(CypherBuilder.REL_DATA)) {
+                PersistentEntity persistentEntity = entityPersister.getPersistentEntity()
+                if(persistentEntity instanceof RelationshipPersistentEntity) {
+                    def recordMap = record.asMap()
+                    RelationshipPersistentEntity relEntity = (RelationshipPersistentEntity)persistentEntity
+                    Relationship data = (Relationship) record.get(CypherBuilder.REL_DATA).asRelationship();
+                    this.initializedAssociations = new LinkedHashMap<>(initializedAssociations)
+                    if(record.containsKey(RelationshipPersistentEntity.FROM)) {
+                        Association fromAssociation = relEntity.getFrom()
+                        PersistentEntity fromEntity = fromAssociation.getAssociatedEntity()
+                        Neo4jEntityPersister fromPersister = entityPersister.getSession().getEntityPersister(fromEntity)
+                        this.initializedAssociations.put(fromAssociation,
+                                fromPersister.unmarshallOrFromCache( fromEntity, record.get(RelationshipPersistentEntity.FROM).asNode(),recordMap,  initializedAssociations)
+                        )
+                    }
+                    if(record.containsKey(RelationshipPersistentEntity.TO)) {
+                        Association toAssociation = relEntity.getTo()
+                        PersistentEntity toEntity = toAssociation.getAssociatedEntity()
+                        Neo4jEntityPersister fromPersister = entityPersister.getSession().getEntityPersister(toEntity)
+                        this.initializedAssociations.put(toAssociation,
+                                fromPersister.unmarshallOrFromCache( toEntity, record.get(RelationshipPersistentEntity.TO).asNode() ,recordMap,  initializedAssociations)
+                        )
+                    }
+                    return entityPersister.unmarshallOrFromCache(entityPersister.getPersistentEntity(), data, initializedAssociations);
+                }
+                else {
+                    throw new QueryException("Query must return a node as the first column of the RETURN statement")
+                }
+            }
+            else {
 
                 Node node = record.values().find() {  Value v ->
                     v.type() == entityPersister.getSession().getNativeInterface().typeSystem().NODE()

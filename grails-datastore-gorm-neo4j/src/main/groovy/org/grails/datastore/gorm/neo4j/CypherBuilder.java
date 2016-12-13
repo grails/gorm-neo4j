@@ -23,6 +23,7 @@ public class CypherBuilder {
     public static final String COMMAND_SEPARATOR = ", ";
     public static final String DEFAULT_RETURN_TYPES = "n as data\n";
     public static final String DEFAULT_RETURN_STATEMENT = RETURN + DEFAULT_RETURN_TYPES;
+    public static final String DEFAULT_REL_RETURN_STATEMENT = "r as rel, n as from, to as to \n";
     public static final String NEW_LINE = " \n";
     public static final String START_MATCH = "MATCH (n";
     public static final String SPACE = " ";
@@ -32,12 +33,15 @@ public class CypherBuilder {
     public static final String CYPHER_MATCH_NATIVE_ID = "MATCH (n%s) WHERE ID(n) = {id}";
     public static final String NODE_LABELS = "labels";
     public static final String NODE_DATA = "data";
+    public static final String REL_DATA = "rel";
     public final static String NODE_VAR = "n";
+    public final static String REL_VAR = "r";
     public static final String DELETE = "\n DETACH DELETE ";
 
 
     private String forLabels;
-    private Set<String> matches = new HashSet<String>();
+    private Set<String> matches = new HashSet<>();
+    private Set<String> relationshipMatches = new HashSet<>();
     private List<String> optionalMatches = new ArrayList<String>();
     private String conditions;
     private String orderAndLimits;
@@ -53,6 +57,10 @@ public class CypherBuilder {
 
     public void addMatch(String match) {
         matches.add(match);
+    }
+
+    public void addRelationshipMatch(String match) {
+        relationshipMatches.add(match);
     }
 
     /**
@@ -132,6 +140,10 @@ public class CypherBuilder {
     public String build() {
         StringBuilder cypher = new StringBuilder();
         cypher.append(START_MATCH).append(forLabels).append(")");
+
+        for(String r : relationshipMatches) {
+            cypher.append(r);
+        }
 
         for (String m : matches) {
             cypher.append(COMMAND_SEPARATOR).append(m);

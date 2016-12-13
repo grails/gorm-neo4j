@@ -14,6 +14,7 @@
  */
 package org.grails.datastore.gorm.neo4j;
 
+import grails.neo4j.Relationship;
 import groovy.lang.Closure;
 import org.grails.datastore.gorm.neo4j.connections.Neo4jConnectionSourceSettings;
 import org.grails.datastore.gorm.neo4j.identity.SnowflakeIdGenerator;
@@ -123,7 +124,9 @@ public class Neo4jMappingContext extends AbstractMappingContext  {
 
     @Override
     protected PersistentEntity createPersistentEntity(Class javaClass, boolean external) {
-        final GraphPersistentEntity entity = new GraphPersistentEntity(javaClass, this, external);
+        final GraphPersistentEntity entity = Relationship.class.isAssignableFrom(javaClass) ?
+                                        new RelationshipPersistentEntity(javaClass, this, external) :
+                                        new GraphPersistentEntity(javaClass, this, external);
         final Collection<String> labels = entity.getLabels();
         entitiesByLabel.put(labels, entity);
         return entity;

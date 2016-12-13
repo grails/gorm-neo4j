@@ -17,9 +17,11 @@
 package org.grails.datastore.gorm.neo4j
 
 import grails.neo4j.Direction
+import grails.neo4j.Relationship
 import groovy.transform.CompileStatic
 import org.grails.datastore.gorm.neo4j.mapping.config.Attribute
 import org.grails.datastore.gorm.neo4j.mapping.config.DynamicAssociation
+import org.grails.datastore.mapping.model.PersistentEntity
 import org.grails.datastore.mapping.model.types.Association
 import org.grails.datastore.mapping.model.types.ManyToMany
 import org.grails.datastore.mapping.model.types.OneToMany
@@ -105,6 +107,57 @@ class RelationshipUtils {
         sb.toString()
     }
 
+
+    /**
+     * Build an association match for the given association, variable name and attributes
+     *
+     * @param association The association
+     * @param var The variable name
+     * @param attributes The attributes
+     * @return
+     */
+    static String toMatch(Association association, Relationship relationship, String var = "r") {
+        Attribute mappedForm = (Attribute) association.getMapping()?.getMappedForm()
+        final String relationshipType = relationship.type()
+        Direction direction = mappedForm.direction ?: Direction.OUTGOING
+        final boolean reversed = direction == Direction.INCOMING || direction == Direction.BOTH
+        StringBuilder sb = new StringBuilder()
+        if (reversed) {
+            sb.append(INCOMING_CHAR)
+        }
+        sb.append(START_RELATIONSHIP).append(var).append(COLON).append(relationshipType)
+        sb.append(END_RELATIONSHIP)
+        if (direction == Direction.OUTGOING || direction == Direction.BOTH ) {
+            sb.append(OUTGOING_CHAR)
+        }
+        sb.toString()
+    }
+
+    /**
+     * Build an association match for the given association, variable name and attributes
+     *
+     * @param association The association
+     * @param var The variable name
+     * @param attributes The attributes
+     * @return
+     */
+    static String matchForRelationshipEntity(Association association, RelationshipPersistentEntity entity, String var = "r") {
+        Attribute mappedForm = (Attribute) association.getMapping()?.getMappedForm()
+        PersistentEntity owningEntity = association.getOwner()
+        Direction direction = mappedForm.direction ?: owningEntity == entity.getTo().associatedEntity ? Direction.INCOMING : Direction.OUTGOING
+        final boolean reversed = direction == Direction.INCOMING || direction == Direction.BOTH
+        StringBuilder sb = new StringBuilder()
+        if (reversed) {
+            sb.append(INCOMING_CHAR)
+        }
+        sb.append(START_RELATIONSHIP)
+          .append(var)
+          .append(END_RELATIONSHIP)
+        if (direction == Direction.OUTGOING || direction == Direction.BOTH ) {
+            sb.append(OUTGOING_CHAR)
+        }
+        sb.toString()
+    }
     protected static boolean isIncomingRelationship(Association association, Attribute mappedForm) {
         def direction = mappedForm?.direction
         if (direction == Direction.INCOMING || direction == Direction.BOTH) {

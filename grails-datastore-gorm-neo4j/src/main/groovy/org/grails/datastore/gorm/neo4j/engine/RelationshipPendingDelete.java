@@ -15,8 +15,10 @@
  */
 package org.grails.datastore.gorm.neo4j.engine;
 
+import grails.neo4j.Relationship;
 import org.grails.datastore.gorm.neo4j.CypherBuilder;
 import org.grails.datastore.gorm.neo4j.GraphPersistentEntity;
+import org.grails.datastore.gorm.neo4j.RelationshipUtils;
 import org.grails.datastore.mapping.core.impl.PendingOperationAdapter;
 import org.grails.datastore.mapping.engine.EntityAccess;
 import org.grails.datastore.mapping.model.types.Association;
@@ -28,6 +30,9 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
+
+import static org.grails.datastore.gorm.neo4j.engine.RelationshipPendingInsert.FROM;
+import static org.grails.datastore.gorm.neo4j.engine.RelationshipPendingInsert.TO;
 
 /**
  * Represents a pending relationship delete
@@ -42,6 +47,7 @@ public class RelationshipPendingDelete extends PendingOperationAdapter<Object, S
     private final Transaction boltTransaction;
     private final Association association;
     private final Collection<Serializable> targetIdentifiers;
+    private final EntityAccess entityAccess;
 
 
     public RelationshipPendingDelete(EntityAccess parent, Association association, Collection<Serializable> pendingInserts, Transaction boltTransaction) {
@@ -49,19 +55,48 @@ public class RelationshipPendingDelete extends PendingOperationAdapter<Object, S
         this.targetIdentifiers = pendingInserts;
         this.boltTransaction = boltTransaction;
         this.association = association;
+        this.entityAccess = parent;
     }
 
     @Override
     public void run() {
-        final GraphPersistentEntity graphParent = (GraphPersistentEntity) getEntity();
-        final GraphPersistentEntity graphChild = (GraphPersistentEntity) association.getAssociatedEntity();
+        GraphPersistentEntity graphParent = (GraphPersistentEntity) getEntity();
+        GraphPersistentEntity graphChild = (GraphPersistentEntity) association.getAssociatedEntity();
 
         final String labelsFrom = graphParent.getLabelsAsString();
         final String labelsTo = graphChild.getLabelsAsString();
-        final String relMatch = Neo4jQuery.matchForAssociation(association, "r");
+        Serializable parentId = getNativeKey();
+        final boolean isRelationshipAssociation = Relationship.class.isAssignableFrom(graphParent.getJavaClass());
+        if(isRelationshipAssociation) {
+            if(association.getName().equals(FROM)) {
+                Association endProperty = (Association) graphParent.getPropertyByName(TO);
+                Association startProperty = (Association) graphParent.getPropertyByName(FROM);
 
-        final Map<String, Object> params = new LinkedHashMap<String, Object>(2);
-        params.put(CypherBuilder.START, getNativeKey());
+                graphChild = (GraphPersistentEntity) endProperty.getAssociatedEntity();
+                graphParent = (GraphPersistentEntity) startProperty.getAssociatedEntity();
+
+                Object endEntity = entityAccess.getProperty(TO);
+                Object startEntity = entityAccess.getProperty(FROM);
+                parentId = graphParent.getReflector().getIdentifier(startEntity);
+                this.targetIdentifiers.clear();
+                this.targetIdentifiers.add( graphChild.getReflector().getIdentifier(endEntity) );
+            }
+            else {
+                // don't do anything for the 'to' end
+                return;
+            }
+        }
+        final String relMatch;
+        if(isRelationshipAssociation) {
+            relMatch = RelationshipUtils.toMatch(association, (Relationship) entityAccess.getEntity());
+        }
+        else {
+            relMatch = RelationshipUtils.matchForAssociation(association, "r");
+        }
+
+        final Map<String, Object> params = new LinkedHashMap<>(2);
+
+        params.put(CypherBuilder.START, parentId);
         params.put(CypherBuilder.END, targetIdentifiers);
 
 

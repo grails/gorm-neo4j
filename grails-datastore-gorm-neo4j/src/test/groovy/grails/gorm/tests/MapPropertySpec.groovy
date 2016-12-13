@@ -9,7 +9,6 @@ import groovy.transform.NotYetImplemented
  */
 class MapPropertySpec extends GormDatastoreSpec {
 
-    @NotYetImplemented // neo4j doesn't support nested maps
     void "Test persist map property"() {
         when:"a object with a map property is persisted"
 

@@ -14,6 +14,7 @@
  */
 package org.grails.datastore.gorm.neo4j;
 
+import grails.neo4j.Relationship;
 import groovy.lang.Closure;
 import org.grails.datastore.gorm.GormEnhancer;
 import org.grails.datastore.gorm.GormInstanceApi;
@@ -433,7 +434,7 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
         List<String> schemaStrings = new ArrayList<String>(); // using set to avoid duplicate index creation
 
         for (PersistentEntity persistentEntity:  mappingContext.getPersistentEntities()) {
-            if(persistentEntity.isExternal()) continue;
+            if(persistentEntity.isExternal() || Relationship.class.isAssignableFrom(persistentEntity.getJavaClass())) continue;
 
             if(log.isDebugEnabled()) {
                 log.debug("Setting up indexing for entity " + persistentEntity.getName());

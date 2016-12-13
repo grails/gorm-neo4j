@@ -1,5 +1,6 @@
 package org.grails.datastore.gorm.neo4j.engine;
 
+import grails.neo4j.Relationship;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.grails.datastore.gorm.GormEntity;
 import org.grails.datastore.gorm.neo4j.*;
@@ -24,9 +25,11 @@ import org.grails.datastore.mapping.model.config.GormProperties;
 import org.grails.datastore.mapping.model.types.*;
 import org.grails.datastore.mapping.proxy.EntityProxy;
 import org.grails.datastore.mapping.query.Query;
+import org.grails.datastore.mapping.reflect.EntityReflector;
 import org.neo4j.driver.v1.Record;
 import org.neo4j.driver.v1.StatementResult;
 import org.neo4j.driver.v1.StatementRunner;
+import org.neo4j.driver.v1.types.Entity;
 import org.neo4j.driver.v1.types.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -261,8 +264,6 @@ public class Neo4jEntityPersister extends EntityPersister {
             if(log.isDebugEnabled()) {
                 log.debug("Locking entity [{}] node [{}] for pessimistic write", defaultPersistentEntity.getName(), data.id());
             }
-//            neo4jTransaction.getTransaction().acquireWriteLock(data);
-            // TODO: Write lock support?
             throw new UnsupportedOperationException("Write locks are not supported by the Bolt Java Driver.");
         }
 
@@ -280,6 +281,51 @@ public class Neo4jEntityPersister extends EntityPersister {
 
         if (instance == null) {
             instance = unmarshall(persistentEntity, id, data, resultData, initializedAssociations);
+        }
+        return instance;
+    }
+
+
+    public Object unmarshallOrFromCache(PersistentEntity entity, org.neo4j.driver.v1.types.Relationship data, Map<Association, Object> initializedAssociations) {
+        Object object = unmarshallOrFromCache(entity, (Entity) data, initializedAssociations);
+        RelationshipPersistentEntity relEntity = (RelationshipPersistentEntity) entity;
+        if(object != null) {
+            EntityReflector reflector = entity.getReflector();
+            Object from = reflector.getProperty(object, RelationshipPersistentEntity.FROM);
+            if(from == null || from instanceof EntityProxy) {
+                reflector.setProperty(
+                        object,
+                        RelationshipPersistentEntity.FROM, session.proxy( relEntity.getFrom().getType(), data.startNodeId() )
+                );
+            }
+            Object to = reflector.getProperty(object, RelationshipPersistentEntity.TO);
+            if(to == null || to instanceof EntityProxy) {
+                reflector.setProperty(
+                        object,
+                        RelationshipPersistentEntity.TO, session.proxy( relEntity.getTo().getType(), data.endNodeId() )
+                );
+            }
+            reflector.setProperty(object,
+                    RelationshipPersistentEntity.TYPE,
+                    data.type());
+        }
+        return object;
+    }
+
+    public Object unmarshallOrFromCache(PersistentEntity entity, Entity data, Map<Association, Object> initializedAssociations) {
+        final Neo4jSession session = getSession();
+        GraphPersistentEntity graphPersistentEntity = (GraphPersistentEntity) entity;
+        final Serializable id;
+        if(graphPersistentEntity.getIdGenerator() == null || (graphPersistentEntity instanceof RelationshipPersistentEntity)) {
+            id = data.id();
+        }
+        else {
+            id = data.get(CypherBuilder.IDENTIFIER).asNumber();
+        }
+        Object instance = session.getCachedInstance(entity.getJavaClass(), id);
+
+        if (instance == null) {
+            instance = unmarshall(entity, id, data, Collections.<String, Object>emptyMap(), initializedAssociations);
         }
         return instance;
     }
@@ -334,7 +380,7 @@ public class Neo4jEntityPersister extends EntityPersister {
     }
 
 
-    protected Object unmarshall(PersistentEntity persistentEntity, Serializable id, Node node, Map<String, Object> resultData, Map<Association, Object> initializedAssociations) {
+    protected Object unmarshall(PersistentEntity persistentEntity, Serializable id, Entity node, Map<String, Object> resultData, Map<Association, Object> initializedAssociations) {
 
         if(log.isDebugEnabled()) {
             log.debug( "unmarshalling entity [{}] with id [{}], props {}, {}", persistentEntity.getName(), id, node);
@@ -381,7 +427,7 @@ public class Neo4jEntityPersister extends EntityPersister {
         for (PersistentProperty property: entityAccess.getPersistentEntity().getPersistentProperties()) {
 
             String propertyName = property.getName();
-            if ( (property instanceof Simple) || (property instanceof TenantId)) {
+            if ( (property instanceof Simple) || (property instanceof TenantId) || (property instanceof Basic)) {
                 // implicitly sets version property as well
                 if(node.containsKey(propertyName)) {
 
@@ -404,13 +450,14 @@ public class Neo4jEntityPersister extends EntityPersister {
                 if(hasDynamicAssociations) {
                     removeFromRelationshipMap(association, relationshipsMap);
                 }
+                final String associationRelKey = associationName + "Rels";
                 final String associationNodesKey = associationName + "Nodes";
                 final String associationIdsKey = associationName + "Ids";
 
                 // if the node key is present we have an eager fetch, so initialise the association
                 if(resultData.containsKey(associationNodesKey)) {
+                    final PersistentEntity associatedEntity = association.getAssociatedEntity();
                     if (association instanceof ToOne) {
-                        final PersistentEntity associatedEntity = association.getAssociatedEntity();
                         final Neo4jEntityPersister associationPersister = session.getEntityPersister(associatedEntity.getJavaClass());
                         final Iterable<Node> associationNodes = (Iterable<Node>) resultData.get(associationNodesKey);
                         final Node associationNode = IteratorUtil.singleOrNull(associationNodes);
@@ -424,8 +471,19 @@ public class Neo4jEntityPersister extends EntityPersister {
                     else if(association instanceof ToMany) {
                         Collection values;
                         final Class type = association.getType();
-                        final Collection<Object> associationNodes = (Collection<Object>) resultData.get(associationNodesKey);
-                        final Neo4jResultList resultSet = new Neo4jResultList(0, associationNodes.size(), associationNodes.iterator(), session.getEntityPersister(association.getAssociatedEntity()));
+
+                        final Collection<Object> associationNodes;
+                        if(associatedEntity instanceof RelationshipPersistentEntity && resultData.containsKey(associationRelKey)) {
+                            RelationshipPersistentEntity relEntity = (RelationshipPersistentEntity) associatedEntity;
+                            if(resultData.containsKey(associationNodesKey)) {
+
+                            }
+                            associationNodes = (Collection<Object>) resultData.get(associationRelKey);
+                        }
+                        else {
+                            associationNodes = (Collection<Object>) resultData.get(associationNodesKey);
+                        }
+                        final Neo4jResultList resultSet = new Neo4jResultList(0, associationNodes.size(), associationNodes.iterator(), session.getEntityPersister(associatedEntity));
                         if(association.isBidirectional()) {
                             final Association inverseSide = association.getInverseSide();
                             if(inverseSide instanceof ToOne) {
@@ -438,10 +496,10 @@ public class Neo4jEntityPersister extends EntityPersister {
                             values = new Neo4jList(entityAccess, association, resultSet, session);
                         }
                         else if(SortedSet.class.isAssignableFrom(type)) {
-                            values = new Neo4jSortedSet(entityAccess, association, new TreeSet<Object>(resultSet), session);
+                            values = new Neo4jSortedSet(entityAccess, association, new TreeSet<>(resultSet), session);
                         }
                         else {
-                            values = new Neo4jSet(entityAccess, association, new HashSet<Object>(resultSet), session);
+                            values = new Neo4jSet(entityAccess, association, new HashSet<>(resultSet), session);
                         }
                         entityAccess.setPropertyNoConversion(propertyName, values);
                     }
@@ -727,7 +785,7 @@ public class Neo4jEntityPersister extends EntityPersister {
 
 
 
-                final Map<String, Object> params = new HashMap<String, Object>(1);
+                final Map<String, Object> params = new HashMap<>(1);
 
                 final String cypher = session.buildEntityCreateOperation(pe, pendingInsert, params, pendingInsert.getCascadeOperations());
                 final StatementRunner boltSession = session.hasTransaction() ? session.getTransaction().getNativeTransaction() : session.getNativeInterface();
@@ -895,6 +953,19 @@ public class Neo4jEntityPersister extends EntityPersister {
                             neo4jSession.addPendingRelationshipInsert((Serializable) entityAccess.getIdentifier(), to, (Serializable) assocationAccess.getIdentifier());
                         }
 
+                    }
+                } else if(pp instanceof Basic) {
+                    Basic basic = ((Basic)pp);
+                    if(Relationship.class.isAssignableFrom(basic.getComponentType())) {
+                        if (propertyValue!= null) {
+
+                            if (propertyValue instanceof PersistentCollection) {
+                                PersistentCollection pc = (PersistentCollection) propertyValue;
+                                if (!pc.isInitialized()) continue;
+                            }
+
+                            Collection targets = (Collection) propertyValue;
+                        }
                     }
                 } else {
                     throw new IllegalArgumentException("GORM for Neo4j doesn't support properties of the given type " + pp + "(" + pp.getClass().getSuperclass() +")" );

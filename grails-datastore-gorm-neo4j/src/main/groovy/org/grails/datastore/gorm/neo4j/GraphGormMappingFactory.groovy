@@ -15,7 +15,7 @@
 package org.grails.datastore.gorm.neo4j
 
 import org.grails.datastore.gorm.neo4j.mapping.config.Attribute
-import org.grails.datastore.gorm.neo4j.mapping.config.Node
+import org.grails.datastore.gorm.neo4j.mapping.config.NodeConfig
 import org.grails.datastore.mapping.config.AbstractGormMappingFactory
 
 /**
@@ -33,7 +33,7 @@ class GraphGormMappingFactory extends AbstractGormMappingFactory {
 
     @Override
     protected Class getEntityMappedFormType() {
-        Node
+        NodeConfig
     }
 
 }

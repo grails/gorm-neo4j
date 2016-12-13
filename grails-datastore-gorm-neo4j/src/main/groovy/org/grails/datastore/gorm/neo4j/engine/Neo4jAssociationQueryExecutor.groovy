@@ -15,16 +15,20 @@
  */
 package org.grails.datastore.gorm.neo4j.engine
 
+import grails.neo4j.Relationship
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.grails.datastore.gorm.neo4j.CypherBuilder
 import org.grails.datastore.gorm.neo4j.GraphPersistentEntity
 import org.grails.datastore.gorm.neo4j.Neo4jSession
+import org.grails.datastore.gorm.neo4j.RelationshipPersistentEntity
+import org.grails.datastore.gorm.neo4j.RelationshipUtils
 import org.grails.datastore.gorm.neo4j.collection.Neo4jResultList
 import org.grails.datastore.mapping.engine.AssociationQueryExecutor
 import org.grails.datastore.mapping.model.PersistentEntity
 import org.grails.datastore.mapping.model.config.GormProperties
 import org.grails.datastore.mapping.model.types.Association
+import org.grails.datastore.mapping.model.types.Basic
 import org.grails.datastore.mapping.model.types.ToOne
 import org.neo4j.driver.v1.Session
 import org.neo4j.driver.v1.StatementResult
@@ -49,7 +53,16 @@ class Neo4jAssociationQueryExecutor implements AssociationQueryExecutor<Serializ
 
     Neo4jAssociationQueryExecutor(Neo4jSession session, Association association, boolean lazy = false, boolean singleResult = false) {
         this.session = session
-        this.indexedEntity = association.associatedEntity
+        PersistentEntity associatedEntity = association.associatedEntity
+        if(associatedEntity != null) {
+            this.indexedEntity = associatedEntity
+        }
+        else if(association instanceof Basic) {
+            this.indexedEntity = session.mappingContext.getPersistentEntity(((Basic)association).componentType.name)
+        }
+        if(this.indexedEntity == null) {
+            throw new IllegalStateException("Cannot create association query loader for ${association}. No mapped associated entity could be located.")
+        }
         this.association = association
         this.lazy = lazy
         this.singleResult = singleResult
@@ -64,9 +77,31 @@ class Neo4jAssociationQueryExecutor implements AssociationQueryExecutor<Serializ
     List<Object> query(Serializable primaryKey) {
 
         StatementRunner statementRunner = session.hasTransaction() ? session.getTransaction().getNativeTransaction() : (Session)session.nativeInterface
-        def relType = Neo4jQuery.matchForAssociation(association)
+        String relType
+
         GraphPersistentEntity parent = (GraphPersistentEntity)association.owner
         GraphPersistentEntity related = (GraphPersistentEntity)indexedEntity
+
+        boolean isRelationship = related instanceof RelationshipPersistentEntity
+
+        if(isRelationship) {
+            RelationshipPersistentEntity relEntity = (RelationshipPersistentEntity)related
+            GraphPersistentEntity fromEntity = (GraphPersistentEntity) relEntity.getFrom().getAssociatedEntity()
+            GraphPersistentEntity toEntity = (GraphPersistentEntity) relEntity.getTo().getAssociatedEntity()
+            if(parent == fromEntity) {
+                relType = "-[rel]->"
+                related = toEntity
+            }
+            else {
+                relType = "<-[rel]-"
+                parent = toEntity
+                related = fromEntity
+            }
+        }
+        else {
+            relType = RelationshipUtils.matchForAssociation(association)
+        }
+
         String relationship = "(from${parent.labelsAsString})${relType}(to${related.labelsAsString})"
 
         StringBuilder cypher = new StringBuilder("MATCH $relationship WHERE ")
@@ -78,7 +113,7 @@ class Neo4jAssociationQueryExecutor implements AssociationQueryExecutor<Serializ
             cypher.append("from.${CypherBuilder.IDENTIFIER} = {id}  RETURN ")
         }
 
-        if(lazy) {
+        if(lazy && !isRelationship) {
             if(related.idGenerator == null) {
                 cypher.append("ID(to) as id")
             }
@@ -87,7 +122,12 @@ class Neo4jAssociationQueryExecutor implements AssociationQueryExecutor<Serializ
             }
         }
         else {
-            cypher.append('to as data')
+            if(!isRelationship) {
+                cypher.append('to as data')
+            }
+            else {
+                cypher.append('rel as rel')
+            }
         }
         cypher.append(singleResult ? 'LIMIT 1' : '')
 
@@ -99,7 +139,7 @@ class Neo4jAssociationQueryExecutor implements AssociationQueryExecutor<Serializ
         log.debug("QUERY Cypher [$cypher] for params [$params]")
 
         StatementResult result = statementRunner.run(cypher.toString(), params)
-        if(isLazy()) {
+        if(isLazy() && !isRelationship) {
             List<Object> results = []
             while(result.hasNext()) {
                 def id = result.next().get(GormProperties.IDENTITY).asNumber()
@@ -110,7 +150,7 @@ class Neo4jAssociationQueryExecutor implements AssociationQueryExecutor<Serializ
             return results
         }
         else {
-            def resultList = new Neo4jResultList(0, result, session.getEntityPersister(related))
+            def resultList = new Neo4jResultList(0, result, isRelationship ? session.getEntityPersister(indexedEntity) : session.getEntityPersister(related))
             if(association.isBidirectional()) {
                 def inverseSide = association.inverseSide
                 if(inverseSide instanceof ToOne) {

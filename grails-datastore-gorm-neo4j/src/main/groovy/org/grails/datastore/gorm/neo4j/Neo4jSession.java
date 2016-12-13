@@ -2,6 +2,7 @@ package org.grails.datastore.gorm.neo4j;
 
 import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
 import com.googlecode.concurrentlinkedhashmap.EvictionListener;
+import grails.neo4j.Relationship;
 import org.grails.datastore.gorm.neo4j.engine.*;
 import org.grails.datastore.gorm.neo4j.mapping.config.DynamicAssociation;
 import org.grails.datastore.gorm.neo4j.mapping.config.DynamicToOneAssociation;
@@ -18,10 +19,7 @@ import org.grails.datastore.mapping.model.MappingContext;
 import org.grails.datastore.mapping.model.PersistentEntity;
 import org.grails.datastore.mapping.model.PersistentProperty;
 import org.grails.datastore.mapping.model.config.GormProperties;
-import org.grails.datastore.mapping.model.types.Association;
-import org.grails.datastore.mapping.model.types.Custom;
-import org.grails.datastore.mapping.model.types.Simple;
-import org.grails.datastore.mapping.model.types.TenantId;
+import org.grails.datastore.mapping.model.types.*;
 import org.grails.datastore.mapping.query.Query;
 import org.grails.datastore.mapping.query.Restrictions;
 import org.grails.datastore.mapping.query.api.QueryableCriteria;
@@ -231,7 +229,8 @@ public class Neo4jSession extends AbstractSession<Session> {
         for (PersistentEntity entity : entities) {
             final Collection<PendingUpdate> pendingUpdates = updates.get(entity);
             GraphPersistentEntity graphPersistentEntity = (GraphPersistentEntity) entity;
-            final boolean isNativeId = graphPersistentEntity.getIdGenerator() == null;
+            final boolean isRelationshipEntity = graphPersistentEntity instanceof RelationshipPersistentEntity;
+            final boolean isNativeId = graphPersistentEntity.getIdGenerator() == null ;
             final boolean isVersioned = entity.hasProperty(GormProperties.VERSION, Long.class) && entity.isVersioned();
 
             for (PendingUpdate pendingUpdate : pendingUpdates) {
@@ -245,7 +244,7 @@ public class Neo4jSession extends AbstractSession<Session> {
                 final EntityAccess access = pendingUpdate.getEntityAccess();
                 final List<PendingOperation<Object, Serializable>> cascadingOperations = new ArrayList<PendingOperation<Object, Serializable>>(pendingUpdate.getCascadeOperations());
 
-                final String labels = ((GraphPersistentEntity)entity).getLabelsWithInheritance(access.getEntity());
+                final String labels = graphPersistentEntity.getLabelsWithInheritance(access.getEntity());
                 final StringBuilder cypherStringBuilder = new StringBuilder();
 
                 final Map<String,Object> params =  new LinkedHashMap<String, Object>(2);
@@ -253,7 +252,13 @@ public class Neo4jSession extends AbstractSession<Session> {
                 params.put(GormProperties.IDENTITY, id);
                 final Map<String, Object> simpleProps = new HashMap<String, Object>();
 
-                if(isNativeId) {
+                if(isRelationshipEntity) {
+                    RelationshipPersistentEntity relEntity = (RelationshipPersistentEntity) graphPersistentEntity;
+                    cypherStringBuilder.append("MATCH ")
+                                       .append(relEntity.buildMatch(CypherBuilder.NODE_VAR))
+                                       .append(" WHERE ID(n) = {id}");
+                }
+                else if(isNativeId) {
                     cypherStringBuilder.append(CypherBuilder.CYPHER_MATCH_NATIVE_ID);
                 }
                 else {
@@ -267,7 +272,7 @@ public class Neo4jSession extends AbstractSession<Session> {
                 for (String dirtyPropertyName : dirtyPropertyNames) {
                     final PersistentProperty property = entity.getPropertyByName(dirtyPropertyName);
                     if(property !=null){
-                        if (property instanceof Simple) {
+                        if (property instanceof Simple || property instanceof Basic) {
                             String name = property.getName();
                             Object value = access.getProperty(name);
                             if (value != null) {
@@ -403,8 +408,7 @@ public class Neo4jSession extends AbstractSession<Session> {
         for (PersistentEntity entity : entities) {
             final Collection<PendingInsert> entityInserts = inserts.get(entity);
             for (final PendingInsert entityInsert : entityInserts) {
-
-                if(entityInsert.wasExecuted()) {
+                if(entityInsert.wasExecuted() || Relationship.class.isAssignableFrom(entityInsert.getEntity().getJavaClass())) {
 
                     processPendingRelationshipUpdates((GraphPersistentEntity)entity, entityInsert.getEntityAccess(), (Serializable) entityInsert.getNativeKey(), cascadingOperations, false);
                     cascadingOperations.addAll(entityInsert.getCascadeOperations());
@@ -461,9 +465,9 @@ public class Neo4jSession extends AbstractSession<Session> {
     public void buildEntityCreateOperation(StringBuilder createCypher, String index, PersistentEntity entity, PendingInsert entityInsert, Map<String, Object> params, List<PendingOperation<Object, Serializable>> cascadingOperations, Neo4jMappingContext mappingContext) {
         GraphPersistentEntity graphPersistentEntity = (GraphPersistentEntity) entity;
         final List<PersistentProperty> persistentProperties = entity.getPersistentProperties();
-        Map<String, Object> simpleProps = new HashMap<String, Object>(persistentProperties.size());
+        Map<String, Object> simpleProps = new HashMap<>(persistentProperties.size());
         final Serializable id = (Serializable)entityInsert.getNativeKey();
-        if(graphPersistentEntity.getIdGenerator() != null) {
+        if(graphPersistentEntity.getIdGenerator() != null && !(graphPersistentEntity instanceof RelationshipPersistentEntity)) {
             simpleProps.put(CypherBuilder.IDENTIFIER, id);
         }
 
@@ -480,7 +484,7 @@ public class Neo4jSession extends AbstractSession<Session> {
         final EntityAccess access = entityInsert.getEntityAccess();
         // build a properties map for each CREATE statement
         for (PersistentProperty pp : persistentProperties) {
-            if ((pp instanceof Simple) || (pp instanceof TenantId) ) {
+            if ((pp instanceof Simple) || (pp instanceof TenantId) ||  (pp instanceof Basic)) {
                 String name = pp.getName();
                 Object value = access.getProperty(name);
                 if (value != null) {
@@ -745,17 +749,23 @@ public class Neo4jSession extends AbstractSession<Session> {
     }
 
     protected void buildCascadingDeletes(PersistentEntity entity, CypherBuilder baseQuery) {
-        int i = 1;
-        for (Association association : entity.getAssociations()) {
-            if(association.doesCascade(CascadeType.REMOVE)) {
-
-                String a = "a" + i++;
-                baseQuery.addOptionalMatch("(n)"+ RelationshipUtils.matchForAssociation(association)+"("+ a +")");
-                baseQuery.addDeleteColumn(a);
-
-            }
+        if(entity instanceof RelationshipPersistentEntity) {
+            baseQuery.addDeleteColumn(CypherBuilder.REL_VAR);
         }
-        baseQuery.addDeleteColumn(CypherBuilder.NODE_VAR);
+        else {
+            int i = 1;
+            for (Association association : entity.getAssociations()) {
+                if(association instanceof Basic) continue;
+                if(association.doesCascade(CascadeType.REMOVE)) {
+
+                    String a = "a" + i++;
+                    baseQuery.addOptionalMatch("(n)"+ RelationshipUtils.matchForAssociation(association)+"("+ a +")");
+                    baseQuery.addDeleteColumn(a);
+
+                }
+            }
+            baseQuery.addDeleteColumn(CypherBuilder.NODE_VAR);
+        }
     }
 
     @Override

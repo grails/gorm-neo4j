@@ -1,7 +1,7 @@
 package org.grails.datastore.gorm.neo4j
 
 import groovy.transform.CompileStatic
-import org.grails.datastore.gorm.neo4j.mapping.config.Node
+import org.grails.datastore.gorm.neo4j.mapping.config.NodeConfig
 import org.grails.datastore.mapping.model.AbstractPersistentEntity
 import org.grails.datastore.mapping.model.ClassMapping
 import org.grails.datastore.mapping.model.DatastoreConfigurationException
@@ -19,40 +19,44 @@ import org.springframework.util.ClassUtils
  *
  */
 @CompileStatic
-public class GraphPersistentEntity extends AbstractPersistentEntity<Node> {
+ class GraphPersistentEntity extends AbstractPersistentEntity<NodeConfig> {
 
     public static final String LABEL_SEPARATOR = ':'
-    protected final Node mappedForm;
+    protected final NodeConfig mappedForm
     protected final Collection<String> staticLabels = []
     protected Collection<Object> labelObjects
     protected final boolean hasDynamicLabels
     protected final boolean hasDynamicAssociations
-    protected final GraphClassMapping classMapping;
+    protected final GraphClassMapping classMapping
     protected IdGenerator idGenerator
 
-    public GraphPersistentEntity(Class javaClass, MappingContext context) {
+    GraphPersistentEntity(Class javaClass, MappingContext context) {
         this(javaClass, context, false)
     }
-    public GraphPersistentEntity(Class javaClass, MappingContext context, boolean external) {
-        super(javaClass, context);
+
+    GraphPersistentEntity(Class javaClass, MappingContext context, boolean external) {
+        super(javaClass, context)
         if(isExternal()) {
-            this.mappedForm = null;
+            this.mappedForm = null
         }
         else {
-            this.mappedForm = (Node) context.getMappingFactory().createMappedForm(this);
+            this.mappedForm = (NodeConfig) context.getMappingFactory().createMappedForm(this)
         }
         this.hasDynamicAssociations = mappedForm.isDynamicAssociations()
         this.hasDynamicLabels = establishLabels()
-        this.external = external;
-        this.classMapping = new GraphClassMapping(this, context);
+        this.external = external
+        this.classMapping = new GraphClassMapping(this, context)
     }
 
     @Override
     void initialize() {
         super.initialize()
         if(!isExternal()) {
-            def generatorType = getIdentity().getMapping().getMappedForm().getGenerator()
-            this.idGenerator = createIdGenerator(generatorType)
+            def identity = getIdentity()
+            if(identity != null) {
+                def generatorType = identity.getMapping().getMappedForm().getGenerator()
+                this.idGenerator = createIdGenerator(generatorType)
+            }
         }
     }
 
@@ -87,7 +91,7 @@ public class GraphPersistentEntity extends AbstractPersistentEntity<Node> {
     }
 
     @Override
-    public ClassMapping<Node> getMapping() {
+    ClassMapping<NodeConfig> getMapping() {
         return this.classMapping
     }
 
@@ -102,15 +106,15 @@ public class GraphPersistentEntity extends AbstractPersistentEntity<Node> {
      * recursively join all discriminators up the class hierarchy
      * @return
      */
-    public String getLabelsWithInheritance(domainInstance) {
-        StringBuilder sb = new StringBuilder();
-        appendRecursive(sb, domainInstance);
-        return sb.toString();
+    String getLabelsWithInheritance(domainInstance) {
+        StringBuilder sb = new StringBuilder()
+        appendRecursive(sb, domainInstance)
+        return sb.toString()
     }
     /**
      * @return Returns only the statically defined labels
      */
-    public Collection<String> getLabels() {
+    Collection<String> getLabels() {
         return this.staticLabels
     }
 
@@ -120,7 +124,7 @@ public class GraphPersistentEntity extends AbstractPersistentEntity<Node> {
      * @param domainInstance The domain instance
      * @return the abels
      */
-    public Collection<String> getLabels(Object domainInstance) {
+    Collection<String> getLabels(Object domainInstance) {
         if(hasDynamicLabels) {
             Collection<String> labels = []
             for(obj in labelObjects) {
@@ -139,7 +143,7 @@ public class GraphPersistentEntity extends AbstractPersistentEntity<Node> {
     /**
      * @return Return only the statically defined labels as a string usable by cypher, concatenated by ":"
      */
-    public String getLabelsAsString() {
+    String getLabelsAsString() {
         return ":${staticLabels.join(LABEL_SEPARATOR)}"
     }
 
@@ -147,7 +151,7 @@ public class GraphPersistentEntity extends AbstractPersistentEntity<Node> {
      * return all labels as string usable for cypher, concatenated by ":"
      * @return
      */
-    public String getLabelsAsString(Object domainInstance) {
+    String getLabelsAsString(Object domainInstance) {
         if(hasDynamicLabels) {
             return ":${getLabels(domainInstance).join(LABEL_SEPARATOR)}"
         }

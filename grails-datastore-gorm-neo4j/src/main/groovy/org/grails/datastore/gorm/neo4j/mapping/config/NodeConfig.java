@@ -25,7 +25,7 @@ import org.grails.datastore.mapping.config.Entity;
  *
  * @since 1.0
  */
-public class Node extends Entity {
+public class NodeConfig extends Entity {
 
     private Object labels;
     private boolean dynamicAssociations;

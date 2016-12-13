@@ -1,3 +1,9 @@
+==== 6.1.x
+
+* Support for mapping entities to Neo4j Relationships
+* Support for lists and maps of basic types
+* Upgrade to Neo4j Bolt Driver 1.1
+
 ==== 6.0.x
 
 * Support for Neo4j 3.0.x or above

@@ -15,14 +15,20 @@
  */
 package org.grails.datastore.gorm.neo4j.engine;
 
+import grails.neo4j.Relationship;
 import org.grails.datastore.gorm.neo4j.CypherBuilder;
 import org.grails.datastore.gorm.neo4j.GraphPersistentEntity;
+import org.grails.datastore.gorm.neo4j.RelationshipPersistentEntity;
 import org.grails.datastore.gorm.neo4j.RelationshipUtils;
 import org.grails.datastore.gorm.neo4j.mapping.config.DynamicToOneAssociation;
 import org.grails.datastore.mapping.core.impl.PendingInsertAdapter;
 import org.grails.datastore.mapping.engine.EntityAccess;
+import org.grails.datastore.mapping.model.PersistentProperty;
 import org.grails.datastore.mapping.model.types.Association;
+import org.grails.datastore.mapping.model.types.Basic;
+import org.grails.datastore.mapping.model.types.Simple;
 import org.grails.datastore.mapping.model.types.ToOne;
+import org.grails.datastore.mapping.reflect.EntityReflector;
 import org.neo4j.driver.v1.Session;
 import org.neo4j.driver.v1.Transaction;
 import org.slf4j.Logger;
@@ -39,7 +45,14 @@ import java.util.*;
  *
  */
 public class RelationshipPendingInsert extends PendingInsertAdapter<Object, Serializable> {
-
+    /**
+     * The name of the from property
+     */
+    public static final String FROM = "from";
+    /**
+     * The name of the to property
+     */
+    public static final String TO = "to";
     public static final String CYPHER_DELETE_RELATIONSHIP = "MATCH (from%s {"+CypherBuilder.IDENTIFIER+": {start}})%s() DELETE r";
     public static final String CYPHER_DELETE_NATIVE_RELATIONSHIP = "MATCH (from%s)%s() WHERE ID(from) = {start} DELETE r";
     public static final String SOURCE_TYPE = "sourceType";
@@ -70,13 +83,37 @@ public class RelationshipPendingInsert extends PendingInsertAdapter<Object, Seri
     @Override
     public void run() {
 
-        Map<String,Object> params =  new LinkedHashMap<String, Object>(2);
-        final Object parentId = getEntityAccess().getIdentifier();
+
+        GraphPersistentEntity graphParent = (GraphPersistentEntity) getEntity();
+        GraphPersistentEntity graphChild = (GraphPersistentEntity) association.getAssociatedEntity();
+        Map<String,Object> params = new LinkedHashMap<>(2);
+        EntityAccess entityAccess = getEntityAccess();
+        Object parentId = entityAccess.getIdentifier();
+
+        final boolean isRelationshipAssociation = Relationship.class.isAssignableFrom(graphParent.getJavaClass());
+        if(isRelationshipAssociation) {
+            if(association.getName().equals(FROM)) {
+                Association endProperty = (Association) graphParent.getPropertyByName(TO);
+                Association startProperty = (Association) graphParent.getPropertyByName(FROM);
+
+                graphChild = (GraphPersistentEntity) endProperty.getAssociatedEntity();
+                graphParent = (GraphPersistentEntity) startProperty.getAssociatedEntity();
+
+                Object endEntity = entityAccess.getProperty(TO);
+                Object startEntity = entityAccess.getProperty(FROM);
+                parentId = graphParent.getReflector().getIdentifier(startEntity);
+                this.targetIdentifiers.clear();
+                this.targetIdentifiers.add( graphChild.getReflector().getIdentifier(endEntity) );
+            }
+            else {
+                // don't do anything for the 'to' end
+                return;
+            }
+        }
+
         params.put(CypherBuilder.START, parentId);
         params.put(CypherBuilder.END, targetIdentifiers);
 
-        final GraphPersistentEntity graphParent = (GraphPersistentEntity) getEntity();
-        final GraphPersistentEntity graphChild = (GraphPersistentEntity) association.getAssociatedEntity();
         final boolean nativeParent = graphParent.getIdGenerator() == null;
         String labelsFrom = graphParent.getLabelsAsString();
         String labelsTo = graphChild.getLabelsAsString();
@@ -87,10 +124,30 @@ public class RelationshipPendingInsert extends PendingInsertAdapter<Object, Seri
             LinkedHashMap<String, String> attrs = new LinkedHashMap<String, String>();
             attrs.put(SOURCE_TYPE, graphParent.getJavaClass().getSimpleName());
             attrs.put(TARGET_TYPE, graphChild.getJavaClass().getSimpleName());
-            relMatch = Neo4jQuery.matchForAssociation(association, "r", attrs);
+            relMatch = RelationshipUtils.matchForAssociation(association, "r", attrs);
+        }
+        else if(isRelationshipAssociation) {
+            LinkedHashMap<String, Object> attrs = new LinkedHashMap<>();
+            GraphPersistentEntity relEntity = (GraphPersistentEntity) getEntity();
+            EntityReflector reflector = relEntity.getReflector();
+            for (PersistentProperty pp : relEntity.getPersistentProperties()) {
+                if(pp instanceof Simple || pp instanceof Basic) {
+                    String propertyName = pp.getName();
+                    if(RelationshipPersistentEntity.TYPE.equals(propertyName)) continue;
+                    Object v = reflector.getProperty(getNativeEntry(), propertyName);
+                    if(v != null) {
+                        attrs.put(propertyName, v);
+                    }
+                }
+            }
+            Relationship relationship = (Relationship) getEntityAccess().getEntity();
+            attrs.putAll( relationship.attributes() );
+
+            params.put("rProps", attrs);
+            relMatch = RelationshipUtils.toMatch(association, relationship);
         }
         else {
-            relMatch = Neo4jQuery.matchForAssociation(association, "r");
+            relMatch = RelationshipUtils.matchForAssociation(association, "r");
         }
 
         boolean reversed = RelationshipUtils.useReversedMappingFor(association);
@@ -128,7 +185,9 @@ public class RelationshipPendingInsert extends PendingInsertAdapter<Object, Seri
             cypherQuery.append("to.").append(CypherBuilder.IDENTIFIER).append(" IN {end}");
         }
         cypherQuery.append(" MERGE (from)").append(relMatch).append("(to)");
-
+        if(isRelationshipAssociation) {
+            cypherQuery.append(" ON CREATE SET r={rProps}");
+        }
         String cypher = cypherQuery.toString();
 
         if (log.isDebugEnabled()) {
