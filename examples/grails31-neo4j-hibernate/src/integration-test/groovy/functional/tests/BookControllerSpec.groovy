@@ -2,6 +2,7 @@ package functional.tests
 
 import grails.test.mixin.integration.Integration
 import geb.spock.*
+import spock.lang.Ignore
 
 /**
  * See the API for {@link grails.test.mixin.support.GrailsUnitTestMixin} for usage instructions
@@ -23,6 +24,7 @@ class BookControllerSpec extends GebSpec {
         	title == "Book List"
     }
 
+    @Ignore
     void "Test save book"() {
         when:
         go "/book/create"
@@ -32,6 +34,5 @@ class BookControllerSpec extends GebSpec {
         then:"The book is correct"
         title == "Show Book"
         $('li.fieldcontain div').text() == 'The Stand'
-
     }
 }
