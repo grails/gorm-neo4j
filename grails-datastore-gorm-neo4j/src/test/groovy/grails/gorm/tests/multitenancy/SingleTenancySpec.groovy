@@ -12,6 +12,7 @@ import org.grails.datastore.mapping.multitenancy.resolvers.SystemPropertyTenantR
 import org.neo4j.driver.v1.exceptions.ClientException
 import org.neo4j.driver.v1.exceptions.ServiceUnavailableException
 import org.neo4j.harness.ServerControls
+import org.springframework.util.SocketUtils
 import spock.lang.AutoCleanup
 import spock.lang.Shared
 import spock.lang.Specification
@@ -22,7 +23,8 @@ import spock.lang.Specification
 class SingleTenancySpec extends Specification {
     @Shared @AutoCleanup Neo4jDatastore datastore
     @Shared @AutoCleanup ServerControls serverControls
-
+    @Shared int port1 = SocketUtils.findAvailableTcpPort(7600)
+    @Shared int port2 = SocketUtils.findAvailableTcpPort(7600)
     void setupSpec() {
         Map config = [
                 "grails.gorm.multiTenancy.mode":"DATABASE",
@@ -32,19 +34,15 @@ class SingleTenancySpec extends Specification {
                 (Settings.SETTING_NEO4J_BUILD_INDEX): false,
                 (Settings.SETTING_CONNECTIONS)      : [
                         test1: [
-                                url: "bolt://localhost:7688"
+                                url: "bolt://localhost:$port1"
                         ],
                         test2: [
-                                url: "bolt://localhost:7689"
+                                url: "bolt://localhost:$port2"
                         ]
                 ]
         ]
         this.datastore = new Neo4jDatastore(config, getDomainClasses() as Class[])
-        this.serverControls = EmbeddedNeo4jServer.start("localhost", 7688)
-    }
-
-    void cleanupSpec() {
-        datastore.close()
+        this.serverControls = EmbeddedNeo4jServer.start("localhost", port1)
     }
 
     void setup() {
@@ -84,7 +82,7 @@ class SingleTenancySpec extends Specification {
 
         then:"the correct tenant is used"
         def error = thrown(ServiceUnavailableException)
-        error.message.contains("SSL Connection terminated")
+        error.message.contains("Unable to connect to localhost:$port2")
 
     }
 

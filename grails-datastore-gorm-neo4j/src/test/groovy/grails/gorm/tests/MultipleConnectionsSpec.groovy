@@ -6,6 +6,8 @@ import org.grails.datastore.gorm.neo4j.Neo4jDatastore
 import org.grails.datastore.gorm.neo4j.config.Settings
 import org.neo4j.driver.v1.exceptions.ClientException
 import org.neo4j.driver.v1.exceptions.ServiceUnavailableException
+import org.springframework.util.SocketUtils
+import spock.lang.AutoCleanup
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -14,27 +16,21 @@ import spock.lang.Specification
  */
 class MultipleConnectionsSpec extends Specification {
 
-    @Shared Neo4jDatastore datastore
-
-    void setupSpec() {
-        Map config = [
-                (Settings.SETTING_NEO4J_URL) : "bolt://localhost:7687",
-                (Settings.SETTING_NEO4J_BUILD_INDEX) :false,
-                (Settings.SETTING_CONNECTIONS): [
-                        test1: [
-                                url: "bolt://localhost:7688"
-                        ],
-                        test2: [
-                                url: "bolt://localhost:7689"
-                        ]
-                ]
-        ]
-        this.datastore = new Neo4jDatastore(config, getDomainClasses() as Class[])
-    }
-
-    void cleanupSpec() {
-        datastore.close()
-    }
+    @Shared int port1 = SocketUtils.findAvailableTcpPort(7700)
+    @Shared int port2 = SocketUtils.findAvailableTcpPort(7700)
+    @Shared Map config = [
+            (Settings.SETTING_NEO4J_URL) : "bolt://localhost:7687",
+            (Settings.SETTING_NEO4J_BUILD_INDEX) :false,
+            (Settings.SETTING_CONNECTIONS): [
+                    test1: [
+                            url: "bolt://localhost:${port1}"
+                    ],
+                    test2: [
+                            url: "bolt://localhost:${port2}"
+                    ]
+            ]
+    ]
+    @Shared @AutoCleanup Neo4jDatastore datastore = new Neo4jDatastore(config, getDomainClasses() as Class[])
 
 
     void "Test query multiple data sources"() {
@@ -44,7 +40,7 @@ class MultipleConnectionsSpec extends Specification {
 
         then:
         def error = thrown(ServiceUnavailableException)
-        error.message.contains("SSL Connection terminated")
+        error.message.contains("Unable to connect to localhost:$port1")
 
         when:"An entity is saved"
         CompanyA.withConnection("test2") {
@@ -53,7 +49,7 @@ class MultipleConnectionsSpec extends Specification {
 
         then:
         def error2 = thrown(ServiceUnavailableException)
-        error2.message.contains("SSL Connection terminated")
+        error2.message.contains("Unable to connect to localhost:$port2")
     }
 
     List getDomainClasses() {
