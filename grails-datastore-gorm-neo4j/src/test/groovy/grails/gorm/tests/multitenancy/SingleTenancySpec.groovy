@@ -10,6 +10,7 @@ import org.grails.datastore.mapping.core.Session
 import org.grails.datastore.mapping.multitenancy.exceptions.TenantNotFoundException
 import org.grails.datastore.mapping.multitenancy.resolvers.SystemPropertyTenantResolver
 import org.neo4j.driver.v1.exceptions.ClientException
+import org.neo4j.driver.v1.exceptions.ServiceUnavailableException
 import org.neo4j.harness.ServerControls
 import spock.lang.AutoCleanup
 import spock.lang.Shared
@@ -82,7 +83,7 @@ class SingleTenancySpec extends Specification {
         CompanyB.count() == 0
 
         then:"the correct tenant is used"
-        def error = thrown(ClientException)
+        def error = thrown(ServiceUnavailableException)
         error.message.contains("SSL Connection terminated")
 
     }

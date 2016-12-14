@@ -5,6 +5,7 @@ import grails.neo4j.Neo4jEntity
 import org.grails.datastore.gorm.neo4j.Neo4jDatastore
 import org.grails.datastore.gorm.neo4j.config.Settings
 import org.neo4j.driver.v1.exceptions.ClientException
+import org.neo4j.driver.v1.exceptions.ServiceUnavailableException
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -42,7 +43,7 @@ class MultipleConnectionsSpec extends Specification {
         new CompanyA(name:"One").save(flush:true)
 
         then:
-        def error = thrown(ClientException)
+        def error = thrown(ServiceUnavailableException)
         error.message.contains("SSL Connection terminated")
 
         when:"An entity is saved"
@@ -51,7 +52,7 @@ class MultipleConnectionsSpec extends Specification {
         }
 
         then:
-        def error2 = thrown(ClientException)
+        def error2 = thrown(ServiceUnavailableException)
         error2.message.contains("SSL Connection terminated")
     }
 
