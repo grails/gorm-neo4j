@@ -17,8 +17,15 @@ grails:
   neo4j:
     url: bolt://localhost:7687
     type: embedded
+    location: build/neo4j-data
     options:
       encryptionLevel: NONE
+environments:
+  test:
+    grails:
+      neo4j:
+        embedded:
+          dropData: true
 ---
 grails:
     mime:

@@ -47,8 +47,12 @@ public class Neo4jConnectionSourceFactory extends AbstractConnectionSourceFactor
         if(type == Neo4jConnectionSourceSettings.ConnectionType.embedded && ConnectionSource.DEFAULT.equals(name)) {
             if(ClassUtils.isPresent("org.neo4j.harness.ServerControls") && EmbeddedNeo4jServer.isAvailable()) {
                 final String location = settings.getLocation();
-                final Map options = settings.getEmbedded().getOptions();
+                Neo4jConnectionSourceSettings.EmbeddedSettings embeddedSettings = settings.getEmbedded();
+                final Map options = embeddedSettings.getOptions();
                 final File dataDir = location != null ? new File(location) : null;
+                if(dataDir != null && embeddedSettings.isDropData()) {
+                    dataDir.delete();
+                }
                 ServerControls serverControls;
                 try {
                     serverControls = url != null ? EmbeddedNeo4jServer.start(url, dataDir, options) : EmbeddedNeo4jServer.start(dataDir, options);

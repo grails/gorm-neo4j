@@ -47,6 +47,7 @@ class Neo4jConnectionSourceSettings extends ConnectionSourceSettings implements 
      */
     String location = DEFAULT_LOCATION
 
+
     /**
      * Neo4j driver options
      */
@@ -61,6 +62,10 @@ class Neo4jConnectionSourceSettings extends ConnectionSourceSettings implements 
     @Builder(builderStrategy = SimpleStrategy, prefix = '')
     static class EmbeddedSettings {
         Map options = [:]
+        /**
+         * Whether to drop existing data
+         */
+        boolean dropData = false
     }
 
     static enum ConnectionType {
