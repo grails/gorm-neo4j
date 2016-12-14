@@ -38,6 +38,11 @@ class RelationshipPersistentEntity extends GraphPersistentEntity {
     }
 
     @Override
+    String getVariableName() {
+        return CypherBuilder.REL_VAR
+    }
+
+    @Override
     boolean isVersioned() {
         return false
     }

@@ -32,11 +32,18 @@ class RelationshipMappingSpec extends GormDatastoreSpec{
         CastMember cm = CastMember.first()
         cm.roles = ['Neo', 'Thomas Anderson']
         cm.save(flush:true)
+        session.clear()
+        cm = CastMember.get(cm.id)
+        def roles = CastMember.where {
+            id == cm.id
+        }.property('roles').list()
 
         then:"The CastMember count is correct"
         cm.getAt("foo") == 'bar'
         CastMember.count == 1
         CastMember.countByRoles(['Neo', 'Thomas Anderson']) == 1
+        cm.roles == ['Neo', 'Thomas Anderson']
+        roles == ['Neo', 'Thomas Anderson']
 
         when:"The relationship is deleted"
         cm.delete(flush: true)

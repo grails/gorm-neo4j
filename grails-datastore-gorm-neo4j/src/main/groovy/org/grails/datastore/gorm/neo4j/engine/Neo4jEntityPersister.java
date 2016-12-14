@@ -225,31 +225,13 @@ public class Neo4jEntityPersister extends EntityPersister {
     @Override
     protected Object retrieveEntity(PersistentEntity pe, Serializable key) {
 
-        GraphPersistentEntity graphPersistentEntity = (GraphPersistentEntity) pe;
-        if(graphPersistentEntity.getIdGenerator() == null) {
-            getSession().assertTransaction();
+        if(log.isDebugEnabled()) {
+            log.debug("Retrieving entity [{}] by node id [{}]", pe.getJavaClass(), key);
+        }
 
-            final Neo4jSession session = getSession();
-            final ConversionService conversionService = getMappingContext().getConversionService();
-            if(log.isDebugEnabled()) {
-                log.debug("Retrieving entity [{}] by node id [{}]", pe.getJavaClass(), key);
-            }
-            Long convertedId = conversionService.convert(key, Long.class);
-            StatementRunner statementRunner = session.hasTransaction() ? session.getTransaction().getNativeTransaction() : session.getNativeInterface();
-            StatementResult result = statementRunner.run("MATCH (n) WHERE ID(n)={id} RETURN n", Collections.<String, Object>singletonMap(GormProperties.IDENTITY, convertedId));
-            if(result.hasNext()) {
-                final Node node = result.next().get("n").asNode();
-                return unmarshallOrFromCache(pe, node);
-            }
-            else {
-                return null;
-            }
-        }
-        else {
-            final Neo4jQuery query = new Neo4jQuery(getSession(), pe, this);
-            query.idEq(key);
-            return query.max(1).singleResult();
-        }
+        final Neo4jQuery query = new Neo4jQuery(getSession(), pe, this);
+        query.idEq(key);
+        return query.max(1).singleResult();
     }
 
     public Object unmarshallOrFromCache(PersistentEntity defaultPersistentEntity, Map<String, Object> resultData) {

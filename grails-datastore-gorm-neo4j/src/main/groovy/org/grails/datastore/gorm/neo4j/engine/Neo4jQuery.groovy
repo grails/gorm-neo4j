@@ -20,12 +20,14 @@ import groovy.util.logging.Slf4j
 import org.grails.datastore.gorm.neo4j.*
 import org.grails.datastore.gorm.neo4j.collection.Neo4jResultList
 import org.grails.datastore.mapping.model.PersistentEntity
+import org.grails.datastore.mapping.model.PersistentProperty
 import org.grails.datastore.mapping.model.types.Association
 import org.grails.datastore.mapping.model.types.Basic
 import org.grails.datastore.mapping.model.types.ToMany
 import org.grails.datastore.mapping.model.types.ToOne
 import org.grails.datastore.mapping.query.AssociationQuery
 import org.grails.datastore.mapping.query.Query
+import org.grails.datastore.mapping.query.QueryException
 import org.neo4j.driver.v1.Record
 import org.neo4j.driver.v1.StatementResult
 import org.neo4j.driver.v1.StatementRunner
@@ -47,7 +49,7 @@ class Neo4jQuery extends Query {
     private static final String ORDER_BY_CLAUSE = " ORDER BY "
     private static final String BLANK = ""
     private static final String ID_EQUALS = "ID(n)"
-    public static final String UNDECLARED_PROPERTIES = "_neo4j_gorm_undecl_"
+    private static final String REL_EQUALS = "ID(r)"
 
     final Neo4jEntityPersister neo4jEntityPersister
     final boolean isRelationshipEntity
@@ -81,8 +83,12 @@ class Neo4jQuery extends Query {
                 @CompileStatic
                 String handle(PersistentEntity entity, Query.IdProjection projection, CypherBuilder builder) {
                     GraphPersistentEntity graphEntity = (GraphPersistentEntity) entity
-                    if(graphEntity.idGenerator == null || graphEntity instanceof RelationshipPersistentEntity) {
-                        return "ID(n)"
+                    boolean isRelationship = graphEntity instanceof RelationshipPersistentEntity
+                    if(isRelationship) {
+                        return ID_EQUALS
+                    }
+                    else if(graphEntity.idGenerator == null) {
+                        return REL_EQUALS
                     }
                     else {
                         return "n.${CypherBuilder.IDENTIFIER}"
@@ -93,49 +99,58 @@ class Neo4jQuery extends Query {
                 @Override
                 @CompileStatic
                 String handle(PersistentEntity entity, Query.CountDistinctProjection projection, CypherBuilder builder) {
-                    return "count( distinct n.${projection.propertyName})"
+                    String var = ((GraphPersistentEntity)entity).variableName
+                    return "count( distinct ${var}.${projection.propertyName})"
                 }
             },
             (Query.MinProjection): new ProjectionHandler<Query.MinProjection>() {
                 @Override
                 @CompileStatic
                 String handle(PersistentEntity entity, Query.MinProjection projection, CypherBuilder builder) {
-                    return "min(n.${projection.propertyName})"
+                    String var = ((GraphPersistentEntity)entity).variableName
+                    return "min(${var}.${projection.propertyName})"
                 }
             },
             (Query.MaxProjection): new ProjectionHandler<Query.MaxProjection>() {
                 @Override
                 @CompileStatic
                 String handle(PersistentEntity entity, Query.MaxProjection projection, CypherBuilder builder) {
-                    return "max(n.${projection.propertyName})"
+                    String var = ((GraphPersistentEntity)entity).variableName
+                    return "max(${var}.${projection.propertyName})"
                 }
             },
             (Query.SumProjection): new ProjectionHandler<Query.SumProjection>() {
                 @Override
                 @CompileStatic
                 String handle(PersistentEntity entity, Query.SumProjection projection, CypherBuilder builder) {
-                    return "sum(n.${projection.propertyName})"
+                    String var = ((GraphPersistentEntity)entity).variableName
+                    return "sum(${var}.${projection.propertyName})"
                 }
             },
             (Query.AvgProjection): new ProjectionHandler<Query.AvgProjection>() {
                 @Override
                 @CompileStatic
                 String handle(PersistentEntity entity, Query.AvgProjection projection, CypherBuilder builder) {
-                    return "avg(n.${projection.propertyName})"
+                    String var = ((GraphPersistentEntity)entity).variableName
+                    return "avg(${var}.${projection.propertyName})"
                 }
             },
             (Query.PropertyProjection): new ProjectionHandler<Query.PropertyProjection>() {
                 @Override
                 @CompileStatic
                 String handle(PersistentEntity entity, Query.PropertyProjection projection, CypherBuilder builder) {
-                    def propertyName = ((Query.PropertyProjection) projection).propertyName
-                    def association = entity.getPropertyByName(propertyName)
-                    if (association instanceof Association) {
+                    String propertyName = ((Query.PropertyProjection) projection).propertyName
+                    PersistentProperty association = entity.getPropertyByName(propertyName)
+                    String var = ((GraphPersistentEntity)entity).variableName
+                    if (association instanceof Association && !(association instanceof Basic)) {
+                        if(entity instanceof RelationshipPersistentEntity) {
+                            throw new QueryException("Cannot apply projection on property [$propertyName] of class [$entity.name]. Associations on relationships are not allowed")
+                        }
                         def targetNodeName = "${association.name}_${builder.getNextMatchNumber()}"
-                        builder.addMatch("(n)${matchForAssociation(association)}(${targetNodeName})")
+                        builder.addMatch("(n)${RelationshipUtils.matchForAssociation(association)}(${targetNodeName})")
                         return targetNodeName
                     } else {
-                        return "n.${propertyName}"
+                        return "${var}.${propertyName}"
                     }
                 }
             }
@@ -224,7 +239,10 @@ class Neo4jQuery extends Query {
                 CypherExpression handle(PersistentEntity entity, Query.IdEquals criterion, CypherBuilder builder, String prefix) {
                     int paramNumber = addBuildParameterForCriterion(builder, entity, criterion)
                     GraphPersistentEntity graphPersistentEntity = (GraphPersistentEntity)entity
-                    if(graphPersistentEntity.idGenerator == null || graphPersistentEntity instanceof RelationshipPersistentEntity) {
+                    if(graphPersistentEntity instanceof RelationshipPersistentEntity) {
+                        return new CypherExpression(REL_EQUALS, "{$paramNumber}", CriterionHandler.OPERATOR_EQUALS)
+                    }
+                    else if(graphPersistentEntity.idGenerator == null) {
                         return new CypherExpression(ID_EQUALS, "{$paramNumber}", CriterionHandler.OPERATOR_EQUALS)
                     }
                     else {

@@ -160,6 +160,13 @@ import org.springframework.util.ClassUtils
         }
     }
 
+    /**
+     * @return The variable name used in queries to query this entity
+     */
+    String getVariableName() {
+        CypherBuilder.NODE_VAR
+    }
+
     protected boolean establishLabels() {
         labelObjects = establishLabelObjects()
         boolean hasDynamicLabels = labelObjects.any() { it instanceof Closure }
