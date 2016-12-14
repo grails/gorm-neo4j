@@ -61,11 +61,6 @@ include::gettingStarted/standalone.adoc[]
 
 include::mapping.adoc[]
 
-[[relationships]]
-== Mapping Domain Classes to Relationships
-
-include::relationships.adoc[]
-
 [[idGeneration]]
 === Neo4j ID generators
 
@@ -85,6 +80,12 @@ include::mapping/labelStrategy.adoc[]
 === Dynamic Properties and Associations
 
 include::mapping/schemaless.adoc[]
+
+[[relationships]]
+== Mapping Domain Classes to Relationships
+
+include::relationships.adoc[]
+
 
 [[querying]]
 == Querying with GORM for Neo4j

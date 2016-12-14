@@ -85,10 +85,10 @@ class Neo4jQuery extends Query {
                     GraphPersistentEntity graphEntity = (GraphPersistentEntity) entity
                     boolean isRelationship = graphEntity instanceof RelationshipPersistentEntity
                     if(isRelationship) {
-                        return ID_EQUALS
+                        return REL_EQUALS
                     }
                     else if(graphEntity.idGenerator == null) {
-                        return REL_EQUALS
+                        return ID_EQUALS
                     }
                     else {
                         return "n.${CypherBuilder.IDENTIFIER}"
