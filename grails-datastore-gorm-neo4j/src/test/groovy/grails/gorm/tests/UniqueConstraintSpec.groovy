@@ -5,11 +5,11 @@ package grails.gorm.tests
  */
 
 import grails.persistence.Entity
-import org.codehaus.groovy.grails.commons.GrailsDomainConfigurationUtil
 import org.grails.datastore.gorm.validation.constraints.UniqueConstraint
 import org.grails.datastore.mapping.dirty.checking.DirtyCheckable
 import org.grails.datastore.mapping.model.MappingContext
 import org.grails.datastore.mapping.model.PersistentEntity
+import org.grails.validation.DefaultConstraintEvaluator
 import org.springframework.validation.Errors
 import org.springframework.validation.Validator
 import spock.lang.Issue
@@ -127,7 +127,7 @@ class UniqueConstraintSpec extends GormDatastoreSpec {
 
         def groupValidator = [supports: {Class cls -> true},
                               validate: {Object target, Errors errors ->
-                                  def constrainedProperties = GrailsDomainConfigurationUtil.evaluateConstraints(UniqueGroup)
+                                  def constrainedProperties = new DefaultConstraintEvaluator().evaluate(UniqueGroup)
                                   for (cp in constrainedProperties.values()) {
                                       cp.validate(target, target[cp.propertyName], errors)
                                   }
@@ -135,7 +135,7 @@ class UniqueConstraintSpec extends GormDatastoreSpec {
 
         def groupWithinValidator = [supports: {Class cls -> true},
                                     validate: {Object target, Errors errors ->
-                                        def constrainedProperties = GrailsDomainConfigurationUtil.evaluateConstraints(GroupWithin)
+                                        def constrainedProperties = new DefaultConstraintEvaluator().evaluate(GroupWithin)
                                         for (cp in constrainedProperties.values()) {
                                             cp.validate(target, target[cp.propertyName], errors)
                                         }
