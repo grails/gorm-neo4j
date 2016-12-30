@@ -31,11 +31,11 @@ import org.grails.datastore.gorm.neo4j.connections.Neo4jConnectionSourceSettings
 import org.grails.datastore.gorm.utils.ClasspathEntityScanner;
 import org.grails.datastore.gorm.validation.constraints.MappingContextAwareConstraintFactory;
 import org.grails.datastore.gorm.validation.constraints.builtin.UniqueConstraint;
-import org.grails.datastore.gorm.validation.constraints.registry.DefaultValidatorRegistry;
+import org.grails.datastore.gorm.validation.constraints.registry.ConstraintRegistry;
+import org.grails.datastore.gorm.validation.registry.support.ValidatorRegistries;
 import org.grails.datastore.mapping.config.Property;
 import org.grails.datastore.mapping.config.Settings;
 import org.grails.datastore.mapping.core.AbstractDatastore;
-import org.grails.datastore.mapping.core.Datastore;
 import org.grails.datastore.mapping.core.DatastoreUtils;
 import org.grails.datastore.mapping.core.StatelessDatastore;
 import org.grails.datastore.mapping.core.connections.*;
@@ -49,21 +49,26 @@ import org.grails.datastore.mapping.model.types.Simple;
 import org.grails.datastore.mapping.multitenancy.MultiTenancySettings;
 import org.grails.datastore.mapping.multitenancy.MultiTenantCapableDatastore;
 import org.grails.datastore.mapping.multitenancy.TenantResolver;
+import org.grails.datastore.mapping.validation.ValidatorRegistry;
 import org.neo4j.driver.v1.Driver;
-import org.neo4j.driver.v1.Session;
 import org.neo4j.driver.v1.Transaction;
 import org.neo4j.driver.v1.exceptions.Neo4jException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.MessageSource;
+import org.springframework.context.MessageSourceAware;
+import org.springframework.context.support.StaticMessageSource;
 import org.springframework.core.env.PropertyResolver;
-import org.springframework.core.env.StandardEnvironment;
 
 import javax.annotation.PreDestroy;
 import javax.persistence.FlushModeType;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Datastore implementation for Neo4j backend
@@ -73,7 +78,7 @@ import java.util.*;
  *
  * @since 1.0
  */
-public class Neo4jDatastore extends AbstractDatastore implements Closeable, StatelessDatastore, GraphDatastore, Settings, MultiTenantCapableDatastore<Driver, Neo4jConnectionSourceSettings> {
+public class Neo4jDatastore extends AbstractDatastore implements Closeable, StatelessDatastore, GraphDatastore, Settings, MultiTenantCapableDatastore<Driver, Neo4jConnectionSourceSettings>, MessageSourceAware {
 
     private static Logger log = LoggerFactory.getLogger(Neo4jDatastore.class);
 
@@ -346,16 +351,25 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
 
     protected static Neo4jMappingContext createMappingContext(ConnectionSources<Driver, Neo4jConnectionSourceSettings> connectionSources, Class... classes) {
         ConnectionSource<Driver, Neo4jConnectionSourceSettings> defaultConnectionSource = connectionSources.getDefaultConnectionSource();
-        Neo4jMappingContext neo4jMappingContext = new Neo4jMappingContext(defaultConnectionSource.getSettings(), classes);
-        PropertyResolver configuration = connectionSources.getBaseConfiguration();
-        DefaultValidatorRegistry defaultValidatorRegistry = new DefaultValidatorRegistry(neo4jMappingContext, configuration);
-        defaultValidatorRegistry.addConstraintFactory(
-                new MappingContextAwareConstraintFactory(UniqueConstraint.class, defaultValidatorRegistry.getMessageSource(), neo4jMappingContext)
-        );
+        Neo4jConnectionSourceSettings settings = defaultConnectionSource.getSettings();
+        Neo4jMappingContext neo4jMappingContext = new Neo4jMappingContext(settings, classes);
+        MessageSource messageSource = new StaticMessageSource();
+        ValidatorRegistry defaultValidatorRegistry = createValidatorRegistry(settings, neo4jMappingContext, messageSource);
         neo4jMappingContext.setValidatorRegistry(
                 defaultValidatorRegistry
         );
         return neo4jMappingContext;
+    }
+
+    private static ValidatorRegistry createValidatorRegistry(Neo4jConnectionSourceSettings settings, Neo4jMappingContext neo4jMappingContext, MessageSource messageSource) {
+        ValidatorRegistries.createValidatorRegistry(neo4jMappingContext, settings);
+        ValidatorRegistry defaultValidatorRegistry = ValidatorRegistries.createValidatorRegistry(neo4jMappingContext, settings);
+        if(defaultValidatorRegistry instanceof ConstraintRegistry) {
+            ((ConstraintRegistry)defaultValidatorRegistry).addConstraintFactory(
+                    new MappingContextAwareConstraintFactory(UniqueConstraint.class, messageSource, neo4jMappingContext)
+            );
+        }
+        return defaultValidatorRegistry;
     }
 
     protected void registerEventListeners(ConfigurableApplicationEventPublisher eventPublisher) {
@@ -556,6 +570,15 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
         }
         finally {
             DatastoreUtils.unbindSession(session);
+        }
+    }
+
+    @Override
+    public void setMessageSource(MessageSource messageSource) {
+        if(messageSource != null) {
+            Neo4jMappingContext mappingContext = (Neo4jMappingContext) getMappingContext();
+            ValidatorRegistry validatorRegistry = createValidatorRegistry(connectionSources.getDefaultConnectionSource().getSettings(), mappingContext, messageSource);
+            mappingContext.setValidatorRegistry(validatorRegistry);
         }
     }
 }

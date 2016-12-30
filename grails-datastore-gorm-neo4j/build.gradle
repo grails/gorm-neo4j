@@ -19,7 +19,9 @@ dependencies {
     testCompile "org.neo4j.test:neo4j-harness:$neo4jVersion"
     testCompile "org.grails:grails-datastore-gorm-test:$gormVersion",
                 "org.grails:grails-datastore-gorm-tck:$gormVersion"
-
+    testCompile("org.hibernate:hibernate-validator:5.0.3.Final")
+    testRuntime('javax.el:javax.el-api:2.2.4')
+    testRuntime('org.glassfish.web:el-impl:2.2')
 }
 
 test {
