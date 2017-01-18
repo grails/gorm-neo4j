@@ -586,7 +586,9 @@ public class Neo4jSession extends AbstractSession<Session> {
 
                     }
                     else {
-                        simpleProps.put(key, ((Neo4jMappingContext)mappingContext).convertToNative(value));
+                        if (((DirtyCheckable)pojo).hasChanged(key)) {
+                            simpleProps.put(key, ((Neo4jMappingContext)mappingContext).convertToNative(value));
+                        }
                     }
                 }
             }
