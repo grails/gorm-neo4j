@@ -20,6 +20,7 @@ grails {
 
 configurations.all { Configuration c ->
     c.exclude(group:'org.grails',module:'grails-datastore-gorm-support')
+    c.exclude(group:'org.grails',module:'grails-datastore-simple')
 
     resolutionStrategy {
         eachDependency { DependencyResolveDetails details ->
@@ -47,7 +48,6 @@ dependencies {
 
     compile "org.grails:grails-datastore-core:$gormVersion"
     compile "org.grails:grails-datastore-gorm:$gormVersion"
-    compile "org.grails:grails-datastore-simple:$gormVersion"
     compile "org.grails:grails-datastore-gorm-grails2-support:$gormVersion"
     compile project(":grails-datastore-gorm-neo4j"), {
         exclude group:'org.grails',module:'grails-datastore-gorm-support'

@@ -17,6 +17,7 @@ grails {
 
 configurations.all { Configuration c ->
     c.exclude(group:'org.grails',module:'grails-datastore-gorm-support')
+    c.exclude(group:'org.grails',module:'grails-datastore-simple')
 
     resolutionStrategy {
         eachDependency { DependencyResolveDetails details ->

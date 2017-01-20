@@ -1,5 +1,7 @@
 group "examples"
-
+configurations.all { Configuration c ->
+    c.exclude(group:'org.grails',module:'grails-datastore-simple')
+}
 dependencies {
     compile "org.springframework.boot:spring-boot-starter-logging"
     compile "org.springframework.boot:spring-boot-autoconfigure"

@@ -8,6 +8,7 @@ dependencyManagement {
     applyMavenExclusions false
 }
 configurations.all {
+    exclude(group:'org.grails',module:'grails-datastore-simple')
     resolutionStrategy.eachDependency { DependencyResolveDetails details ->
         if(details.requested.group == 'org.grails'
                 && details.requested.name.startsWith('grails-datastore')
@@ -27,7 +28,6 @@ dependencies {
 
 
     runtime "org.grails:grails-datastore-web:$gormVersion"
-    runtime "org.grails:grails-datastore-simple:$gormVersion"
 
     compile "org.grails:grails-datastore-gorm-support:$gormVersion", {
         exclude group:'org.springframework', module:'spring-context'
