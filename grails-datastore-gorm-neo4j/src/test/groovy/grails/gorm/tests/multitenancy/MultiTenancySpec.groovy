@@ -3,6 +3,7 @@ package grails.gorm.tests.multitenancy
 import grails.gorm.MultiTenant
 import grails.gorm.annotation.Entity
 import grails.neo4j.Neo4jEntity
+import grails.neo4j.Relationship
 import org.grails.datastore.gorm.neo4j.Neo4jDatastore
 import org.grails.datastore.gorm.neo4j.config.Settings
 import org.grails.datastore.mapping.core.Session
@@ -47,12 +48,15 @@ class MultiTenancySpec extends Specification {
 
         when:"An object is saved"
         CompanyC.withTransaction {
-            new CompanyC(name: "Foo").save(flush:true)
+            def f = new CompanyC(name: "Foo").save(flush:true)
+            def b = new CompanyC(name: "Bar").save(flush:true)
+            new BusinessPartner(from: f, to: b, value: 1000.0f).save(flush:true)
         }
 
 
         then:"The results are correct"
-        CompanyC.count() == 1
+        CompanyC.count() == 2
+        BusinessPartner.count() == 1
 
         when:"A cypher query is executed without the tenant id"
         CompanyC.withNewSession {
@@ -79,7 +83,7 @@ class MultiTenancySpec extends Specification {
         CompanyC.withTenant("test1") { Serializable tenantId, Session s ->
             assert tenantId
             assert s
-            CompanyC.count() == 1
+            CompanyC.count() == 2
         }
 
         when:"each tenant is iterated over"
@@ -89,11 +93,11 @@ class MultiTenancySpec extends Specification {
         }
 
         then:"The result is correct"
-        tenantIds == [test1:1, test2:0]
+        tenantIds == [test1:2, test2:0]
     }
 
     List getDomainClasses() {
-        [ CompanyC]
+        [ CompanyC, BusinessPartner]
     }
 
     static class MyResolver extends SystemPropertyTenantResolver implements AllTenantsResolver {
@@ -107,6 +111,17 @@ class MultiTenancySpec extends Specification {
 @Entity
 class CompanyC implements Neo4jEntity<CompanyC>, MultiTenant {
     String name
+    String parent
+
+    static mapping = {
+        tenantId name:'parent'
+    }
+
+}
+
+@Entity
+class BusinessPartner implements Relationship<CompanyC, CompanyC>, MultiTenant<BusinessPartner> {
+    Float value = 0.0
     String parent
 
     static mapping = {

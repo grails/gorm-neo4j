@@ -21,10 +21,7 @@ import org.grails.datastore.gorm.neo4j.mapping.config.DynamicToOneAssociation;
 import org.grails.datastore.mapping.core.impl.PendingInsertAdapter;
 import org.grails.datastore.mapping.engine.EntityAccess;
 import org.grails.datastore.mapping.model.PersistentProperty;
-import org.grails.datastore.mapping.model.types.Association;
-import org.grails.datastore.mapping.model.types.Basic;
-import org.grails.datastore.mapping.model.types.Simple;
-import org.grails.datastore.mapping.model.types.ToOne;
+import org.grails.datastore.mapping.model.types.*;
 import org.grails.datastore.mapping.reflect.EntityReflector;
 import org.neo4j.driver.v1.Session;
 import org.neo4j.driver.v1.Transaction;
@@ -60,22 +57,17 @@ public class RelationshipPendingInsert extends PendingInsertAdapter<Object, Seri
     private final Association association;
     private final Collection<Serializable> targetIdentifiers;
     private final boolean isUpdate;
+    private final Neo4jSession session;
 
-
-
-    public RelationshipPendingInsert(EntityAccess parent, Association association, Collection<Serializable> pendingInserts, Transaction boltTransaction, boolean isUpdate) {
+    public RelationshipPendingInsert(EntityAccess parent, Association association, Collection<Serializable> pendingInserts, Neo4jSession session, boolean isUpdate) {
         super(parent.getPersistentEntity(), -1L, parent.getEntity(), parent);
 
-        this.boltTransaction = boltTransaction;
+        this.boltTransaction = session.getTransaction().getTransaction();
+        this.session = session;
         this.targetIdentifiers = pendingInserts;
         this.association = association;
         this.isUpdate = isUpdate;
     }
-
-    public RelationshipPendingInsert(EntityAccess parent, Association association, Collection<Serializable> pendingInserts, Transaction boltTransaction) {
-        this(parent, association, pendingInserts, boltTransaction, false);
-    }
-
 
     @Override
     public void run() {
@@ -128,10 +120,20 @@ public class RelationshipPendingInsert extends PendingInsertAdapter<Object, Seri
             GraphPersistentEntity relEntity = (GraphPersistentEntity) getEntity();
             EntityReflector reflector = relEntity.getReflector();
             Neo4jMappingContext mappingContext = (Neo4jMappingContext)relEntity.getMappingContext();
+
+            Neo4jEntityPersister entityPersister = session.getEntityPersister(getEntityAccess().getEntity());
+            if(entityPersister.cancelInsert(entity, getEntityAccess())) {
+                // operation cancelled, return
+                return;
+            }
+
             for (PersistentProperty pp : relEntity.getPersistentProperties()) {
-                if(pp instanceof Simple || pp instanceof Basic) {
+                if(pp instanceof Simple || pp instanceof Basic || pp instanceof TenantId) {
                     String propertyName = pp.getName();
-                    if(RelationshipPersistentEntity.TYPE.equals(propertyName)) continue;
+                    if(RelationshipPersistentEntity.TYPE.equals(propertyName)) {
+                        continue;
+                    }
+
                     Object v = reflector.getProperty(getNativeEntry(), propertyName);
                     if(v != null) {
                         attrs.put(propertyName, mappingContext.convertToNative(v));
@@ -186,6 +188,7 @@ public class RelationshipPendingInsert extends PendingInsertAdapter<Object, Seri
         if(isRelationshipAssociation) {
             cypherQuery.append(" ON CREATE SET r={rProps}");
         }
+
         String cypher = cypherQuery.toString();
 
         if (log.isDebugEnabled()) {

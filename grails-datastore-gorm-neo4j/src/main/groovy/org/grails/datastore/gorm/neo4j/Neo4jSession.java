@@ -372,7 +372,7 @@ public class Neo4jSession extends AbstractSession<Session> {
                     if(association instanceof DynamicToOneAssociation) {
                         if(association.getOwner().equals(entity)) {
                             if(relationshipUpdate.id.equals(id)) {
-                                cascadingOperations.add(new RelationshipPendingInsert(access, association, pendingRelationshipInserts.get(relationshipUpdate), getTransaction().getTransaction(), isUpdate));
+                                cascadingOperations.add(new RelationshipPendingInsert(access, association, pendingRelationshipInserts.get(relationshipUpdate), this, isUpdate));
                             }
                         }
                     }
@@ -385,7 +385,7 @@ public class Neo4jSession extends AbstractSession<Session> {
         final RelationshipUpdateKey key = new RelationshipUpdateKey(parentId, association);
         final Collection<Serializable> pendingInserts = pendingRelationshipInserts.get(key);
         if(pendingInserts != null) {
-            cascadingOperations.add(new RelationshipPendingInsert(parent, association, pendingInserts, getTransaction().getTransaction(), isUpdate));
+            cascadingOperations.add(new RelationshipPendingInsert(parent, association, pendingInserts, this, isUpdate));
         }
         final Collection<Serializable> pendingDeletes = pendingRelationshipDeletes.get(key);
         if(pendingDeletes != null) {
