@@ -16,10 +16,7 @@
 package org.grails.datastore.gorm.neo4j.engine;
 
 import grails.neo4j.Relationship;
-import org.grails.datastore.gorm.neo4j.CypherBuilder;
-import org.grails.datastore.gorm.neo4j.GraphPersistentEntity;
-import org.grails.datastore.gorm.neo4j.RelationshipPersistentEntity;
-import org.grails.datastore.gorm.neo4j.RelationshipUtils;
+import org.grails.datastore.gorm.neo4j.*;
 import org.grails.datastore.gorm.neo4j.mapping.config.DynamicToOneAssociation;
 import org.grails.datastore.mapping.core.impl.PendingInsertAdapter;
 import org.grails.datastore.mapping.engine.EntityAccess;
@@ -130,13 +127,14 @@ public class RelationshipPendingInsert extends PendingInsertAdapter<Object, Seri
             LinkedHashMap<String, Object> attrs = new LinkedHashMap<>();
             GraphPersistentEntity relEntity = (GraphPersistentEntity) getEntity();
             EntityReflector reflector = relEntity.getReflector();
+            Neo4jMappingContext mappingContext = (Neo4jMappingContext)relEntity.getMappingContext();
             for (PersistentProperty pp : relEntity.getPersistentProperties()) {
                 if(pp instanceof Simple || pp instanceof Basic) {
                     String propertyName = pp.getName();
                     if(RelationshipPersistentEntity.TYPE.equals(propertyName)) continue;
                     Object v = reflector.getProperty(getNativeEntry(), propertyName);
                     if(v != null) {
-                        attrs.put(propertyName, v);
+                        attrs.put(propertyName, mappingContext.convertToNative(v));
                     }
                 }
             }

@@ -39,6 +39,7 @@ class RelationshipMappingSpec extends GormDatastoreSpec{
         }.property('roles').list()
 
         then:"The CastMember count is correct"
+        cm.dateCast != null
         cm.getAt("foo") == 'bar'
         CastMember.count == 1
         CastMember.countByRoles(['Neo', 'Thomas Anderson']) == 1
@@ -170,6 +171,7 @@ class Movie implements Neo4jEntity<Movie> {
 @Entity
 class CastMember implements Relationship<Celeb, Movie> {
     List<String> roles = []
+    Date dateCast = new Date()
     String getJob() {
         type.toLowerCase()
     }
