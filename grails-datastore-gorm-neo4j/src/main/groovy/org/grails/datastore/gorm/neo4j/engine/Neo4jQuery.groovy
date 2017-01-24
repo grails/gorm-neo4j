@@ -209,10 +209,12 @@ class Neo4jQuery extends Query {
                     Neo4jMappingContext mappingContext = (Neo4jMappingContext)entity.mappingContext
                     int paramNumber = builder.addParam( mappingContext.convertToNative(criterion.value) )
                     PersistentProperty association = entity.getPropertyByName(criterion.property)
+                    boolean isRelationshipEntity = entity instanceof RelationshipPersistentEntity
 
                     String lhs
                     if (association instanceof Association && !(association instanceof Basic)) {
-                        if(entity instanceof RelationshipPersistentEntity && RelationshipPersistentEntity.isRelationshipAssociation((Association)association)) {
+
+                        if(isRelationshipEntity && RelationshipPersistentEntity.isRelationshipAssociation((Association)association)) {
                             lhs = "ID(${association.name})"
                         }
                         else {
@@ -230,8 +232,14 @@ class Neo4jQuery extends Query {
 
                     } else {
                         def graphEntity = (GraphPersistentEntity) entity
-                        if(graphEntity.idGenerator == null || graphEntity instanceof RelationshipPersistentEntity) {
-                            lhs = criterion.property == "id" ? "ID(${prefix})" : "${prefix}.${criterion.property}"
+                        if(graphEntity.idGenerator == null || isRelationshipEntity) {
+                            if(criterion.property == RelationshipPersistentEntity.TYPE) {
+                                builder.replaceFirstRelationshipMatch( ((RelationshipPersistentEntity)graphEntity).buildMatchForType(null, CypherBuilder.REL_VAR))
+                                lhs = "TYPE($CypherBuilder.REL_VAR)"
+                            }
+                            else {
+                                lhs = criterion.property == "id" ? "ID(${prefix})" : "${prefix}.${criterion.property}"
+                            }
                         }
                         else {
                             lhs = criterion.property == "id" ? "${prefix}.${CypherBuilder.IDENTIFIER}" : "${prefix}.${criterion.property}"
@@ -694,8 +702,9 @@ class Neo4jQuery extends Query {
             int paramNumber = addBuildParameterForCriterion(builder, entity, criterion)
             String lhs
             PersistentProperty association = entity.getPropertyByName(criterion.property)
+            boolean isRelationshipEntity = entity instanceof RelationshipPersistentEntity
             if (association instanceof Association && !(association instanceof Basic)) {
-                if(entity instanceof RelationshipPersistentEntity && RelationshipPersistentEntity.isRelationshipAssociation((Association)association)) {
+                if(isRelationshipEntity && RelationshipPersistentEntity.isRelationshipAssociation((Association)association)) {
                     lhs = "ID(${association.name})"
                 }
                 else {
@@ -712,7 +721,14 @@ class Neo4jQuery extends Query {
                 }
             }
             else {
-                lhs = "${prefix}.${criterion.property}"
+                if(isRelationshipEntity && criterion.property == RelationshipPersistentEntity.TYPE) {
+                    builder.replaceFirstRelationshipMatch( ((RelationshipPersistentEntity)entity).buildMatchForType(null, CypherBuilder.REL_VAR))
+                    lhs = "TYPE(r)"
+                }
+                else {
+                    lhs = "${prefix}.${criterion.property}"
+                }
+
             }
             return new CypherExpression(lhs, "{$paramNumber}", operator)
         }

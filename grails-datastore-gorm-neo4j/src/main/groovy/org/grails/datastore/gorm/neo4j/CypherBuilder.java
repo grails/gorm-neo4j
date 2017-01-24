@@ -40,8 +40,8 @@ public class CypherBuilder {
 
 
     private String forLabels;
-    private Set<String> matches = new HashSet<>();
-    private Set<String> relationshipMatches = new HashSet<>();
+    private List<String> matches = new ArrayList<>();
+    private List<String> relationshipMatches = new ArrayList<>();
     private List<String> optionalMatches = new ArrayList<String>();
     private String conditions;
     private String orderAndLimits;
@@ -63,6 +63,14 @@ public class CypherBuilder {
         relationshipMatches.add(match);
     }
 
+    public void replaceFirstRelationshipMatch(String match) {
+        if(relationshipMatches.isEmpty()) {
+            relationshipMatches.add(match);
+        }
+        else {
+            relationshipMatches.set(0,match);
+        }
+    }
     /**
      * Optional matches are added to do joins for relationships
      *

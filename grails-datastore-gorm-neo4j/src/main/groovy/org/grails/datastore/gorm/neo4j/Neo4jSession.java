@@ -255,7 +255,7 @@ public class Neo4jSession extends AbstractSession<Session> {
                 if(isRelationshipEntity) {
                     RelationshipPersistentEntity relEntity = (RelationshipPersistentEntity) graphPersistentEntity;
                     cypherStringBuilder.append("MATCH ")
-                                       .append(relEntity.buildMatch(CypherBuilder.NODE_VAR))
+                                       .append(relEntity.buildMatch(relEntity.type(), CypherBuilder.NODE_VAR))
                                        .append(" WHERE ID(n) = {id}");
                 }
                 else if(isNativeId) {

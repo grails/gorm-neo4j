@@ -34,8 +34,8 @@ import org.grails.datastore.mapping.model.types.OneToMany
  */
 @CompileStatic
 class RelationshipUtils {
-    private static final char INCOMING_CHAR = '<'
-    private static final char OUTGOING_CHAR = '>'
+    static final char INCOMING_CHAR = '<'
+    static final char OUTGOING_CHAR = '>'
     private static final char OPEN_BRACE = '{'
     private static final char CLOSE_BRACE = '}'
     private static final char COMMA = ','

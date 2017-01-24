@@ -14,7 +14,15 @@ import org.grails.datastore.mapping.config.Entity
  */
 @CompileStatic
 @Builder(builderStrategy = SimpleStrategy, prefix = '')
-class RelationshipConfig extends Entity {
+class RelationshipConfig extends NodeConfig {
 
+    /**
+     * The default relationship direction
+     */
     Direction direction = Direction.OUTGOING
+
+    /**
+     * The default relationship type
+     */
+    String type
 }

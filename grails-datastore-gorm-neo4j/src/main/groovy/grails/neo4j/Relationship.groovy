@@ -1,6 +1,8 @@
 package grails.neo4j
 
 import groovy.transform.CompileStatic
+import org.grails.datastore.gorm.GormEnhancer
+import org.grails.datastore.gorm.neo4j.RelationshipPersistentEntity
 import org.grails.datastore.gorm.schemaless.DynamicAttributes
 
 /**
@@ -15,7 +17,7 @@ trait Relationship<F extends Neo4jEntity<F>, T extends Neo4jEntity<T>> implement
     /**
      * The relationship type
      */
-    String type = getClass().simpleName.toUpperCase()
+    String type = ((RelationshipPersistentEntity)GormEnhancer.findEntity(getClass())).type()
 
     /**
      * The node where relationship originates from

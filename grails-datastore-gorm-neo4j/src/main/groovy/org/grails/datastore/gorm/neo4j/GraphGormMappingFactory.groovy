@@ -16,7 +16,10 @@ package org.grails.datastore.gorm.neo4j
 
 import org.grails.datastore.gorm.neo4j.mapping.config.Attribute
 import org.grails.datastore.gorm.neo4j.mapping.config.NodeConfig
+import org.grails.datastore.gorm.neo4j.mapping.config.RelationshipConfig
 import org.grails.datastore.mapping.config.AbstractGormMappingFactory
+import org.grails.datastore.mapping.config.Entity
+import org.grails.datastore.mapping.model.PersistentEntity
 
 /**
  * A {@link org.grails.datastore.mapping.model.MappingFactory} for Neo4j
@@ -26,6 +29,8 @@ import org.grails.datastore.mapping.config.AbstractGormMappingFactory
  */
 class GraphGormMappingFactory extends AbstractGormMappingFactory {
 
+    private Class currentNodeConfigType = NodeConfig
+
     @Override
     protected Class getPropertyMappedFormType() {
         Attribute
@@ -33,9 +38,24 @@ class GraphGormMappingFactory extends AbstractGormMappingFactory {
 
     @Override
     protected Class getEntityMappedFormType() {
-        NodeConfig
+        return currentNodeConfigType
     }
 
+    @Override
+    Entity createMappedForm(PersistentEntity entity) {
+        if(entity instanceof RelationshipPersistentEntity) {
+            Class previousType = currentNodeConfigType
+            try {
+                currentNodeConfigType = RelationshipConfig
+                return super.createMappedForm(entity)
+            } finally {
+                currentNodeConfigType = previousType
+            }
+        }
+        else {
+            return super.createMappedForm(entity)
+        }
+    }
 }
 
 

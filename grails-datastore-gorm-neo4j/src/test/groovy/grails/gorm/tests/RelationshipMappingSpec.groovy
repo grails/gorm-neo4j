@@ -24,6 +24,7 @@ class RelationshipMappingSpec extends GormDatastoreSpec{
                 .save(flush:true)
 
         then:"The CastMember count is correct"
+        !newCastMember.errors.hasErrors()
         CastMember.count == 1
         CastMember.countByRoles(['Neo']) == 1
 
@@ -66,9 +67,16 @@ class RelationshipMappingSpec extends GormDatastoreSpec{
         c.save()
         Celeb c2 = new Celeb(name: "Carrie-Anne")
         c2.save()
+
+        Celeb c3 = new Celeb(name: "Lana Wachowski")
+        c3.save()
+
         Movie m = new Movie(title: "The Matrix")
         m.addToCast(
             new CastMember(type: "ACTED_IN", from: c, to: m, roles: ['Neo'])
+        )
+        m.addToCast(
+            new CastMember(type: "DIRECTED", from: c3, to: m)
         )
         m.addToCast(
             new CastMember(type: "ACTED_IN", from: c2, to: m, roles: ['Trinity'])
@@ -81,6 +89,7 @@ class RelationshipMappingSpec extends GormDatastoreSpec{
         List<CastMember> cast = CastMember.list()
 
         then:"A result is returned"
+        CastMember.findAllByType("DIRECTED").size() == 1
         cast.size() == 2
         cast.find { it.roles == ['Neo']}
 
@@ -179,6 +188,10 @@ class CastMember implements Relationship<Celeb, Movie> {
     }
     String getName() {
         from.name
+    }
+
+    static mapping = {
+        type "ACTED_IN"
     }
 }
 

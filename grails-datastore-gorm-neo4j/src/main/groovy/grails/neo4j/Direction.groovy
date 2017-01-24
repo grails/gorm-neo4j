@@ -20,4 +20,12 @@ enum Direction {
             case BOTH: return '<->'
         }
     }
+
+    boolean isIncoming() {
+        return this == INCOMING || this == BOTH
+    }
+
+    boolean isOutgoing() {
+        return this == OUTGOING || this == BOTH
+    }
 }

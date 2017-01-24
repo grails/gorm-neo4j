@@ -1,6 +1,9 @@
 package org.grails.datastore.gorm.neo4j
 
+import grails.neo4j.Direction
 import groovy.transform.CompileStatic
+import org.grails.datastore.gorm.neo4j.mapping.config.NodeConfig
+import org.grails.datastore.gorm.neo4j.mapping.config.RelationshipConfig
 import org.grails.datastore.mapping.model.MappingContext
 import org.grails.datastore.mapping.model.PersistentProperty
 import org.grails.datastore.mapping.model.types.Association
@@ -27,8 +30,12 @@ class RelationshipPersistentEntity extends GraphPersistentEntity {
      */
     public static final String TYPE = "type"
 
+    protected String type
+    protected Direction direction = Direction.OUTGOING
+
     RelationshipPersistentEntity(Class javaClass, MappingContext context, boolean external = false) {
         super(javaClass, context, external)
+        this.type = javaClass.simpleName.toUpperCase()
     }
 
     static boolean isRelationshipAssociation(PersistentProperty association) {
@@ -38,6 +45,12 @@ class RelationshipPersistentEntity extends GraphPersistentEntity {
     @Override
     void initialize() {
         super.initialize()
+        NodeConfig mappedForm = getMapping().getMappedForm()
+        if(mappedForm instanceof RelationshipConfig) {
+            RelationshipConfig rc = (RelationshipConfig) mappedForm
+            this.type = rc.type ?: type
+            this.direction = rc.direction
+        }
         getFrom().getMapping().getMappedForm().setLazy(true)
         getTo().getMapping().getMappedForm().setLazy(true)
     }
@@ -68,12 +81,28 @@ class RelationshipPersistentEntity extends GraphPersistentEntity {
         (GraphPersistentEntity)getTo().getAssociatedEntity()
     }
 
-    String buildMatch(String var = "r") {
-        String toMatch = buildToMatch(var)
+    String buildMatch(String type = this.type(), String var = "r") {
+        String toMatch = buildMatchForType(type, var)
         return "(from${fromEntity.labelsAsString})$toMatch"
     }
 
     String buildToMatch(String var = "r") {
-        "-[$var]->(to${toEntity.labelsAsString})"
+        String type = type()
+        return buildMatchForType(type, var)
+    }
+
+    String type() {
+        return this.type
+    }
+
+    String buildMatchForType(String type, String var = "r") {
+        boolean incoming = direction.isIncoming()
+        boolean outgoing = direction.isOutgoing()
+        if(type != null) {
+            return "${incoming ? RelationshipUtils.INCOMING_CHAR : ''}-[$var:${type}]-${outgoing ? RelationshipUtils.OUTGOING_CHAR : ''}(to${toEntity.labelsAsString})"
+        }
+        else {
+            return "${incoming ? RelationshipUtils.INCOMING_CHAR : ''}-[$var]-${outgoing ? RelationshipUtils.OUTGOING_CHAR : ''}(to${toEntity.labelsAsString})"
+        }
     }
 }
