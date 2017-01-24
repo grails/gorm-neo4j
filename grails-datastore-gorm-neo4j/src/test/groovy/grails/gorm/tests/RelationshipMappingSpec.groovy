@@ -89,6 +89,8 @@ class RelationshipMappingSpec extends GormDatastoreSpec{
 
         then:"A result is returned"
         CastMember.countByRoles(['Neo']) == 1
+        CastMember.countByTo(m) == 2
+        CastMember.countByToInList([m]) == 2
         cm != null
         cm.id != null
         cm.roles == ['Neo']

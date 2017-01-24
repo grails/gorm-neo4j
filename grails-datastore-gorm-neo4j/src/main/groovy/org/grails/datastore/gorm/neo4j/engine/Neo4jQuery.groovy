@@ -28,6 +28,7 @@ import org.grails.datastore.mapping.model.types.ToOne
 import org.grails.datastore.mapping.query.AssociationQuery
 import org.grails.datastore.mapping.query.Query
 import org.grails.datastore.mapping.query.QueryException
+import org.grails.datastore.mapping.reflect.EntityReflector
 import org.neo4j.driver.v1.Record
 import org.neo4j.driver.v1.StatementResult
 import org.neo4j.driver.v1.StatementRunner
@@ -207,19 +208,26 @@ class Neo4jQuery extends Query {
                 CypherExpression handle(PersistentEntity entity, Query.Equals criterion, CypherBuilder builder, String prefix) {
                     Neo4jMappingContext mappingContext = (Neo4jMappingContext)entity.mappingContext
                     int paramNumber = builder.addParam( mappingContext.convertToNative(criterion.value) )
-                    def association = entity.getPropertyByName(criterion.property)
+                    PersistentProperty association = entity.getPropertyByName(criterion.property)
+
                     String lhs
                     if (association instanceof Association && !(association instanceof Basic)) {
-                        def targetNodeName = "m_${builder.getNextMatchNumber()}"
-                        builder.addMatch("(${prefix})${RelationshipUtils.matchForAssociation((Association)association)}(${targetNodeName})")
-
-                        def graphEntity = (GraphPersistentEntity) ((Association) association).associatedEntity
-                        if(graphEntity.idGenerator == null ) {
-                            lhs = "ID(${targetNodeName})"
+                        if(entity instanceof RelationshipPersistentEntity && RelationshipPersistentEntity.isRelationshipAssociation((Association)association)) {
+                            lhs = "ID(${association.name})"
                         }
                         else {
-                            lhs = "${targetNodeName}.${CypherBuilder.IDENTIFIER}"
+                            def targetNodeName = "m_${builder.getNextMatchNumber()}"
+                            builder.addMatch("(${prefix})${RelationshipUtils.matchForAssociation((Association)association)}(${targetNodeName})")
+
+                            def graphEntity = (GraphPersistentEntity) ((Association) association).associatedEntity
+                            if(graphEntity.idGenerator == null ) {
+                                lhs = "ID(${targetNodeName})"
+                            }
+                            else {
+                                lhs = "${targetNodeName}.${CypherBuilder.IDENTIFIER}"
+                            }
                         }
+
                     } else {
                         def graphEntity = (GraphPersistentEntity) entity
                         if(graphEntity.idGenerator == null || graphEntity instanceof RelationshipPersistentEntity) {
@@ -232,6 +240,7 @@ class Neo4jQuery extends Query {
 
                     return new CypherExpression(lhs, "{$paramNumber}", CriterionHandler.OPERATOR_EQUALS)
                 }
+
             },
             (Query.IdEquals): new CriterionHandler<Query.IdEquals>() {
                 @Override
@@ -284,13 +293,25 @@ class Neo4jQuery extends Query {
                     int paramNumber = addBuildParameterForCriterion(builder, entity, criterion)
                     GraphPersistentEntity graphPersistentEntity = (GraphPersistentEntity)entity
                     String lhs
-                    if(graphPersistentEntity.idGenerator == null || graphPersistentEntity instanceof RelationshipPersistentEntity) {
-                        lhs = criterion.property == "id" ? "ID(${prefix})" : "${prefix}.$criterion.property"
+                    boolean isRelationship = graphPersistentEntity instanceof RelationshipPersistentEntity
+                    Collection values = ((Query.In) criterion).values
+                    if(graphPersistentEntity.idGenerator == null || isRelationship) {
+                        PersistentProperty persistentProperty = entity.getPropertyByName(criterion.property)
+                        if(isRelationship && RelationshipPersistentEntity.isRelationshipAssociation(persistentProperty)) {
+                            lhs = "ID(${criterion.property})"
+                            def associatedReflector = ((Association) persistentProperty).associatedEntity.reflector
+                            values = values?.collect {
+                                associatedReflector.getIdentifier(it)
+                            }
+                        }
+                        else {
+                            lhs = criterion.property == "id" ? "ID(${prefix})" : "${prefix}.$criterion.property"
+                        }
                     }
                     else {
                         lhs = criterion.property == "id" ? "${prefix}.${CypherBuilder.IDENTIFIER}" : "${prefix}.$criterion.property"
                     }
-                    builder.replaceParamAt(paramNumber, convertEnumsInList(((Query.In) criterion).values))
+                    builder.replaceParamAt(paramNumber, convertEnumsInList(values))
                     return new CypherExpression(lhs, "{$paramNumber}", CriterionHandler.OPERATOR_IN)
                 }
             },
@@ -671,7 +692,28 @@ class Neo4jQuery extends Query {
         @Override
         CypherExpression handle(PersistentEntity entity, T criterion, CypherBuilder builder, String prefix) {
             int paramNumber = addBuildParameterForCriterion(builder, entity, criterion)
-            String lhs = "${prefix}.${criterion.property}"
+            String lhs
+            PersistentProperty association = entity.getPropertyByName(criterion.property)
+            if (association instanceof Association && !(association instanceof Basic)) {
+                if(entity instanceof RelationshipPersistentEntity && RelationshipPersistentEntity.isRelationshipAssociation((Association)association)) {
+                    lhs = "ID(${association.name})"
+                }
+                else {
+                    def targetNodeName = "m_${builder.getNextMatchNumber()}"
+                    builder.addMatch("(${prefix})${RelationshipUtils.matchForAssociation((Association)association)}(${targetNodeName})")
+
+                    def graphEntity = (GraphPersistentEntity) ((Association) association).associatedEntity
+                    if(graphEntity.idGenerator == null ) {
+                        lhs = "ID(${targetNodeName})"
+                    }
+                    else {
+                        lhs = "${targetNodeName}.${CypherBuilder.IDENTIFIER}"
+                    }
+                }
+            }
+            else {
+                lhs = "${prefix}.${criterion.property}"
+            }
             return new CypherExpression(lhs, "{$paramNumber}", operator)
         }
     }

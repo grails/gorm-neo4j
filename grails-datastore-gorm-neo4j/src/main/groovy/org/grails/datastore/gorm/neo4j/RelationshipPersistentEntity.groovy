@@ -2,6 +2,7 @@ package org.grails.datastore.gorm.neo4j
 
 import groovy.transform.CompileStatic
 import org.grails.datastore.mapping.model.MappingContext
+import org.grails.datastore.mapping.model.PersistentProperty
 import org.grails.datastore.mapping.model.types.Association
 
 /**
@@ -28,6 +29,10 @@ class RelationshipPersistentEntity extends GraphPersistentEntity {
 
     RelationshipPersistentEntity(Class javaClass, MappingContext context, boolean external = false) {
         super(javaClass, context, external)
+    }
+
+    static boolean isRelationshipAssociation(PersistentProperty association) {
+        return TO == association.name || (FROM == association.name)
     }
 
     @Override
