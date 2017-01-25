@@ -80,6 +80,56 @@ class OneToManyUpdateSpec extends GormDatastoreSpec {
 
     }
 
+    @Issue('https://github.com/grails/gorm-neo4j/issues/26')
+    void "test that setting an association to null clears the relationship"() {
+        given:
+        Club c = new Club(name: "Manchester United").save(validate:false)
+        Team t = new Team(name: "First Team", club: c).save(flush:true, validate:false)
+        session.clear()
+
+        when:"A instance is retrieved"
+        t = Team.first()
+
+        then:"it isn't null"
+        t != null
+        t.club != null
+
+        when:"The association is set to null"
+        t.club = null
+        assert t.hasChanged('club')
+        t.save(flush:true, validate:false)
+        session.clear()
+
+        t = Team.first()
+        then:"The association was cleared"
+        t != null
+        t.club == null
+
+    }
+
+    void "test dirty checkable"() {
+        when:
+        def gcl = new GroovyClassLoader()
+        def cls = gcl.parseClass('''
+
+@grails.gorm.annotation.Entity
+class Team1 {
+    Club club
+}
+
+@grails.gorm.annotation.Entity
+class Club {
+
+}
+
+def t = new Team1()
+t.trackChanges()
+t.club = null
+return t.hasChanged("club")
+''').newInstance().run()
+        then:
+        cls != null
+    }
     @Override
     List getDomainClasses() {
         [Tournament, Club, Team]

@@ -119,7 +119,7 @@ public class Neo4jSession extends AbstractSession<Session> {
         final RelationshipUpdateKey key = new RelationshipUpdateKey(parentId, association);
         Collection<Serializable> inserts = targetMap.get(key);
         if (inserts == null) {
-            inserts = new ConcurrentLinkedQueue<Serializable>();
+            inserts = new ConcurrentLinkedQueue<>();
             targetMap.put(key, inserts);
         }
 
@@ -132,8 +132,10 @@ public class Neo4jSession extends AbstractSession<Session> {
             super.clearPendingOperations();
         } finally {
             pendingRelationshipInserts.clear();
+            pendingRelationshipDeletes.clear();
         }
     }
+
 
     /**
      * Gets a Neo4jEntityPersister for the given object

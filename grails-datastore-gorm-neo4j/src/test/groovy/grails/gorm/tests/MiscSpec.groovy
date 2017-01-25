@@ -454,9 +454,8 @@ class Tournament implements Neo4jEntity<Tournament> {
     }
 }
 
-@Bindable
+//@Bindable
 @Entity
-@DirtyCheck
 class Team implements Neo4jEntity<Team> {
     Long id
     Long version
