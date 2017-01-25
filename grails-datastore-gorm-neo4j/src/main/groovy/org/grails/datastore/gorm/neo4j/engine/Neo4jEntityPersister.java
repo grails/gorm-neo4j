@@ -827,9 +827,10 @@ public class Neo4jEntityPersister extends EntityPersister {
         }
 
         for (PersistentProperty pp: pe.getAssociations()) {
-            if ((!isUpdate) || ((dirtyCheckable!=null) && dirtyCheckable.hasChanged(pp.getName()))) {
+            String propertyName = pp.getName();
+            if ((!isUpdate) || ((dirtyCheckable!=null) && dirtyCheckable.hasChanged(propertyName))) {
 
-                Object propertyValue = entityAccess.getProperty(pp.getName());
+                Object propertyValue = entityAccess.getProperty(propertyName);
 
                 if ((pp instanceof OneToMany) || (pp instanceof ManyToMany)) {
                     Association association = (Association) pp;
@@ -895,6 +896,16 @@ public class Neo4jEntityPersister extends EntityPersister {
                             neo4jSession.addPendingRelationshipInsert((Serializable) entityAccess.getIdentifier(), to, (Serializable) assocationAccess.getIdentifier());
                         }
 
+                    }
+                    else if(isUpdate) {
+                        Object previousValue = dirtyCheckable.getOriginalValue(propertyName);
+                        if(previousValue != null) {
+                            ToOne to = (ToOne) pp;
+                            Serializable associationId = neo4jSession.getEntityPersister(previousValue).getObjectIdentifier(previousValue);
+                            if(associationId != null) {
+                                neo4jSession.addPendingRelationshipDelete((Serializable) entityAccess.getIdentifier(), to, associationId);
+                            }
+                        }
                     }
                 } else {
                     throw new IllegalArgumentException("GORM for Neo4j doesn't support properties of the given type " + pp + "(" + pp.getClass().getSuperclass() +")" );
