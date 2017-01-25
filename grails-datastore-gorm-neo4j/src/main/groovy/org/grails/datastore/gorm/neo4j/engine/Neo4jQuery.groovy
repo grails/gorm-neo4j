@@ -789,7 +789,7 @@ class Neo4jQuery extends Query {
         CypherExpression handle(PersistentEntity entity, T criterion, CypherBuilder builder, String prefix) {
             int paramNumber = addBuildParameterForCriterion(builder, entity, criterion)
             Association association = entity.getPropertyByName(criterion.property) as Association
-            builder.addMatch("(${prefix})${matchForAssociation(association)}() WITH ${prefix},count(*) as count")
+            builder.addMatch("(${prefix})${RelationshipUtils.matchForAssociation(association)}() WITH ${prefix},count(*) as count")
             return new CypherExpression(CriterionHandler.COUNT, "{$paramNumber}", operator)
         }
     }

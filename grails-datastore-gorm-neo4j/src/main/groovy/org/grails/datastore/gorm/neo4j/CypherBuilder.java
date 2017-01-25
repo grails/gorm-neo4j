@@ -56,11 +56,15 @@ public class CypherBuilder {
     }
 
     public void addMatch(String match) {
-        matches.add(match);
+        if(!matches.contains(match)) {
+            matches.add(match);
+        }
     }
 
     public void addRelationshipMatch(String match) {
-        relationshipMatches.add(match);
+        if(!relationshipMatches.contains(match)) {
+            relationshipMatches.add(match);
+        }
     }
 
     public void replaceFirstRelationshipMatch(String match) {
