@@ -18,7 +18,9 @@ class RelationshipMappingSpec extends GormDatastoreSpec{
 
     void "Test save an retrieve a relationship directly"() {
         when:"A new relationship is created"
-        def newCastMember = new CastMember(from: new Celeb(name: "Keanu"), to: new Movie(title: "The Matrix"), roles: ["Neo"])
+        def keanu = new Celeb(name: "Keanu")
+        def theMatrix = new Movie(title: "The Matrix")
+        def newCastMember = new CastMember(from: keanu, to: theMatrix, roles: ["Neo"])
         newCastMember.putAt("foo", "bar")
         newCastMember
                 .save(flush:true)
@@ -39,10 +41,24 @@ class RelationshipMappingSpec extends GormDatastoreSpec{
             id == cm.id
         }.property('roles').list()
 
+        def actorNames = CastMember.where {
+            id == cm.id
+        }.property("from.name")
+         .list()
+        def countActorNames = CastMember.where {
+            id == cm.id
+        }.projections {
+            countDistinct("from.name")
+        }.get()
+
+
         then:"The CastMember count is correct"
+        countActorNames == 1
+        actorNames == ["Keanu"]
         cm.dateCast != null
         cm.getAt("foo") == 'bar'
         CastMember.count == 1
+        CastMember.findByFromAndTo(keanu, theMatrix) != null
         CastMember.countByRoles(['Neo', 'Thomas Anderson']) == 1
         cm.roles == ['Neo', 'Thomas Anderson']
         roles == ['Neo', 'Thomas Anderson']

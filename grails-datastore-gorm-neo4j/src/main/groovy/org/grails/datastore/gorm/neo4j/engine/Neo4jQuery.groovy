@@ -101,7 +101,10 @@ class Neo4jQuery extends Query {
                 @CompileStatic
                 String handle(PersistentEntity entity, Query.CountDistinctProjection projection, CypherBuilder builder) {
                     String var = ((GraphPersistentEntity)entity).variableName
-                    return "count( distinct ${var}.${projection.propertyName})"
+                    String propertyName = projection.propertyName
+                    var = isRelationshipProjection(entity, propertyName) ? propertyName : "${var}.${propertyName}"
+
+                    return "count( distinct ${var} )"
                 }
             },
             (Query.MinProjection): new ProjectionHandler<Query.MinProjection>() {
@@ -109,7 +112,10 @@ class Neo4jQuery extends Query {
                 @CompileStatic
                 String handle(PersistentEntity entity, Query.MinProjection projection, CypherBuilder builder) {
                     String var = ((GraphPersistentEntity)entity).variableName
-                    return "min(${var}.${projection.propertyName})"
+                    String propertyName = projection.propertyName
+                    var = isRelationshipProjection(entity, propertyName) ? propertyName : "${var}.${propertyName}"
+
+                    return "min(${var})"
                 }
             },
             (Query.MaxProjection): new ProjectionHandler<Query.MaxProjection>() {
@@ -117,7 +123,10 @@ class Neo4jQuery extends Query {
                 @CompileStatic
                 String handle(PersistentEntity entity, Query.MaxProjection projection, CypherBuilder builder) {
                     String var = ((GraphPersistentEntity)entity).variableName
-                    return "max(${var}.${projection.propertyName})"
+                    String propertyName = projection.propertyName
+                    var = isRelationshipProjection(entity, propertyName) ? propertyName : "${var}.${propertyName}"
+
+                    return "max(${var})"
                 }
             },
             (Query.SumProjection): new ProjectionHandler<Query.SumProjection>() {
@@ -125,7 +134,9 @@ class Neo4jQuery extends Query {
                 @CompileStatic
                 String handle(PersistentEntity entity, Query.SumProjection projection, CypherBuilder builder) {
                     String var = ((GraphPersistentEntity)entity).variableName
-                    return "sum(${var}.${projection.propertyName})"
+                    String propertyName = projection.propertyName
+                    var = isRelationshipProjection(entity, propertyName) ? propertyName : "${var}.${propertyName}"
+                    return "sum(${var})"
                 }
             },
             (Query.AvgProjection): new ProjectionHandler<Query.AvgProjection>() {
@@ -133,7 +144,9 @@ class Neo4jQuery extends Query {
                 @CompileStatic
                 String handle(PersistentEntity entity, Query.AvgProjection projection, CypherBuilder builder) {
                     String var = ((GraphPersistentEntity)entity).variableName
-                    return "avg(${var}.${projection.propertyName})"
+                    String propertyName = projection.propertyName
+                    var = isRelationshipProjection(entity, propertyName) ? propertyName : "${var}.${propertyName}"
+                    return "avg($var)"
                 }
             },
             (Query.PropertyProjection): new ProjectionHandler<Query.PropertyProjection>() {
@@ -151,11 +164,22 @@ class Neo4jQuery extends Query {
                         builder.addMatch("(n)${RelationshipUtils.matchForAssociation(association)}(${targetNodeName})")
                         return targetNodeName
                     } else {
-                        return "${var}.${propertyName}"
+                        if(isRelationshipProjection(entity, propertyName)) {
+                            return propertyName
+                        }
+                        else {
+                            return "${var}.${propertyName}"
+                        }
                     }
                 }
+
+
             }
     ]
+
+    protected static boolean isRelationshipProjection(PersistentEntity entity, String propertyName) {
+        entity instanceof RelationshipPersistentEntity && (propertyName.startsWith(RelationshipPersistentEntity.FROM) || propertyName.startsWith(RelationshipPersistentEntity.FROM))
+    }
 
     public static Map<Class<? extends Query.Criterion>, CriterionHandler> CRITERION_HANDLERS = [
             (Query.Conjunction): new CriterionHandler<Query.Conjunction>() {
@@ -390,7 +414,9 @@ class Neo4jQuery extends Query {
         StringBuilder cypher = new StringBuilder(BLANK)
         if (!orderBy.empty) {
             cypher << ORDER_BY_CLAUSE
-            cypher << orderBy.collect { Query.Order order -> "n.${order.property} $order.direction" }.join(", ")
+            cypher << orderBy.collect { Query.Order order ->
+                "${isRelationshipEntity ? RelationshipPersistentEntity.FROM : CypherBuilder.NODE_VAR}.${order.property} $order.direction"
+            }.join(", ")
         }
 
         if (offset != 0) {
@@ -509,8 +535,8 @@ class Neo4jQuery extends Query {
         }
 
 
-        def cypher = cypherBuilder.build()
-        def params = cypherBuilder.getParams()
+        String cypher = cypherBuilder.build()
+        Map<String, Object> params = cypherBuilder.getParams()
 
         log.debug("QUERY Cypher [$cypher] for params [$params]")
 
@@ -572,6 +598,7 @@ class Neo4jQuery extends Query {
             RelationshipPersistentEntity relEntity = (RelationshipPersistentEntity)graphEntity
             GraphPersistentEntity fromEntity = relEntity.getFromEntity()
             cypherBuilder = new CypherBuilder(fromEntity.labelsAsString)
+            cypherBuilder.setStartNode(RelationshipPersistentEntity.FROM)
             cypherBuilder.addRelationshipMatch(relEntity.buildToMatch())
         }
         else {

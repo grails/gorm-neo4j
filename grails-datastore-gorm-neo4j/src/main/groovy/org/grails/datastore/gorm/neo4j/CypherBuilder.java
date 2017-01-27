@@ -23,9 +23,9 @@ public class CypherBuilder {
     public static final String COMMAND_SEPARATOR = ", ";
     public static final String DEFAULT_RETURN_TYPES = "n as data\n";
     public static final String DEFAULT_RETURN_STATEMENT = RETURN + DEFAULT_RETURN_TYPES;
-    public static final String DEFAULT_REL_RETURN_STATEMENT = "r as rel, n as from, to as to \n";
+    public static final String DEFAULT_REL_RETURN_STATEMENT = "r as rel, from as from, to as to \n";
     public static final String NEW_LINE = " \n";
-    public static final String START_MATCH = "MATCH (n";
+    public static final String START_MATCH = "MATCH (";
     public static final String SPACE = " ";
     public static final String OPTIONAL_MATCH = "OPTIONAL MATCH";
     public static final String CYPHER_CREATE = "CREATE ";
@@ -50,9 +50,23 @@ public class CypherBuilder {
     private Map<String, Object> sets = null;
     private Map<String, Object> params = new LinkedHashMap<String, Object>();
     private int setIndex;
+    private String startNode = NODE_VAR;
+    private String defaultReturnStatement = DEFAULT_RETURN_STATEMENT;
 
     public CypherBuilder(String forLabels) {
         this.forLabels = forLabels;
+    }
+
+    /**
+     * Sets the node name to start matching from (defaults to 'n')
+     *
+     * @param startNode The start node
+     */
+    public void setStartNode(String startNode) {
+        if(startNode != null) {
+            this.startNode = startNode;
+            this.defaultReturnStatement = RETURN + startNode + " as data\n";
+        }
     }
 
     public void addMatch(String match) {
@@ -151,7 +165,7 @@ public class CypherBuilder {
 
     public String build() {
         StringBuilder cypher = new StringBuilder();
-        cypher.append(START_MATCH).append(forLabels).append(")");
+        cypher.append(START_MATCH).append(startNode).append(forLabels).append(")");
 
         for(String r : relationshipMatches) {
             cypher.append(r);
@@ -192,7 +206,7 @@ public class CypherBuilder {
         }
 
         if (returnColumns.isEmpty()) {
-            cypher.append(DEFAULT_RETURN_STATEMENT);
+            cypher.append(defaultReturnStatement);
             if (orderAndLimits!=null) {
                 cypher.append(orderAndLimits).append(NEW_LINE);
             }
