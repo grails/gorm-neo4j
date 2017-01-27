@@ -696,7 +696,10 @@ public class Neo4jEntityPersister extends EntityPersister {
                 final Neo4jSession session = getSession();
                 for( Object o : delegate ) {
                     final EntityAccess associationAccess = getSession().createEntityAccess(association.getAssociatedEntity(), o);
-                    session.addPendingRelationshipInsert((Serializable) entityAccess.getIdentifier(), association, (Serializable) associationAccess.getIdentifier());
+                    Serializable associationId = (Serializable) associationAccess.getIdentifier();
+                    if(associationId != null) {
+                        session.addPendingRelationshipInsert((Serializable) entityAccess.getIdentifier(), association, associationId);
+                    }
                 }
 
                 delegate = association.isList() ?

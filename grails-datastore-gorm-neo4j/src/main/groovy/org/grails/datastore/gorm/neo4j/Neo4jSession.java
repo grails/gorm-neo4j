@@ -116,6 +116,7 @@ public class Neo4jSession extends AbstractSession<Session> {
     }
 
     protected void addRelationshipUpdate(Serializable parentId, Association association, Serializable id, Map<RelationshipUpdateKey, Collection<Serializable>> targetMap) {
+        if(id == null || parentId == null) return;
         final RelationshipUpdateKey key = new RelationshipUpdateKey(parentId, association);
         Collection<Serializable> inserts = targetMap.get(key);
         if (inserts == null) {
