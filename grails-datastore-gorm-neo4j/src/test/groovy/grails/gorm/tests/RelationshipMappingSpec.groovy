@@ -51,8 +51,12 @@ class RelationshipMappingSpec extends GormDatastoreSpec{
             countDistinct("from.name")
         }.get()
 
+        List keanuCastings = CastMember.where {
+            from.name == "Keanu"
+        }.list()
 
         then:"The CastMember count is correct"
+        keanuCastings.size() == 1
         countActorNames == 1
         actorNames == ["Keanu"]
         cm.dateCast != null

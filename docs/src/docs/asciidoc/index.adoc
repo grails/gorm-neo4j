@@ -86,6 +86,17 @@ include::mapping/schemaless.adoc[]
 
 include::relationships.adoc[]
 
+[[relationshipType]]
+=== Controlling the Relationship Type
+
+include::relationships/relationshipType.adoc[]
+
+[[relationshipType]]
+=== Querying and Relationships
+
+include::relationships/relationshipQuerying.adoc[]
+
+
 
 [[querying]]
 == Querying with GORM for Neo4j

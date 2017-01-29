@@ -50,33 +50,8 @@ println person.name
 The above example will produce a Cypher query that queries the relationship rather than the nodes:
 
 ----
-MATCH (n:Celeb)-[r:CASTMEMBER]->(to:Movie) WHERE ( r.roles={1} ) RETURN r as rel, n as from, to as to
+MATCH (n:Person)-[from:CASTMEMBER]->(to:Movie) WHERE ( r.roles={1} ) RETURN r as rel, from as from, to as to
  ] for params [[1:[Neo]]
 ----
 
-Notice that the relationship type is `CASTMEMBER`. By default GORM uses the class name for the relationship type. You can configure an alternative default using the `mapping` block if necessary:
 
-[source,groovy]
-----
-static mapping = {
-   type "ACTED_IN"
-}
-----
-
-You can also assign a per instance relationship type overriding the default:
-
-[source,groovy]
-----
-def castMember = new CastMember(
-    type: "DIRECTED"
-    from: new Person(name: "Lana Wachowski"),
-    to: new Movie(title: "The Matrix"))
-    .save(flush:true)
-----
-
-And then later use the type in queries:
-
-[source,groovy]
-----
-List<CastMember> directors = CastMember.findAllByType("DIRECTED")
-----

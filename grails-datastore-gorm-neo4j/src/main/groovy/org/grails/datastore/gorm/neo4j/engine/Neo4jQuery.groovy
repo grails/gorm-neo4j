@@ -694,12 +694,19 @@ class Neo4jQuery extends Query {
     static class AssociationQueryHandler implements CriterionHandler<AssociationQuery> {
         @Override
         CypherExpression handle(PersistentEntity entity, AssociationQuery criterion, CypherBuilder builder, String prefix) {
-            AssociationQuery aq = criterion as AssociationQuery
-            def targetNodeName = "m_${builder.getNextMatchNumber()}"
-            builder.addMatch("(n)${RelationshipUtils.matchForAssociation((Association)aq.association)}(${targetNodeName})")
+            AssociationQuery aq = (AssociationQuery)criterion
+            def isRelationshipEntity = entity instanceof RelationshipPersistentEntity
+            if(isRelationshipEntity) {
+                def s = CRITERION_HANDLERS.get(aq.criteria.getClass()).handle(entity, aq.criteria, builder, aq.association.name)
+                return new CypherExpression(s)
+            }
+            else {
+                def targetNodeName = "m_${builder.getNextMatchNumber()}"
+                builder.addMatch("(n)${RelationshipUtils.matchForAssociation((Association)aq.association)}(${targetNodeName})")
 
-            def s = CRITERION_HANDLERS.get(aq.criteria.getClass()).handle(entity, aq.criteria, builder, targetNodeName)
-            return new CypherExpression(s)
+                def s = CRITERION_HANDLERS.get(aq.criteria.getClass()).handle(entity, aq.criteria, builder, targetNodeName)
+                return new CypherExpression(s)
+            }
 
         }
     }

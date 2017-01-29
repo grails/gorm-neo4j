@@ -4,9 +4,11 @@ import grails.neo4j.Direction
 import groovy.transform.CompileStatic
 import org.grails.datastore.gorm.neo4j.mapping.config.NodeConfig
 import org.grails.datastore.gorm.neo4j.mapping.config.RelationshipConfig
+import org.grails.datastore.mapping.model.IllegalMappingException
 import org.grails.datastore.mapping.model.MappingContext
 import org.grails.datastore.mapping.model.PersistentProperty
 import org.grails.datastore.mapping.model.types.Association
+import org.grails.datastore.mapping.model.types.Basic
 
 /**
  * Represents a relationship
@@ -45,6 +47,11 @@ class RelationshipPersistentEntity extends GraphPersistentEntity {
     @Override
     void initialize() {
         super.initialize()
+        for(association in associations) {
+            if(!isRelationshipAssociation(association) && !(association instanceof Basic)) {
+                throw new IllegalMappingException("Invalid association $association. You cannot have associations to other nodes within a relationship entity")
+            }
+        }
         NodeConfig mappedForm = getMapping().getMappedForm()
         if(mappedForm instanceof RelationshipConfig) {
             RelationshipConfig rc = (RelationshipConfig) mappedForm
