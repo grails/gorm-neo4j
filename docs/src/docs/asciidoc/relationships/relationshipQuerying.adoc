@@ -26,10 +26,10 @@ DetachedCriteria<CastMember> baseQuery = CastMember.where {
     from.name == "Keanu"
 } <1>
 int totalKeanuMovies = baseQuery.projections {
-    countDistinct("movie.title")
+    countDistinct("to.title")
 }.get() <2>
 
-List<String> keanuMovieTitles = baseQuery.property('movie.title').list() <3>
+List<String> keanuMovieTitles = baseQuery.property('to.title').list() <3>
 ----
 
 <1> Create a `DetachedCriteria` query
