@@ -3,9 +3,10 @@ package grails.gorm.tests
 import grails.gorm.annotation.Entity
 import grails.neo4j.Neo4jEntity
 import grails.neo4j.Relationship
+import groovy.transform.CompileStatic
 
 import javax.persistence.FetchType
-
+import static grails.neo4j.mapping.MappingBuilder.*
 /**
  * Created by graemerocher on 08/12/16.
  */
@@ -189,17 +190,19 @@ class RelationshipMappingSpec extends GormDatastoreSpec{
 }
 
 @Entity
+@CompileStatic
 class Movie implements Neo4jEntity<Movie> {
     String title
     static hasMany = [cast:CastMember]
 
-    static mapping = {
+    static mapping = node {
         id generator:'native'
     }
 }
 
 
 @Entity
+@CompileStatic
 class CastMember implements Relationship<Celeb, Movie> {
     List<String> roles = []
     Date dateCast = new Date()
@@ -210,17 +213,20 @@ class CastMember implements Relationship<Celeb, Movie> {
         from.name
     }
 
-    static mapping = {
+    static mapping = relationship {
         type "ACTED_IN"
     }
 }
 
 @Entity
+@CompileStatic
 class Celeb implements Neo4jEntity<Celeb>{
     String name
     static hasMany = [appearances:CastMember]
-    static mapping = {
-        id generator:'native'
+    static mapping = node {
+        id {
+            generator "native"
+        }
     }
 
 }

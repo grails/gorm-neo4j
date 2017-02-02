@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.grails.datastore.gorm.neo4j.mapping.config;
+package org.grails.datastore.gorm.neo4j.mapping.config
 
+import groovy.transform.CompileStatic
+import groovy.transform.builder.Builder
+import groovy.transform.builder.SimpleStrategy;
 import org.grails.datastore.mapping.config.Entity;
 
 /**
@@ -25,25 +28,14 @@ import org.grails.datastore.mapping.config.Entity;
  *
  * @since 1.0
  */
-public class NodeConfig extends Entity {
-
-    private Object labels;
-    private boolean dynamicAssociations;
+@CompileStatic
+@Builder(builderStrategy = SimpleStrategy, prefix = '')
+class NodeConfig extends Entity<Attribute> {
 
     /**
      * @return The label definitions for the entity
      */
-    public Object getLabels() {
-        return labels;
-    }
-
-    /**
-     * Sets the label definition
-     */
-    public void setLabels(Object labels) {
-        this.labels = labels;
-    }
-
+    Object labels
     /**
      * Whether this entity supports dynamic associations. The default is false. Setting this to true will allow Grails to load dynamic relationships, however
      * at the cost of N+1. For each loaded entity Grails has to execute a separate query to establish the associations. This is contrary to non-dynamic associations
@@ -51,15 +43,5 @@ public class NodeConfig extends Entity {
      *
      * @return True if the entity supports dynamic associations
      */
-    public boolean isDynamicAssociations() {
-        return dynamicAssociations;
-    }
-
-    /**
-     *
-     * @see #isDynamicAssociations()
-     */
-    public void setDynamicAssociations(boolean dynamicAssociations) {
-        this.dynamicAssociations = dynamicAssociations;
-    }
+    boolean dynamicAssociations
 }
