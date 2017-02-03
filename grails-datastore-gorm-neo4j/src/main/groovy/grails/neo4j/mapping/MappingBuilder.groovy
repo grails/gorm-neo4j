@@ -16,7 +16,7 @@ import org.grails.datastore.mapping.config.MappingDefinition
 class MappingBuilder {
 
     /**
-     * Build a Hibernate mapping
+     * Build a Neo4j node mapping
      *
      * @param mappingDefinition The closure defining the mapping
      * @return The mapping
@@ -26,7 +26,7 @@ class MappingBuilder {
     }
 
     /**
-     * Build a Hibernate mapping
+     * Build a Neo4j relationship mapping
      *
      * @param mappingDefinition The closure defining the mapping
      * @return The mapping
@@ -47,10 +47,7 @@ class MappingBuilder {
 
         @Override
         RelationshipConfig configure(RelationshipConfig existing) {
-            if(mapping == null) {
-                mapping = RelationshipConfig.configureExisting(existing, definition)
-            }
-            return mapping
+            RelationshipConfig.configureExisting(existing, definition)
         }
 
         @Override
@@ -74,10 +71,7 @@ class MappingBuilder {
 
         @Override
         NodeConfig configure(NodeConfig existing) {
-            if(mapping == null) {
-                mapping = NodeConfig.configureExisting(existing, definition)
-            }
-            return mapping
+            NodeConfig.configureExisting(existing, definition)
         }
 
         @Override
