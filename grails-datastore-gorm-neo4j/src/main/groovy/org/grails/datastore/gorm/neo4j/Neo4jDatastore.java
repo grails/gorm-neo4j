@@ -368,14 +368,18 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
     }
 
     private static ValidatorRegistry createValidatorRegistry(Neo4jConnectionSourceSettings settings, Neo4jMappingContext neo4jMappingContext, MessageSource messageSource) {
-        ValidatorRegistries.createValidatorRegistry(neo4jMappingContext, settings);
-        ValidatorRegistry defaultValidatorRegistry = ValidatorRegistries.createValidatorRegistry(neo4jMappingContext, settings);
+
+        ValidatorRegistry defaultValidatorRegistry = ValidatorRegistries.createValidatorRegistry(neo4jMappingContext, settings, messageSource);
+        configureValidatorRegistry(neo4jMappingContext, messageSource, defaultValidatorRegistry);
+        return defaultValidatorRegistry;
+    }
+
+    private static void configureValidatorRegistry(Neo4jMappingContext neo4jMappingContext, MessageSource messageSource, ValidatorRegistry defaultValidatorRegistry) {
         if(defaultValidatorRegistry instanceof ConstraintRegistry) {
             ((ConstraintRegistry)defaultValidatorRegistry).addConstraintFactory(
                     new MappingContextAwareConstraintFactory(UniqueConstraint.class, messageSource, neo4jMappingContext)
             );
         }
-        return defaultValidatorRegistry;
     }
 
     protected void registerEventListeners(ConfigurableApplicationEventPublisher eventPublisher) {
@@ -584,6 +588,7 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
         if(messageSource != null) {
             Neo4jMappingContext mappingContext = (Neo4jMappingContext) getMappingContext();
             ValidatorRegistry validatorRegistry = createValidatorRegistry(connectionSources.getDefaultConnectionSource().getSettings(), mappingContext, messageSource);
+            configureValidatorRegistry(mappingContext, messageSource, validatorRegistry);
             mappingContext.setValidatorRegistry(validatorRegistry);
         }
     }
