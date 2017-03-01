@@ -23,7 +23,7 @@ println "GORM VERSION = ${project.gormVersion}"
 ext {
     isTravisBuild = System.getenv().get("TRAVIS") == 'true'
     grailsVersion = "3.1.11"
-    groovyVersion = "2.4.7"
+    groovyVersion = "2.4.9"
     springBootVersion = "1.3.7.RELEASE"
     neo4jDriverVersion = '1.0.5'
     neo4jVersion = '3.0.4'
@@ -59,6 +59,19 @@ subprojects { project ->
     if(project.name.startsWith("examples/grails3")) {
         apply plugin:"org.grails.grails-web"
         apply plugin:"org.grails.grails-gsp"
+        tasks.withType(Test) {
+            testLogging {
+                showStandardStreams = true
+                exceptionFormat = 'full'
+            }
+        }
+        configurations.all {
+            resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+                if(details.requested.group == 'org.codehaus.groovy' && details.requested.name.startsWith('groovy')) {
+                    details.useVersion(groovyVersion)   
+                }
+            }
+        } 
 
         return
     }
