@@ -2,6 +2,7 @@ package grails.gorm.tests
 
 import grails.gorm.dirty.checking.DirtyCheck
 import grails.neo4j.Neo4jEntity
+import grails.neo4j.mapping.MappingBuilder
 import grails.persistence.Entity
 import groovy.beans.Bindable
 import groovyx.gpars.GParsPool
@@ -466,6 +467,10 @@ class Team implements Neo4jEntity<Team> {
     static hasMany = [players: Player]
 
     static belongsTo = Club
+
+    static constraints = {
+        binaryData nullable: true
+    }
 }
 
 @Entity

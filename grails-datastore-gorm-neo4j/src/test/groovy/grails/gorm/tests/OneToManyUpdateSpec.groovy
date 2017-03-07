@@ -31,50 +31,57 @@ class OneToManyUpdateSpec extends GormDatastoreSpec {
         club.addToTeams(name:"First Team")
         club.save(flush:true)
 
-        Tournament t = new Tournament(name: "FA Cup")
-        t.addToTeams(club.teams.first())
-        t.save(flush:true)
-        session.clear()
+        when:
+        Tournament tournament = new Tournament(name: "FA Cup")
+        tournament.addToTeams(club.teams.first())
+        tournament.save(flush:true)
+        then:
+        !tournament.errors.hasErrors()
 
         when:"it is first read"
-
-        t = Tournament.get(t.id)
+        session.clear()
+        tournament = Tournament.get(tournament.id)
         session.clear()
         Team team = Team.first()
 
         then: "the relationship is correct"
-        t != null
-        t.teams.size() == 1
+        tournament != null
+        tournament.teams.size() == 1
         team != null
 
         when:"An existing instance is added"
 
-        t.addToTeams(name:"Second Team")
-        t.addToTeams(team)
-        t.save(flush:true)
+        tournament.addToTeams(name:"Second Team", club: club)
+        tournament.addToTeams(team)
+        tournament.save(flush:true)
 
+        then:
+        !tournament.errors.hasErrors()
+
+        when:
         session.clear()
 
-        t = Tournament.get(t.id)
+        tournament = Tournament.get(tournament.id)
 
-        def result = Club.cypherStatic('MATCH (from:Tournament)-[r:TEAMS]->(to:Team) WHERE ID(from) = {id}  RETURN r', [id:t.id])
+        def result = Club.cypherStatic('MATCH (from:Tournament)-[r:TEAMS]->(to:Team) WHERE ID(from) = {id}  RETURN r', [id:tournament.id])
         then: "the relationship is correct and no duplicates are added"
-        t != null
-        t.teams.size() == 2
+        tournament != null
         result.iterator().size() == 2
+        tournament.teams.size() == 2
+
 
 
         when:"A relationship is removed"
-        def secondTeam = t.teams.find { it.name == "Second Team"}
-        t.removeFromTeams(secondTeam)
-        t.save(flush:true)
+        def secondTeam = tournament.teams.find { it.name == "Second Team"}
+        tournament.removeFromTeams(secondTeam)
+        tournament.save(flush:true)
         session.clear()
 
-        t = Tournament.get(t.id)
-        result = Club.cypherStatic('MATCH (from:Tournament)-[r:TEAMS]->(to:Team) WHERE ID(from) = {id}  RETURN r', [id:t.id])
+        tournament = Tournament.get(tournament.id)
+        result = Club.cypherStatic('MATCH (from:Tournament)-[r:TEAMS]->(to:Team) WHERE ID(from) = {id}  RETURN r', [id:tournament.id])
         then: "the relationship is correct and no duplicates are added"
-        t != null
-        t.teams.size() == 1
+        tournament != null
+        tournament.teams.size() == 1
         result.iterator().size() == 1
 
 
