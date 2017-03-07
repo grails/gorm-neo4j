@@ -26,6 +26,7 @@ import org.grails.datastore.gorm.neo4j.connections.Neo4jConnectionSourceFactory
 import org.grails.datastore.gorm.plugin.support.PersistenceContextInterceptorAggregator
 import org.grails.datastore.gorm.support.AbstractDatastorePersistenceContextInterceptor
 import org.grails.datastore.gorm.support.DatastorePersistenceContextInterceptor
+import org.grails.datastore.mapping.core.grailsversion.GrailsVersion
 import org.grails.datastore.mapping.validation.BeanFactoryValidatorRegistry
 import org.springframework.beans.factory.BeanFactory
 import org.springframework.beans.factory.support.BeanDefinitionRegistry
@@ -71,12 +72,15 @@ class Neo4jDataStoreSpringInitializer extends AbstractDatastoreInitializer {
             else {
                 eventPublisher = new DefaultApplicationEventPublisher()
             }
+            final boolean isRecentGrailsVersion = GrailsVersion.isAtLeastMajorMinor(3,3)
             neo4jConnectionSourceFactory(Neo4jConnectionSourceFactory) { bean ->
                 bean.autowire = true
             }
             neo4jDatastore(Neo4jDatastore, configuration, ref("neo4jConnectionSourceFactory"), eventPublisher, collectMappedClasses(DATASTORE_TYPE))
             neo4jMappingContext(neo4jDatastore:"getMappingContext") {
-                validatorRegistry = new BeanFactoryValidatorRegistry((BeanFactory)beanDefinitionRegistry)
+                if(!isRecentGrailsVersion) {
+                    validatorRegistry = new BeanFactoryValidatorRegistry((BeanFactory)beanDefinitionRegistry)
+                }
             }
             neo4jTransactionManager(neo4jDatastore:"getTransactionManager")
             neo4jDriver(neo4jDatastore:"getBoltDriver")
@@ -84,12 +88,12 @@ class Neo4jDataStoreSpringInitializer extends AbstractDatastoreInitializer {
             neo4jPersistenceContextInterceptorAggregator(PersistenceContextInterceptorAggregator)
 
 
-            def transactionManagerBeanName = TRANSACTION_MANAGER_BEAN
+            String transactionManagerBeanName = TRANSACTION_MANAGER_BEAN
             if (!containsRegisteredBean(delegate, beanDefinitionRegistry, transactionManagerBeanName)) {
                 beanDefinitionRegistry.registerAlias("neo4jTransactionManager", transactionManagerBeanName)
             }
 
-            def classLoader = getClass().getClassLoader()
+            ClassLoader classLoader = getClass().getClassLoader()
             if (beanDefinitionRegistry.containsBeanDefinition('dispatcherServlet') && ClassUtils.isPresent(OSIV_CLASS_NAME, classLoader)) {
                 String interceptorName = "neo4jOpenSessionInViewInterceptor"
                 "${interceptorName}"(ClassUtils.forName(OSIV_CLASS_NAME, classLoader)) {
