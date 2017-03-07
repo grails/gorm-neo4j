@@ -584,9 +584,10 @@ public class Neo4jSession extends AbstractSession<Session> {
                             List<Object> objects = getOrInit(dynRelProps, key);
                             objects.addAll((Collection) value);
                         } else {
-                            simpleProps.put(key, ((Neo4jMappingContext)mappingContext).convertToNative(value));
+                            if (((DirtyCheckable)pojo).hasChanged(key)) {
+                                simpleProps.put(key, ((Neo4jMappingContext) mappingContext).convertToNative(value));
+                            }
                         }
-
                     }
                     else {
                         if (((DirtyCheckable)pojo).hasChanged(key)) {
