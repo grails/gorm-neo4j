@@ -4,6 +4,7 @@ import grails.gorm.annotation.Entity
 import grails.neo4j.Neo4jEntity
 import grails.neo4j.Relationship
 import groovy.transform.CompileStatic
+import org.grails.datastore.mapping.proxy.EntityProxy
 
 import javax.persistence.FetchType
 import static grails.neo4j.mapping.MappingBuilder.*
@@ -165,7 +166,7 @@ class RelationshipMappingSpec extends GormDatastoreSpec{
         m.cast.find { it.roles == ['Neo'] }
         m.cast.find { it.type == 'ACTED_IN' }
 
-        when:'the relatinship is defined on the other side and queried'
+        when:'the relationship is defined on the other side and queried'
         session.clear()
         c = Celeb.first()
 
@@ -184,6 +185,38 @@ class RelationshipMappingSpec extends GormDatastoreSpec{
         c.appearances.size() == 1
         c.appearances.first().roles == ['Neo']
         c.appearances.first().from == c
+
+    }
+
+    void "test relationship join fetching"() {
+        given: " A relationship"
+        Celeb c = new Celeb(name: "Keanu")
+        c.save()
+        Celeb c2 = new Celeb(name: "Carrie-Anne")
+        c2.save()
+        Movie m = new Movie(title: "The Matrix")
+        m.addToCast(
+                new CastMember(type: "ACTED_IN", from: c, to: m, roles: ['Neo'])
+        )
+        m.addToCast(
+                new CastMember(type: "ACTED_IN", from: c2, to: m, roles: ['Trinity'])
+        )
+        m.save(flush:true)
+        neo4jDatastore.currentSession.clear()
+
+
+        when:"A relationship is join fetched"
+        def query = Movie.where {
+            title == "The Matrix"
+        }.join('cast')
+        Movie movie = query.find()
+        CastMember castMember = movie.cast.first()
+
+        then:"The from and to associations are not proxies in the cast"
+        !(castMember.to instanceof EntityProxy)
+        !(castMember.from instanceof EntityProxy)
+
+
 
     }
 

@@ -253,7 +253,7 @@ public class Neo4jEntityPersister extends EntityPersister {
     }
     public Object unmarshallOrFromCache(PersistentEntity defaultPersistentEntity, Node data, Map<String, Object> resultData, Map<Association, Object> initializedAssociations, LockModeType lockModeType) {
         final Neo4jSession session = getSession();
-        final Neo4jTransaction neo4jTransaction = session.assertTransaction();
+        session.assertTransaction();
 
         if (LockModeType.PESSIMISTIC_WRITE.equals(lockModeType)) {
             if(log.isDebugEnabled()) {
@@ -281,24 +281,43 @@ public class Neo4jEntityPersister extends EntityPersister {
     }
 
 
-    public Object unmarshallOrFromCache(PersistentEntity entity, org.neo4j.driver.v1.types.Relationship data, Map<Association, Object> initializedAssociations) {
-        Object object = unmarshallOrFromCache(entity, (Entity) data, initializedAssociations);
+    public Object unmarshallOrFromCache(PersistentEntity entity, org.neo4j.driver.v1.types.Relationship data, Map<Association, Object> initializedAssociations, Map<Serializable, Node> initializedNodes) {
+        Object object = unmarshallOrFromCache(entity, data, initializedAssociations);
         RelationshipPersistentEntity relEntity = (RelationshipPersistentEntity) entity;
         if(object != null) {
             EntityReflector reflector = entity.getReflector();
             Object from = reflector.getProperty(object, RelationshipPersistentEntity.FROM);
             if(from == null || from instanceof EntityProxy) {
-                reflector.setProperty(
-                        object,
-                        RelationshipPersistentEntity.FROM, session.proxy( relEntity.getFrom().getType(), data.startNodeId() )
-                );
+                long nodeId = data.startNodeId();
+                if(initializedNodes.containsKey(nodeId)) {
+                    reflector.setProperty(
+                            object,
+                            RelationshipPersistentEntity.FROM, unmarshallOrFromCache(relEntity.getFromEntity(), initializedNodes.get(nodeId))
+                    );
+                }
+                else {
+                    reflector.setProperty(
+                            object,
+                            RelationshipPersistentEntity.FROM, session.proxy( relEntity.getFrom().getType(), nodeId)
+                    );
+                }
             }
             Object to = reflector.getProperty(object, RelationshipPersistentEntity.TO);
             if(to == null || to instanceof EntityProxy) {
-                reflector.setProperty(
-                        object,
-                        RelationshipPersistentEntity.TO, session.proxy( relEntity.getTo().getType(), data.endNodeId() )
-                );
+                long nodeId = data.endNodeId();
+                if(initializedNodes.containsKey(nodeId)) {
+                    reflector.setProperty(
+                            object,
+                            RelationshipPersistentEntity.TO, unmarshallOrFromCache(relEntity.getToEntity(), initializedNodes.get(nodeId))
+                    );
+                }
+                else {
+                    reflector.setProperty(
+                            object,
+                            RelationshipPersistentEntity.TO, session.proxy( relEntity.getTo().getType(), nodeId)
+                    );
+                }
+
             }
             reflector.setProperty(object,
                     RelationshipPersistentEntity.TYPE,
@@ -478,18 +497,22 @@ public class Neo4jEntityPersister extends EntityPersister {
                         final Class type = association.getType();
 
                         final Collection<Object> associationNodes;
-                        if(associatedEntity instanceof RelationshipPersistentEntity && resultData.containsKey(associationRelKey)) {
-                            RelationshipPersistentEntity relEntity = (RelationshipPersistentEntity) associatedEntity;
-                            if(resultData.containsKey(associationNodesKey)) {
-
-                            }
+                        boolean isRelationshipEntity = associatedEntity instanceof RelationshipPersistentEntity;
+                        if(isRelationshipEntity && resultData.containsKey(associationRelKey)) {
                             associationNodes = (Collection<Object>) resultData.get(associationRelKey);
                         }
                         else {
                             associationNodes = (Collection<Object>) resultData.get(associationNodesKey);
                         }
                         final Neo4jResultList resultSet = new Neo4jResultList(0, associationNodes.size(), associationNodes.iterator(), session.getEntityPersister(associatedEntity));
-                        if(association.isBidirectional()) {
+                        if(isRelationshipEntity) {
+                            RelationshipPersistentEntity relEntity = (RelationshipPersistentEntity) associatedEntity;
+                            Association from = relEntity.getFrom();
+                            Association to = relEntity.getTo();
+                            handleRelationshipSide(persistentEntity, resultData, entity, associationNodesKey, resultSet, from);
+                            handleRelationshipSide(persistentEntity, resultData, entity, associationNodesKey, resultSet, to);
+                        }
+                        else if(association.isBidirectional()) {
                             final Association inverseSide = association.getInverseSide();
                             if(inverseSide instanceof ToOne) {
                                 resultSet.setInitializedAssociations(Collections.singletonMap(
@@ -670,6 +693,21 @@ public class Neo4jEntityPersister extends EntityPersister {
 
         firePostLoadEvent(entityAccess.getPersistentEntity(), entityAccess);
         return obj;
+    }
+
+    private void handleRelationshipSide(PersistentEntity persistentEntity, Map<String, Object> resultData, Object entity, String associationNodesKey, Neo4jResultList resultSet, Association association) {
+        if (persistentEntity.equals(association.getAssociatedEntity())) {
+            resultSet.setInitializedAssociations(Collections.singletonMap(
+                    association, entity
+            ));
+            // the associated nodes are the inverse nodes, pass those through to avoid additional queries
+            if(resultData.containsKey(associationNodesKey)) {
+                Collection<Node> nodes = (Collection<Node>) resultData.get(associationNodesKey);
+                for (Node n : nodes) {
+                    resultSet.addInitializedNode(n);
+                }
+            }
+        }
     }
 
     private void removeFromRelationshipMap(Association association, Map<TypeDirectionPair, Map<String, Object>> relationshipsMap) {

@@ -46,28 +46,29 @@ class Neo4jResultList extends AbstractResultList {
     private static final Map<Association, Object> EMPTY_ASSOCIATIONS = Collections.<Association, Object> emptyMap()
     private static final Map<String, Object> EMPTY_RESULT_DATA = Collections.<String, Object> emptyMap()
 
-    final protected transient  Neo4jEntityPersister entityPersister;
+    final protected transient  Neo4jEntityPersister entityPersister
 
     protected transient Map<Association, Object> initializedAssociations = EMPTY_ASSOCIATIONS
+    protected transient Map<Serializable, Node> initializedNodes = [:]
 
     protected final LockModeType lockMode
 
     Neo4jResultList(int offset, StatementResult cursor, Neo4jEntityPersister entityPersister, LockModeType lockMode = LockModeType.NONE) {
         super(offset, (Iterator<Object>)cursor)
         this.entityPersister = entityPersister
-        this.lockMode = lockMode;
+        this.lockMode = lockMode
     }
 
     Neo4jResultList(int offset, Iterator<Object> cursor, Neo4jEntityPersister entityPersister) {
         super(offset, cursor)
         this.entityPersister = entityPersister
-        this.lockMode = LockModeType.NONE;
+        this.lockMode = LockModeType.NONE
     }
 
     Neo4jResultList(int offset, Integer size, Iterator<Object> cursor, Neo4jEntityPersister entityPersister) {
         super(offset, size, cursor)
         this.entityPersister = entityPersister
-        this.lockMode = LockModeType.NONE;
+        this.lockMode = LockModeType.NONE
     }
 
     /**
@@ -77,6 +78,15 @@ class Neo4jResultList extends AbstractResultList {
      */
     void setInitializedAssociations(Map<Association, Object> initializedAssociations) {
         this.initializedAssociations = initializedAssociations
+    }
+
+    /**
+     * Adds an initialized node
+     *
+     * @param node The node
+     */
+    void addInitializedNode(Node node) {
+        this.initializedNodes.put(node.id(), node)
     }
 
     @Override
@@ -94,7 +104,7 @@ class Neo4jResultList extends AbstractResultList {
             PersistentEntity persistentEntity = entityPersister.getPersistentEntity()
             if(persistentEntity instanceof RelationshipPersistentEntity) {
                 Relationship data = (Relationship) next
-                return entityPersister.unmarshallOrFromCache(entityPersister.getPersistentEntity(), data, initializedAssociations);
+                return entityPersister.unmarshallOrFromCache(entityPersister.getPersistentEntity(), data, initializedAssociations, initializedNodes)
             }
             else {
                 throw new QueryException("Query must return a node as the first column of the RETURN statement")
@@ -103,7 +113,7 @@ class Neo4jResultList extends AbstractResultList {
         else {
             Record record = (Record) next
             if (record.containsKey(CypherBuilder.NODE_DATA)) {
-                Node data = (Node) record.get(CypherBuilder.NODE_DATA).asNode();
+                Node data = (Node) record.get(CypherBuilder.NODE_DATA).asNode()
                 return entityPersister.unmarshallOrFromCache(entityPersister.getPersistentEntity(), data, record.asMap(), initializedAssociations, lockMode)
             }
             else if(record.containsKey(CypherBuilder.REL_DATA)) {
@@ -111,7 +121,7 @@ class Neo4jResultList extends AbstractResultList {
                 if(persistentEntity instanceof RelationshipPersistentEntity) {
                     def recordMap = record.asMap()
                     RelationshipPersistentEntity relEntity = (RelationshipPersistentEntity)persistentEntity
-                    Relationship data = (Relationship) record.get(CypherBuilder.REL_DATA).asRelationship();
+                    Relationship data = (Relationship) record.get(CypherBuilder.REL_DATA).asRelationship()
                     this.initializedAssociations = new LinkedHashMap<>(initializedAssociations)
                     if(record.containsKey(RelationshipPersistentEntity.FROM)) {
                         Association fromAssociation = relEntity.getFrom()
@@ -129,7 +139,7 @@ class Neo4jResultList extends AbstractResultList {
                                 fromPersister.unmarshallOrFromCache( toEntity, record.get(RelationshipPersistentEntity.TO).asNode() ,recordMap,  initializedAssociations)
                         )
                     }
-                    return entityPersister.unmarshallOrFromCache(entityPersister.getPersistentEntity(), data, initializedAssociations);
+                    return entityPersister.unmarshallOrFromCache(entityPersister.getPersistentEntity(), data, initializedAssociations, initializedNodes)
                 }
                 else {
                     throw new QueryException("Query must return a node as the first column of the RETURN statement")
