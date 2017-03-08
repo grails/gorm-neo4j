@@ -19,6 +19,7 @@ package grails.neo4j.bootstrap
 import grails.neo4j.Neo4jEntity
 import groovy.transform.InheritConstructors
 import org.grails.datastore.gorm.bootstrap.AbstractDatastoreInitializer
+import org.grails.datastore.gorm.bootstrap.support.ServiceRegistryFactoryBean
 import org.grails.datastore.gorm.events.ConfigurableApplicationContextEventPublisher
 import org.grails.datastore.gorm.events.DefaultApplicationEventPublisher
 import org.grails.datastore.gorm.neo4j.Neo4jDatastore
@@ -77,6 +78,7 @@ class Neo4jDataStoreSpringInitializer extends AbstractDatastoreInitializer {
                 bean.autowire = true
             }
             neo4jDatastore(Neo4jDatastore, configuration, ref("neo4jConnectionSourceFactory"), eventPublisher, collectMappedClasses(DATASTORE_TYPE))
+            neo4jDatastoreServiceRegistry(ServiceRegistryFactoryBean, ref("neo4jDatastore"))
             neo4jMappingContext(neo4jDatastore:"getMappingContext") {
                 if(!isRecentGrailsVersion) {
                     validatorRegistry = new BeanFactoryValidatorRegistry((BeanFactory)beanDefinitionRegistry)

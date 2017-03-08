@@ -51,6 +51,7 @@ import org.grails.datastore.mapping.multitenancy.MultiTenancySettings;
 import org.grails.datastore.mapping.multitenancy.MultiTenantCapableDatastore;
 import org.grails.datastore.mapping.core.connections.MultipleConnectionSourceCapableDatastore;
 import org.grails.datastore.mapping.multitenancy.TenantResolver;
+import org.grails.datastore.mapping.transactions.TransactionCapableDatastore;
 import org.grails.datastore.mapping.validation.ValidatorRegistry;
 import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.Transaction;
@@ -80,7 +81,7 @@ import java.util.Map;
  *
  * @since 1.0
  */
-public class Neo4jDatastore extends AbstractDatastore implements Closeable, StatelessDatastore, GraphDatastore, Settings, MultipleConnectionSourceCapableDatastore, MultiTenantCapableDatastore<Driver, Neo4jConnectionSourceSettings>, MessageSourceAware {
+public class Neo4jDatastore extends AbstractDatastore implements Closeable, StatelessDatastore, GraphDatastore, Settings, MultipleConnectionSourceCapableDatastore, MultiTenantCapableDatastore<Driver, Neo4jConnectionSourceSettings>, MessageSourceAware, TransactionCapableDatastore {
 
     private static Logger log = LoggerFactory.getLogger(Neo4jDatastore.class);
 
@@ -327,6 +328,7 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
     /**
      * @return The transaction manager
      */
+    @Override
     public Neo4jDatastoreTransactionManager getTransactionManager() {
         return transactionManager;
     }
