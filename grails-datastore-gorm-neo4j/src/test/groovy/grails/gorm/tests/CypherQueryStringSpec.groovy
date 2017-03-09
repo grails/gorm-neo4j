@@ -53,6 +53,15 @@ class CypherQueryStringSpec extends GormDatastoreSpec {
         team.club instanceof Club
         team.club.name == 'FC Bayern Muenchen'
 
+        when:"A find method is executed with a gstring"
+        String name = 'FCB Team 1'
+        team = Team.find("MATCH (n) where n.name = $name RETURN n")
+
+        then:"The result is correct"
+        team instanceof Team
+        team.name == 'FCB Team 1'
+        team.club instanceof Club
+        team.club.name == 'FC Bayern Muenchen'
     }
 
     void "test findAll method that accepts cypher"() {
@@ -80,6 +89,16 @@ class CypherQueryStringSpec extends GormDatastoreSpec {
         clubs[0].teams
         clubs[0].teams.size() == 2
 
+        when:"A find method is executed with a gstring"
+        String name = 'FC Bayern Muenchen'
+        clubs = Club.findAll("MATCH (n) where n.name = $name RETURN n")
+
+        then:"The result is correct"
+        clubs.size() == 1
+        clubs[0] instanceof Club
+        clubs[0].name == 'FC Bayern Muenchen'
+        clubs[0].teams
+        clubs[0].teams.size() == 2
     }
 
     void "Test convert nodes using asType for a cypher result"() {

@@ -25,6 +25,7 @@ import org.grails.datastore.gorm.events.ConfigurableApplicationEventPublisher;
 import org.grails.datastore.gorm.events.DefaultApplicationEventPublisher;
 import org.grails.datastore.gorm.events.DomainEventListener;
 import org.grails.datastore.gorm.multitenancy.MultiTenantEventListener;
+import org.grails.datastore.gorm.neo4j.api.Neo4jGormStaticApi;
 import org.grails.datastore.gorm.neo4j.connections.Neo4jConnectionSourceFactory;
 import org.grails.datastore.gorm.neo4j.connections.Neo4jConnectionSourceSettings;
 import org.grails.datastore.gorm.neo4j.connections.Neo4jConnectionSourceSettingsBuilder;
@@ -408,7 +409,7 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
             @Override
             protected <D> GormStaticApi<D> getStaticApi(Class<D> cls, String qualifier) {
                 Neo4jDatastore neo4jDatastore = getDatastoreForQualifier(cls, qualifier);
-                return new GormStaticApi<>(cls, neo4jDatastore, createDynamicFinders(neo4jDatastore), neo4jDatastore.getTransactionManager());
+                return new Neo4jGormStaticApi<D>(cls, neo4jDatastore, createDynamicFinders(neo4jDatastore), neo4jDatastore.getTransactionManager());
             }
 
             @Override

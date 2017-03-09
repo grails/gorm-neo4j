@@ -23,6 +23,7 @@ import org.grails.datastore.gorm.GormEnhancer
 import org.grails.datastore.gorm.GormEntity
 import org.grails.datastore.gorm.neo4j.Neo4jDatastore
 import org.grails.datastore.gorm.neo4j.Neo4jSession
+import org.grails.datastore.gorm.neo4j.api.Neo4jGormStaticApi
 import org.grails.datastore.gorm.neo4j.collection.Neo4jResultList
 import org.grails.datastore.gorm.neo4j.engine.Neo4jEntityPersister
 import org.grails.datastore.gorm.neo4j.extensions.Neo4jExtensions
@@ -53,7 +54,6 @@ trait Neo4jEntity<D> implements GormEntity<D>, DynamicAttributes {
         DynamicAttributes.super.getAt(name)
     }
 
-
     /**
      * Allows setting a dynamic property via the dot operator
      * @param instance The instance
@@ -70,14 +70,15 @@ trait Neo4jEntity<D> implements GormEntity<D>, DynamicAttributes {
      * @param params
      * @return
      */
-    StatementResult cypher(String queryString, Map params ) {
-        Neo4jSession session = (Neo4jSession)AbstractDatastore.retrieveSession(Neo4jDatastore)
-        StatementRunner boltSession = getStatementRunner(session)
+    StatementResult cypher(String queryString, Map params) {
+        GormEnhancer.findDatastore(getClass()).withSession { Neo4jSession session ->
+            StatementRunner boltSession = getStatementRunner(session)
 
 
-        params['this'] = session.getObjectIdentifier(this)
-        includeTenantIdIfNecessary(session, queryString, params)
-        boltSession.run(queryString, (Map<String,Object>)params)
+            params['this'] = session.getObjectIdentifier(this)
+            includeTenantIdIfNecessary(session, queryString, params)
+            boltSession.run(queryString, (Map<String, Object>) params)
+        }
     }
 
     /**
@@ -86,20 +87,21 @@ trait Neo4jEntity<D> implements GormEntity<D>, DynamicAttributes {
      * @param params
      * @return
      */
-    StatementResult cypher(String queryString, List params ) {
-        Neo4jSession session = (Neo4jSession)AbstractDatastore.retrieveSession(Neo4jDatastore)
-        StatementRunner boltSession = getStatementRunner(session)
+    StatementResult cypher(String queryString, List params) {
+        GormEnhancer.findDatastore(getClass()).withSession { Neo4jSession session ->
+            StatementRunner boltSession = getStatementRunner(session)
 
-        Map<String,Object> paramsMap = new LinkedHashMap()
-        paramsMap.put("this", session.getObjectIdentifier(this))
+            Map<String, Object> paramsMap = new LinkedHashMap()
+            paramsMap.put("this", session.getObjectIdentifier(this))
 
-        includeTenantIdIfNecessary(session, queryString, paramsMap)
+            includeTenantIdIfNecessary(session, queryString, paramsMap)
 
-        int i = 0
-        for(p in params) {
-            paramsMap.put(String.valueOf(++i), p)
+            int i = 0
+            for (p in params) {
+                paramsMap.put(String.valueOf(++i), p)
+            }
+            boltSession.run(queryString, paramsMap)
         }
-        boltSession.run(queryString, paramsMap)
     }
 
     /**
@@ -108,234 +110,80 @@ trait Neo4jEntity<D> implements GormEntity<D>, DynamicAttributes {
      * @return
      */
     StatementResult cypher(String queryString) {
-        Neo4jSession session = (Neo4jSession)AbstractDatastore.retrieveSession(Neo4jDatastore)
-        Map<String,Object> arguments
-        if(session.getDatastore().multiTenancyMode == MultiTenancySettings.MultiTenancyMode.DISCRIMINATOR) {
-            if(!queryString.contains("{tenantId}")) {
-                throw new TenantNotFoundException("Query does not specify a tenant id, but multi tenant mode is DISCRIMINATOR!")
-            }
-            else {
-                arguments = new LinkedHashMap<String,Object>()
-                arguments.put(GormProperties.TENANT_IDENTITY, Tenants.currentId(Neo4jDatastore))
-                arguments.put("this", session.getObjectIdentifier(this))
-            }
-        }
-        else {
-            arguments = (Map<String,Object>)Collections.singletonMap("this", session.getObjectIdentifier(this))
-        }
-        StatementRunner boltSession = getStatementRunner(session)
-        boltSession.run(queryString, arguments)
-    }
-
-    /**
-     * perform a cypher query
-     *
-     * @param queryString
-     * @return
-     */
-    static StatementResult cypherStatic(String queryString, Map params ) {
-        Neo4jSession session = (Neo4jSession)AbstractDatastore.retrieveSession(Neo4jDatastore)
-        StatementRunner boltSession = getStatementRunner(session)
-        includeStaticTenantIdIfNecessary(session, queryString, params)
-        boltSession.run(queryString, params)
-    }
-
-    /**
-     * perform a cypher query
-     *
-     * @param queryString
-     * @return
-     */
-    static StatementResult cypherStatic(String queryString, List params) {
-        Neo4jSession session = (Neo4jSession)AbstractDatastore.retrieveSession(Neo4jDatastore)
-        Map paramsMap = new LinkedHashMap()
-        int i = 0
-        for(p in params) {
-            paramsMap.put(String.valueOf(++i), p)
-        }
-        includeStaticTenantIdIfNecessary(session, queryString, (Map)paramsMap)
-        StatementRunner boltSession = getStatementRunner(session)
-        boltSession.run(queryString, paramsMap)
-    }
-
-    /**
-     * perform a cypher query
-     *
-     * @param queryString
-     * @return
-     */
-    static StatementResult cypherStatic(String queryString) {
-        Neo4jSession session = (Neo4jSession)AbstractDatastore.retrieveSession(Neo4jDatastore)
-        if (MultiTenant.isAssignableFrom(this) && session.getDatastore().multiTenancyMode == MultiTenancySettings.MultiTenancyMode.DISCRIMINATOR) {
-            if (!queryString.contains("{tenantId}")) {
-                throw new TenantNotFoundException("Query does not specify a tenant id, but multi tenant mode is DISCRIMINATOR!")
+        GormEnhancer.findDatastore(getClass()).withSession { Neo4jSession session ->
+            Map<String, Object> arguments
+            if (session.getDatastore().multiTenancyMode == MultiTenancySettings.MultiTenancyMode.DISCRIMINATOR) {
+                if (!queryString.contains("{tenantId}")) {
+                    throw new TenantNotFoundException("Query does not specify a tenant id, but multi tenant mode is DISCRIMINATOR!")
+                } else {
+                    arguments = new LinkedHashMap<String, Object>()
+                    arguments.put(GormProperties.TENANT_IDENTITY, Tenants.currentId(Neo4jDatastore))
+                    arguments.put("this", session.getObjectIdentifier(this))
+                }
             } else {
-                Map<String,Object> paramsMap = new LinkedHashMap<>()
-                paramsMap.put(GormProperties.TENANT_IDENTITY, Tenants.currentId(Neo4jDatastore))
-                StatementRunner boltSession = getStatementRunner(session)
-                boltSession.run(queryString, paramsMap)
+                arguments = (Map<String, Object>) Collections.singletonMap("this", session.getObjectIdentifier(this))
             }
-        }
-        else {
             StatementRunner boltSession = getStatementRunner(session)
-            boltSession.run(queryString)
+            boltSession.run(queryString, arguments)
         }
     }
 
     /**
-     * @see {@link #cypherStatic(java.lang.String, java.util.Map)}
-     */
-    static List<D> executeQuery(String query, Map params = [:], Map args = Collections.emptyMap()) {
-        Neo4jSession session =  (Neo4jSession)AbstractDatastore.retrieveSession(Neo4jDatastore)
-        includeStaticTenantIdIfNecessary(session, query, params)
-        def result = cypherStatic(query, params)
-        return new Neo4jResultList(0, result,(Neo4jEntityPersister) session.getPersister(this))
-    }
-
-    /**
-     * @see {@link #cypherStatic(java.lang.String, java.util.Map)}
-     */
-    static List<D> executeQuery(String query, Collection params, Map args) {
-        def result = cypherStatic(query, params.toList())
-        Neo4jSession session = (Neo4jSession)AbstractDatastore.retrieveSession(Neo4jDatastore)
-        return new Neo4jResultList(0, result, (Neo4jEntityPersister)session.getPersister(this))
-    }
-
-    /**
-     * Finds all results using the given cypher query, converting each result to a domain instance
+     * perform a cypher query
      *
-     * @param query The cypher query
-     * @param params The positional parameters
-     * @param args The arguments to the query
-     * @return The results
+     * @param queryString
+     * @return
      */
-    static List<D> findAll(String query, Collection params, Map args) {
-        Neo4jSession session = (Neo4jSession)AbstractDatastore.retrieveSession(Neo4jDatastore)
+    static StatementResult cypherStatic(CharSequence queryString, Map params) {
+        ((Neo4jGormStaticApi) GormEnhancer.findStaticApi(this)).cypherStatic(queryString, params)
+    }
 
-        StatementRunner boltSession = getStatementRunner(session)
-        StatementResult result = Neo4jExtensions.execute(boltSession, query, (List<Object>)params.toList())
-        def persister = session
-                .getEntityPersister(this)
+    /**
+     * perform a cypher query
+     *
+     * @param queryString
+     * @return
+     */
+    static StatementResult cypherStatic(CharSequence queryString, List params) {
+        ((Neo4jGormStaticApi) GormEnhancer.findStaticApi(this)).cypherStatic(queryString, params)
+    }
 
-        if(result.hasNext()) {
-            return new Neo4jResultList(0, result, persister)
-        }
-        else {
-            return Collections.emptyList()
-        }
+    /**
+     * perform a cypher query
+     *
+     * @param queryString
+     * @return
+     */
+    static StatementResult cypherStatic(CharSequence queryString) {
+        ((Neo4jGormStaticApi) GormEnhancer.findStaticApi(this)).cypherStatic(queryString)
     }
 
     /**
      * Varargs version of {@link #findAll(java.lang.String, java.util.Collection, java.util.Map)}
      */
-    static List<D> findAll(String query, Object[] params) {
-        Neo4jSession session = (Neo4jSession)AbstractDatastore.retrieveSession(Neo4jDatastore)
-
-        StatementRunner boltSession = getStatementRunner(session)
-        StatementResult result = Neo4jExtensions.execute(boltSession, query, Arrays.asList(params))
-        def persister = session
-                .getEntityPersister(this)
-
-        if(result.hasNext()) {
-            return new Neo4jResultList(0, result, persister)
-        }
-        else {
-            return Collections.emptyList()
-        }
+    static List<D> findAll(CharSequence query, Object[] params) {
+        ((Neo4jGormStaticApi) GormEnhancer.findStaticApi(this)).findAll(query, Arrays.asList(params))
     }
 
     /**
-     * Finds all results using the given cypher query, converting each result to a domain instance
-     *
-     * @param query The cypher query
-     * @param params The parameters
-     * @param args The arguments to the query
-     * @return The results
+     * Varargs version of {@link #findAll(java.lang.String, java.util.Collection, java.util.Map)}
      */
-    static List<D> findAll(String query, Map params = [:], Map args = Collections.emptyMap()) {
-        Neo4jSession session = (Neo4jSession)AbstractDatastore.retrieveSession(Neo4jDatastore)
-
-        StatementRunner boltSession = getStatementRunner(session)
-        includeStaticTenantIdIfNecessary(session, query, params)
-        StatementResult result = boltSession.run( query, (Map<String,Object>)params)
-        def persister = session
-                .getEntityPersister(this)
-
-        if(result.hasNext()) {
-            return new Neo4jResultList(0, result, persister)
-        }
-        else {
-            return Collections.emptyList()
-        }
+    static List<D> findAll(CharSequence query, Map params) {
+        ((Neo4jGormStaticApi) GormEnhancer.findStaticApi(this)).findAll(query, params)
+    }
+    /**
+     * Varargs version of {@link #findAll(java.lang.String, java.util.Collection, java.util.Map)}
+     */
+    static D find(CharSequence query, Object[] params) {
+        ((Neo4jGormStaticApi) GormEnhancer.findStaticApi(this)).find(query, Arrays.asList(params))
     }
 
     /**
-     * Finds a single result using the given cypher query, converting the result to a domain instance
-     *
-     * @param query The cypher query
-     * @param params The positional parameters
-     * @param args The arguments to the query
-     * @return The results
+     * Varargs version of {@link #findAll(java.lang.String, java.util.Collection, java.util.Map)}
      */
-    static D find(String query, Collection params, Map args = Collections.emptyMap()) {
-        Neo4jSession session = (Neo4jSession)AbstractDatastore.retrieveSession(Neo4jDatastore)
-
-        StatementRunner boltSession = getStatementRunner(session)
-        StatementResult result = Neo4jExtensions.execute(boltSession, query, (List<Object>)params.toList())
-
-        def persister = session
-                .getEntityPersister(this)
-
-        def resultList = new Neo4jResultList(0, 1, (Iterator<Object>)result, persister)
-        if( !resultList.isEmpty() ) {
-            return (D)resultList.get(0)
-        }
-        return null
+    static D find(CharSequence query, Map params) {
+        ((Neo4jGormStaticApi) GormEnhancer.findStaticApi(this)).find(query, params)
     }
-
-    /**
-     * Finds a single result using the given cypher query, converting the result to a domain instance
-     *
-     * @param query The cypher query
-     * @param params The parameters
-     * @param args The arguments to the query
-     * @return The results
-     */
-    static D find(String query, Map params = [:], Map args = Collections.emptyMap()) {
-        Neo4jSession session = (Neo4jSession)AbstractDatastore.retrieveSession(Neo4jDatastore)
-
-        StatementRunner boltSession = getStatementRunner(session)
-        includeStaticTenantIdIfNecessary(session, query, params)
-        StatementResult result = boltSession.run( query, (Map<String,Object>)params)
-        def persister = session
-                .getEntityPersister(this)
-
-        def resultList = new Neo4jResultList(0, 1, (Iterator<Object>)result, persister)
-        if( !resultList.isEmpty() ) {
-            return (D)resultList.get(0)
-        }
-        return null
-    }
-
-    /**
-     * Varargs version of {@link #find(java.lang.String, java.util.Collection, java.util.Map)}
-     */
-    static D find(String query, Object[] params) {
-        Neo4jSession session = (Neo4jSession)AbstractDatastore.retrieveSession(Neo4jDatastore)
-
-        StatementRunner boltSession = getStatementRunner(session)
-        StatementResult result = Neo4jExtensions.execute(boltSession, query, Arrays.asList(params))
-
-        def persister = session
-                .getEntityPersister(this)
-
-        def resultList = new Neo4jResultList(0, 1, (Iterator<Object>)result, persister)
-        if( !resultList.isEmpty() ) {
-            return (D)resultList.get(0)
-        }
-        return null
-    }
-
     /**
      * Perform an operation with the given connection
      *
@@ -343,30 +191,20 @@ trait Neo4jEntity<D> implements GormEntity<D>, DynamicAttributes {
      * @param callable The operation
      * @return The return value of the closure
      */
-    static <T> T withConnection(String connectionName, @DelegatesTo(GormAllOperations)Closure callable) {
+    static <T> T withConnection(String connectionName, @DelegatesTo(GormAllOperations) Closure callable) {
         def staticApi = GormEnhancer.findStaticApi(this, connectionName)
-        return (T)staticApi.withNewSession {
+        return (T) staticApi.withNewSession {
             callable.setDelegate(staticApi)
             return callable.call()
         }
     }
 
-    private static StatementRunner getStatementRunner(Neo4jSession session) {
+    private StatementRunner getStatementRunner(Neo4jSession session) {
         return session.hasTransaction() ? session.getTransaction().getNativeTransaction() : session.getNativeInterface()
     }
 
     private void includeTenantIdIfNecessary(Neo4jSession session, String queryString, Map<String, Object> paramsMap) {
         if ((this instanceof MultiTenant) && session.getDatastore().multiTenancyMode == MultiTenancySettings.MultiTenancyMode.DISCRIMINATOR) {
-            if (!queryString.contains("{tenantId}")) {
-                throw new TenantNotFoundException("Query does not specify a tenant id, but multi tenant mode is DISCRIMINATOR!")
-            } else {
-                paramsMap.put(GormProperties.TENANT_IDENTITY, Tenants.currentId(Neo4jDatastore))
-            }
-        }
-    }
-
-    private static void includeStaticTenantIdIfNecessary(Neo4jSession session, String queryString, Map paramsMap) {
-        if (MultiTenant.isAssignableFrom(this) && session.getDatastore().multiTenancyMode == MultiTenancySettings.MultiTenancyMode.DISCRIMINATOR) {
             if (!queryString.contains("{tenantId}")) {
                 throw new TenantNotFoundException("Query does not specify a tenant id, but multi tenant mode is DISCRIMINATOR!")
             } else {
