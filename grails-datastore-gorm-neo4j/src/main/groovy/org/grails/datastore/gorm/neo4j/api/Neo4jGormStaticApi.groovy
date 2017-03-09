@@ -257,7 +257,7 @@ class Neo4jGormStaticApi<D> extends GormStaticApi<D> {
                         log.debug("QUERY Cypher [$queryString] for params [$paramsMap]")
                     }
 
-                    boltSession.run(queryString, paramsMap)
+                    return boltSession.run(queryString, paramsMap)
                 }
             }
             else {
@@ -266,7 +266,12 @@ class Neo4jGormStaticApi<D> extends GormStaticApi<D> {
                     log.debug("QUERY Cypher [$queryString]")
                 }
 
-                boltSession.run(queryString)
+                if(params.isEmpty()) {
+                    return boltSession.run(queryString)
+                }
+                else {
+                    return boltSession.run(queryString, params)
+                }
             }
 
         } as SessionCallback<StatementResult>)

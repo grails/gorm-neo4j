@@ -1,5 +1,7 @@
 package grails.gorm.tests
 
+import org.neo4j.driver.v1.StatementResult
+
 /*
  * Copyright 2014 original authors
  *
@@ -96,9 +98,16 @@ class CypherQueryStringSpec extends GormDatastoreSpec {
         then:"The result is correct"
         clubs.size() == 1
         clubs[0] instanceof Club
-        clubs[0].name == 'FC Bayern Muenchen'
+        clubs[0].name == name
         clubs[0].teams
         clubs[0].teams.size() == 2
+
+        when:"A find method is executed with a gstring"
+        StatementResult result  = Club.cypherStatic("MATCH (n) where n.name = $name RETURN n")
+
+        then:"The result is correct"
+        result.hasNext()
+        result.next().get('n').asMap().get('name') == name
     }
 
     void "Test convert nodes using asType for a cypher result"() {
