@@ -433,8 +433,8 @@ public class Neo4jSession extends AbstractSession<Session> {
         boolean first = true;
         boolean hasInserts = false;
         StringBuilder createCypher = new StringBuilder(CypherBuilder.CYPHER_CREATE);
-        final Map<String, Object> params = new HashMap<String, Object>(inserts.size());
-        List<PendingOperation<Object, Serializable>> cascadingOperations = new ArrayList<PendingOperation<Object, Serializable>>();
+        final Map<String, Object> params = new HashMap<>(inserts.size());
+        List<PendingOperation<Object, Serializable>> cascadingOperations = new ArrayList<>();
         for (PersistentEntity entity : entities) {
             final Collection<PendingInsert> entityInserts = inserts.get(entity);
             for (final PendingInsert entityInsert : entityInserts) {
@@ -496,13 +496,14 @@ public class Neo4jSession extends AbstractSession<Session> {
         final List<PersistentProperty> persistentProperties = entity.getPersistentProperties();
         Map<String, Object> simpleProps = new HashMap<>(persistentProperties.size());
         final Serializable id = (Serializable)entityInsert.getNativeKey();
-        if(graphPersistentEntity.isAssignedId()) {
-            simpleProps.put(graphPersistentEntity.getIdentity().getName(), id);
+        if(!graphPersistentEntity.isNativeId()) {
+            if(graphPersistentEntity.getIdGeneratorType().equals(IdGenerator.Type.SNOWFLAKE)) {
+                simpleProps.put(CypherBuilder.IDENTIFIER, id);
+            }
+            else {
+                simpleProps.put(graphPersistentEntity.getIdentity().getName(), id);
+            }
         }
-        else if(graphPersistentEntity.getIdGenerator() != null && !(graphPersistentEntity instanceof RelationshipPersistentEntity)) {
-            simpleProps.put(CypherBuilder.IDENTIFIER, id);
-        }
-
 
         final Object obj = entityInsert.getObject();
         final GraphPersistentEntity graphEntity = (GraphPersistentEntity) entity;

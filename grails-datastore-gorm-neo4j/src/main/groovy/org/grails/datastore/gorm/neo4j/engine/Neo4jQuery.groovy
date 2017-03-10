@@ -50,15 +50,13 @@ class Neo4jQuery extends Query {
 
     private static final String ORDER_BY_CLAUSE = " ORDER BY "
     private static final String BLANK = ""
-    private static final String ID_EQUALS = "ID(n)"
-    private static final String REL_EQUALS = "ID(r)"
 
     final Neo4jEntityPersister neo4jEntityPersister
     final boolean isRelationshipEntity
 
-    public Neo4jQuery(Neo4jSession session, PersistentEntity entity, Neo4jEntityPersister neo4jEntityPersister) {
+    Neo4jQuery(Neo4jSession session, PersistentEntity entity, Neo4jEntityPersister neo4jEntityPersister) {
         super(session, entity)
-        session.assertTransaction();
+        session.assertTransaction()
         this.neo4jEntityPersister = neo4jEntityPersister
         this.isRelationshipEntity = entity instanceof RelationshipPersistentEntity
     }
@@ -444,8 +442,8 @@ class Neo4jQuery extends Query {
                  for(Association a in persistentEntity.associations) {
                      if(a.isBasic()) continue
                      FetchType fetchType = fetchStrategy(a.name)
-                     String r = "r${i++}";
-                     String o = "o${i}";
+                     String r = "r${i++}"
+                     String o = "o${i}"
                      String associationName = a.name
                      GraphPersistentEntity associatedGraphEntity = (GraphPersistentEntity)a.associatedEntity
                      boolean isAssociationRelationshipEntity = associatedGraphEntity.isRelationshipEntity()
@@ -627,7 +625,7 @@ class Neo4jQuery extends Query {
     }
 
     @Deprecated
-    public static String matchForAssociation(Association association, String var = "", Map<String, String> attributes = Collections.emptyMap()) {
+    static String matchForAssociation(Association association, String var = "", Map<String, String> attributes = Collections.emptyMap()) {
         RelationshipUtils.matchForAssociation(association, var, attributes)
     }
 
@@ -797,7 +795,7 @@ class Neo4jQuery extends Query {
         public static final SizeCriterionHandler<Query.SizeLessThan> LESS_THAN = new SizeCriterionHandler<Query.SizeLessThan>(CriterionHandler.OPERATOR_LESS_THAN)
         public static final SizeCriterionHandler<Query.SizeLessThanEquals> LESS_THAN_EQUALS = new SizeCriterionHandler<Query.SizeLessThanEquals>(CriterionHandler.OPERATOR_LESS_THAN_EQUALS)
 
-        final String operator;
+        final String operator
 
         SizeCriterionHandler(String operator) {
             this.operator = operator

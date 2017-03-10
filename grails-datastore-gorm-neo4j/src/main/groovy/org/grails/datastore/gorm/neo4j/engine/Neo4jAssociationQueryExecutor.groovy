@@ -15,7 +15,6 @@
  */
 package org.grails.datastore.gorm.neo4j.engine
 
-import grails.neo4j.Relationship
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.grails.datastore.gorm.neo4j.CypherBuilder
@@ -102,24 +101,15 @@ class Neo4jAssociationQueryExecutor implements AssociationQueryExecutor<Serializ
             relType = RelationshipUtils.matchForAssociation(association)
         }
 
-        String relationship = "(from${parent.labelsAsString})${relType}(to${related.labelsAsString})"
+        String relationship = CypherBuilder.buildRelationship(parent.labelsAsString, relType, related.labelsAsString)
 
-        StringBuilder cypher = new StringBuilder("MATCH $relationship WHERE ")
-
-        if(parent.idGenerator == null) {
-            cypher.append("ID(from) = {id} RETURN ")
-        }
-        else {
-            cypher.append("from.${CypherBuilder.IDENTIFIER} = {id}  RETURN ")
-        }
+        StringBuilder cypher = new StringBuilder(CypherBuilder.buildRelationshipMatch(parent.labelsAsString, relType, related.labelsAsString))
+        cypher.append(parent.formatId(RelationshipPersistentEntity.FROM))
+              .append(" = {id} RETURN ")
 
         if(lazy && !isRelationship) {
-            if(related.idGenerator == null) {
-                cypher.append("ID(to) as id")
-            }
-            else {
-                cypher.append("to.${CypherBuilder.IDENTIFIER} as id")
-            }
+            cypher.append(related.formatId(RelationshipPersistentEntity.TO))
+                  .append("as id")
         }
         else {
             if(!isRelationship) {

@@ -9,6 +9,7 @@ import org.grails.datastore.mapping.model.DatastoreConfigurationException
 import org.grails.datastore.mapping.model.MappingContext
 import org.grails.datastore.mapping.model.config.GormMappingConfigurationStrategy
 import org.grails.datastore.mapping.model.config.GormProperties
+import org.neo4j.driver.v1.types.Entity
 import org.springframework.util.ClassUtils
 
 /**
@@ -21,7 +22,7 @@ import org.springframework.util.ClassUtils
  *
  */
 @CompileStatic
- class GraphPersistentEntity extends AbstractPersistentEntity<NodeConfig> {
+class GraphPersistentEntity extends AbstractPersistentEntity<NodeConfig> {
 
     public static final String LABEL_SEPARATOR = ':'
     protected final NodeConfig mappedForm
@@ -35,7 +36,6 @@ import org.springframework.util.ClassUtils
     protected IdGenerator.Type idGeneratorType
     protected boolean assignedId = false
     protected boolean nativeId = false
-    protected String identifierProperty = GormProperties.IDENTITY
 
     GraphPersistentEntity(Class javaClass, MappingContext context) {
         this(javaClass, context, false)
@@ -150,6 +150,23 @@ import org.springframework.util.ClassUtils
                 return "${variable}.${CypherBuilder.IDENTIFIER}"
             default:
                 return "${variable}.${identity.name}"
+        }
+    }
+
+    /**
+     * Reads the id from given Neo4j entity
+     *
+     * @param entity The entity
+     * @return the id
+     */
+    Serializable readId(Entity entity) {
+        switch (idGeneratorType) {
+            case IdGenerator.Type.NATIVE:
+                return entity.id() as Serializable
+            case IdGenerator.Type.SNOWFLAKE:
+                return entity.get(CypherBuilder.IDENTIFIER).asNumber()
+            default:
+                return entity.get(identity.name).asObject() as Serializable
         }
     }
 
@@ -296,7 +313,17 @@ import org.springframework.util.ClassUtils
         }
     }
 
+    /**
+     * @return Whether there are dynamic associations. Dynamic associations reduce read performance so are discouraged
+     */
     boolean hasDynamicAssociations() {
         return this.hasDynamicAssociations
+    }
+
+    /**
+     * @return Whether there are dynamic labels. Dynamic labels prevent optimization of write operations so are discouraged
+     */
+    boolean hasDynamicLabels() {
+        return hasDynamicLabels
     }
 }

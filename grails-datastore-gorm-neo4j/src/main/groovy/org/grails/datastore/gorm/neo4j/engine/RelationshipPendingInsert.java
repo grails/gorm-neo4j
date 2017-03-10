@@ -151,7 +151,7 @@ public class RelationshipPendingInsert extends PendingInsertAdapter<Object, Seri
         if(isUpdate && association instanceof DynamicAssociation || association.isBidirectional() && (association instanceof OneToMany) && !RelationshipUtils.useReversedMappingFor(association)) {
             // delete any previous
 
-            StringBuilder cypher = new StringBuilder(String.format(CypherBuilder.CYPHER_RELATIONSHIP_MATCH, labelsFrom, relMatch, labelsTo));
+            StringBuilder cypher = new StringBuilder(CypherBuilder.buildRelationshipMatch(labelsFrom, relMatch, labelsTo));
             Map<String, Object> deleteParams;
             if(association instanceof DynamicToOneAssociation) {
                 cypher.append(graphChild.formatId(FROM)).append(" IN {start} DELETE r");

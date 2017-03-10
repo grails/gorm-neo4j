@@ -18,6 +18,7 @@ package org.grails.datastore.gorm.neo4j.engine;
 import grails.neo4j.Relationship;
 import org.grails.datastore.gorm.neo4j.CypherBuilder;
 import org.grails.datastore.gorm.neo4j.GraphPersistentEntity;
+import org.grails.datastore.gorm.neo4j.RelationshipPersistentEntity;
 import org.grails.datastore.gorm.neo4j.RelationshipUtils;
 import org.grails.datastore.mapping.core.impl.PendingOperationAdapter;
 import org.grails.datastore.mapping.engine.EntityAccess;
@@ -100,24 +101,11 @@ public class RelationshipPendingDelete extends PendingOperationAdapter<Object, S
         params.put(CypherBuilder.END, targetIdentifiers);
 
 
-        StringBuilder cypherQuery = new StringBuilder("MATCH (from").append(labelsFrom).append(")").append(relMatch).append("(to").append(labelsTo).append(") WHERE ");
-
-        final boolean nativeParent = graphParent.getIdGenerator() == null;
-
-        if(nativeParent) {
-            cypherQuery.append("ID(from) = {start}");
-        }
-        else {
-            cypherQuery.append("from.").append(CypherBuilder.IDENTIFIER).append(" = {start}");
-        }
-        cypherQuery.append(" AND ");
-        if(graphChild.getIdGenerator() == null) {
-            cypherQuery.append(" ID(to) IN {end} ");
-        }
-        else {
-            cypherQuery.append("to.").append(CypherBuilder.IDENTIFIER).append(" IN {end}");
-        }
-        cypherQuery.append(" DELETE r");
+        StringBuilder cypherQuery = new StringBuilder(CypherBuilder.buildRelationshipMatch(labelsFrom, relMatch, labelsTo));
+        cypherQuery.append(graphParent.formatId(RelationshipPersistentEntity.FROM))
+                   .append(" = {start} AND ")
+                   .append(graphChild.formatId(RelationshipPersistentEntity.TO))
+                   .append(" IN {end} DELETE r");
 
         String cypher = cypherQuery.toString();
         if (log.isDebugEnabled()) {

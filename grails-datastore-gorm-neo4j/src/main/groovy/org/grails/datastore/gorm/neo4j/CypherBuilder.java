@@ -30,14 +30,15 @@ public class CypherBuilder {
     public static final String OPTIONAL_MATCH = "OPTIONAL MATCH";
     public static final String CYPHER_CREATE = "CREATE ";
     public static final String CYPHER_MATCH_ID = "MATCH (n%s) WHERE %s = {id}";
-    public static final String CYPHER_RELATIONSHIP_MATCH = "MATCH (from%s)%s(to%s) WHERE ";
-    public static final String CYPHER_FROM_TO_NODES_MATCH = "MATCH (from%s), (to%s) WHERE ";
+    public static final String CYPHER_FROM_TO_NODES_MATCH = "MATCH (from%s),(to%s) WHERE ";
     public static final String NODE_LABELS = "labels";
     public static final String NODE_DATA = "data";
     public static final String REL_DATA = "rel";
     public final static String NODE_VAR = "n";
     public final static String REL_VAR = "r";
     public static final String DELETE = "\n DETACH DELETE ";
+    private static final String CYPHER_RELATIONSHIP_MATCH = "MATCH %s WHERE ";
+    private static final String CYPHER_RELATIONSHIP = "(from%s)%s(to%s)";
 
 
     private String forLabels;
@@ -227,5 +228,27 @@ public class CypherBuilder {
         }
 
         return cypher.toString();
+    }
+
+    /**
+     * Produces "MATCH (from%s)%s(to%s) WHERE "
+     * @param fromLabels The from node labels
+     * @param toLabels The to node labels
+     * @param relationship The relationship match
+     * @return The MATCH
+     */
+    public static String buildRelationshipMatch(String fromLabels, String relationship, String toLabels) {
+        return String.format( CYPHER_RELATIONSHIP_MATCH, buildRelationship(fromLabels, relationship, toLabels));
+    }
+
+    /**
+     * Produces "(from%s)%s(to%s)"
+     * @param fromLabels The from node labels
+     * @param toLabels The to node labels
+     * @param relationship The relationship match
+     * @return The MATCH
+     */
+    public static String buildRelationship(String fromLabels, String relationship, String toLabels) {
+        return String.format(CypherBuilder.CYPHER_RELATIONSHIP, fromLabels, relationship, toLabels);
     }
 }

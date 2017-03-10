@@ -35,7 +35,6 @@ import org.neo4j.driver.v1.types.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.core.convert.ConversionService;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.util.Assert;
 
@@ -265,18 +264,7 @@ public class Neo4jEntityPersister extends EntityPersister {
         final Iterable<String> labels = data.labels();
         GraphPersistentEntity graphPersistentEntity = (GraphPersistentEntity) defaultPersistentEntity;
         PersistentEntity persistentEntity = mostSpecificPersistentEntity(defaultPersistentEntity, labels);
-        final Serializable id;
-        if(graphPersistentEntity.getIdGenerator() == null) {
-            if(graphPersistentEntity.isAssignedId()) {
-                id = (Serializable) data.get(graphPersistentEntity.getIdentity().getName()).asObject();
-            }
-            else {
-                id = data.id();
-            }
-        }
-        else {
-            id = data.get(CypherBuilder.IDENTIFIER).asNumber();
-        }
+        final Serializable id = graphPersistentEntity.readId(data);
         Object instance = session.getCachedInstance(persistentEntity.getJavaClass(), id);
 
         if (instance == null) {
@@ -334,13 +322,7 @@ public class Neo4jEntityPersister extends EntityPersister {
     public Object unmarshallOrFromCache(PersistentEntity entity, Entity data, Map<Association, Object> initializedAssociations) {
         final Neo4jSession session = getSession();
         GraphPersistentEntity graphPersistentEntity = (GraphPersistentEntity) entity;
-        final Serializable id;
-        if(graphPersistentEntity.getIdGenerator() == null || (graphPersistentEntity instanceof RelationshipPersistentEntity)) {
-            id = data.id();
-        }
-        else {
-            id = data.get(CypherBuilder.IDENTIFIER).asNumber();
-        }
+        final Serializable id = graphPersistentEntity.readId(data);
         Object instance = session.getCachedInstance(entity.getJavaClass(), id);
 
         if (instance == null) {
@@ -411,7 +393,7 @@ public class Neo4jEntityPersister extends EntityPersister {
         final Object entity = entityAccess.getEntity();
         session.cacheInstance(persistentEntity.getJavaClass(), id, entity);
 
-        Map<TypeDirectionPair, Map<String, Object>> relationshipsMap = new HashMap<TypeDirectionPair, Map<String, Object>>();
+        Map<TypeDirectionPair, Map<String, Object>> relationshipsMap = new HashMap<>();
         final boolean hasDynamicAssociations = graphPersistentEntity.hasDynamicAssociations();
         if(hasDynamicAssociations) {
 
@@ -627,7 +609,7 @@ public class Neo4jEntityPersister extends EntityPersister {
             }
         }
 
-        Map<String,Object> undeclared = new LinkedHashMap<String, Object>();
+        Map<String,Object> undeclared = new LinkedHashMap<>();
 
         // if the relationship map is not empty as this point there are dynamic relationships that need to be loaded as undeclared
         if (!relationshipsMap.isEmpty()) {
