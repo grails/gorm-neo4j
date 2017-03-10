@@ -29,6 +29,8 @@ import org.springframework.util.ClassUtils
     protected final boolean hasDynamicAssociations
     protected final GraphClassMapping classMapping
     protected IdGenerator idGenerator
+    protected IdGenerator.Type idGeneratorType
+    protected boolean assignedId = false;
 
     GraphPersistentEntity(Class javaClass, MappingContext context) {
         this(javaClass, context, false)
@@ -62,13 +64,17 @@ import org.springframework.util.ClassUtils
 
     protected IdGenerator createIdGenerator(String generatorType) {
         try {
-            def type = generatorType == null ? IdGenerator.Type.SNOWFLAKE : IdGenerator.Type.valueOf(generatorType.toUpperCase())
+            IdGenerator.Type type = generatorType == null ? IdGenerator.Type.SNOWFLAKE : IdGenerator.Type.valueOf(generatorType.toUpperCase())
+            idGeneratorType = type
+
             switch(type) {
                 case IdGenerator.Type.NATIVE:
                     // for the native generator use null to indicate that generation requires an insert
                     return null
                 case IdGenerator.Type.ASSIGNED:
-                    throw new DatastoreConfigurationException("Assigned identifiers are currently not supported")
+                    assignedId = true
+                    getIdentity().getMapping().getMappedForm().setUnique(true)
+                    return null
                 case IdGenerator.Type.SNOWFLAKE:
                     return ((Neo4jMappingContext)mappingContext).getIdGenerator()
                 default:
@@ -103,6 +109,19 @@ import org.springframework.util.ClassUtils
     }
 
     /**
+     * @return The ID generator type
+     */
+    IdGenerator.Type getIdGeneratorType() {
+        return idGeneratorType
+    }
+
+    /**
+     * @return Whether the ID is assigned
+     */
+    boolean isAssignedId() {
+        return assignedId
+    }
+/**
      * recursively join all discriminators up the class hierarchy
      * @return
      */

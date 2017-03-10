@@ -473,7 +473,9 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
                     sb.append("CREATE CONSTRAINT ON (n:").append(label).append(") ASSERT n.").append(CypherBuilder.IDENTIFIER).append(" IS UNIQUE");
                     schemaStrings.add(sb.toString());
                 }
-
+                else if(graphPersistentEntity.getIdGeneratorType() == IdGenerator.Type.ASSIGNED) {
+                    createUniqueConstraintOnProperty(label, graphPersistentEntity.getIdentity(), schemaStrings);
+                }
 
 
                 for (PersistentProperty persistentProperty : persistentEntity.getPersistentProperties()) {
@@ -481,10 +483,7 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
                     if ((persistentProperty instanceof Simple) && (mappedForm != null) ) {
 
                         if(mappedForm.isUnique()) {
-                            sb = new StringBuilder();
-
-                            sb.append("CREATE CONSTRAINT ON (n:").append(label).append(") ASSERT n.").append(persistentProperty.getName()).append(" IS UNIQUE");
-                            schemaStrings.add(sb.toString());
+                            createUniqueConstraintOnProperty(label, persistentProperty, schemaStrings);
                         }
                         else if(mappedForm.isIndex()) {
                             sb = new StringBuilder();
@@ -521,6 +520,14 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
         if(log.isDebugEnabled()) {
             log.debug("done setting up indexes");
         }
+    }
+
+    private void createUniqueConstraintOnProperty(String label, PersistentProperty persistentProperty, List<String> schemaStrings) {
+        StringBuilder sb;
+        sb = new StringBuilder();
+
+        sb.append("CREATE CONSTRAINT ON (n:").append(label).append(") ASSERT n.").append(persistentProperty.getName()).append(" IS UNIQUE");
+        schemaStrings.add(sb.toString());
     }
 
     /**

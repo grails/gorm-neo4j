@@ -16,6 +16,7 @@ import org.neo4j.harness.ServerControls;
 import org.springframework.core.env.PropertyResolver;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
 import java.net.URI;
 import java.util.Map;
@@ -46,12 +47,20 @@ public class Neo4jConnectionSourceFactory extends AbstractConnectionSourceFactor
         final Neo4jConnectionSourceSettings.ConnectionType type = settings.getType();
         if(type == Neo4jConnectionSourceSettings.ConnectionType.embedded && ConnectionSource.DEFAULT.equals(name)) {
             if(ClassUtils.isPresent("org.neo4j.harness.ServerControls") && EmbeddedNeo4jServer.isAvailable()) {
-                final String location = settings.getLocation();
                 Neo4jConnectionSourceSettings.EmbeddedSettings embeddedSettings = settings.getEmbedded();
+                final String location = settings.getLocation() != null ? settings.getLocation() : embeddedSettings.getDirectory();
                 final Map options = embeddedSettings.getOptions();
-                final File dataDir = location != null ? new File(location) : null;
-                if(dataDir != null && embeddedSettings.isDropData()) {
+                final File dataDir;
+                try {
+                    dataDir = location != null ? new File(location) : embeddedSettings.isEphemeral() ? File.createTempFile("neo4j-temporary-data", "-tempdir") : new File((Settings.SETTING_NEO4J_TYPE));
+                } catch (IOException e) {
+                    throw new DatastoreConfigurationException("Unable to create temporary data directory: " + e.getMessage(), e);
+                }
+                if(embeddedSettings.isDropData() || embeddedSettings.isEphemeral()) {
                     dataDir.delete();
+                }
+                if(embeddedSettings.isEphemeral()) {
+                    dataDir.deleteOnExit();
                 }
                 ServerControls serverControls;
                 try {

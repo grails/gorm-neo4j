@@ -103,7 +103,8 @@ public class RelationshipPendingInsert extends PendingInsertAdapter<Object, Seri
         params.put(CypherBuilder.START, parentId);
         params.put(CypherBuilder.END, targetIdentifiers);
 
-        final boolean nativeParent = graphParent.getIdGenerator() == null;
+        final boolean isParentAssignedId = graphParent.isAssignedId();
+        final boolean nativeParent = graphParent.getIdGenerator() == null && !isParentAssignedId;
         String labelsFrom = graphParent.getLabelsAsString();
         String labelsTo = graphChild.getLabelsAsString();
 
@@ -175,14 +176,18 @@ public class RelationshipPendingInsert extends PendingInsertAdapter<Object, Seri
             cypherQuery.append("ID(from) = {start}");
         }
         else {
-            cypherQuery.append("from.").append(CypherBuilder.IDENTIFIER).append(" = {start}");
+
+            String id = isParentAssignedId ? graphParent.getIdentity().getName() :CypherBuilder.IDENTIFIER;
+            cypherQuery.append("from.").append(id).append(" = {start}");
         }
         cypherQuery.append(" AND ");
-        if(graphChild.getIdGenerator() == null) {
+        boolean isChildAssignedId = graphChild.isAssignedId();
+        if(graphChild.getIdGenerator() == null && !isChildAssignedId) {
             cypherQuery.append(" ID(to) IN {end} ");
         }
         else {
-            cypherQuery.append("to.").append(CypherBuilder.IDENTIFIER).append(" IN {end}");
+            String id = isChildAssignedId ? graphChild.getIdentity().getName() : CypherBuilder.IDENTIFIER;
+            cypherQuery.append("to.").append(id).append(" IN {end}");
         }
         cypherQuery.append(" MERGE (from)").append(relMatch).append("(to)");
         if(isRelationshipAssociation) {

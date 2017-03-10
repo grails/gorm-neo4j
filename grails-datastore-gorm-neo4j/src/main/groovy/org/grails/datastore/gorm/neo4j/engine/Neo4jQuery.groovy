@@ -21,6 +21,7 @@ import org.grails.datastore.gorm.neo4j.*
 import org.grails.datastore.gorm.neo4j.collection.Neo4jResultList
 import org.grails.datastore.mapping.model.PersistentEntity
 import org.grails.datastore.mapping.model.PersistentProperty
+import org.grails.datastore.mapping.model.config.GormProperties
 import org.grails.datastore.mapping.model.types.Association
 import org.grails.datastore.mapping.model.types.Basic
 import org.grails.datastore.mapping.model.types.ToMany
@@ -89,7 +90,12 @@ class Neo4jQuery extends Query {
                         return REL_EQUALS
                     }
                     else if(graphEntity.idGenerator == null) {
-                        return ID_EQUALS
+                        if(graphEntity.idGeneratorType == IdGenerator.Type.ASSIGNED) {
+                            return "n.${graphEntity.identity.name}"
+                        }
+                        else {
+                            return ID_EQUALS
+                        }
                     }
                     else {
                         return "n.${CypherBuilder.IDENTIFIER}"
@@ -245,9 +251,9 @@ class Neo4jQuery extends Query {
                             def targetNodeName = "m_${builder.getNextMatchNumber()}"
                             builder.addMatch("(${prefix})${RelationshipUtils.matchForAssociation((Association)association)}(${targetNodeName})")
 
-                            def graphEntity = (GraphPersistentEntity) ((Association) association).associatedEntity
+                            GraphPersistentEntity graphEntity = (GraphPersistentEntity) ((Association) association).associatedEntity
                             if(graphEntity.idGenerator == null ) {
-                                lhs = "ID(${targetNodeName})"
+                                lhs = graphEntity.isAssignedId() ? "${targetNodeName}.${graphEntity.identity.name}" : "ID(${targetNodeName})"
                             }
                             else {
                                 lhs = "${targetNodeName}.${CypherBuilder.IDENTIFIER}"
@@ -262,7 +268,7 @@ class Neo4jQuery extends Query {
                                 lhs = "TYPE($CypherBuilder.REL_VAR)"
                             }
                             else {
-                                lhs = criterion.property == "id" ? "ID(${prefix})" : "${prefix}.${criterion.property}"
+                                lhs = criterion.property == GormProperties.IDENTITY && !graphEntity.isAssignedId() ? "ID(${prefix})" : "${prefix}.${criterion.property}"
                             }
                         }
                         else {
@@ -284,7 +290,8 @@ class Neo4jQuery extends Query {
                         return new CypherExpression(REL_EQUALS, "{$paramNumber}", CriterionHandler.OPERATOR_EQUALS)
                     }
                     else if(graphPersistentEntity.idGenerator == null) {
-                        return new CypherExpression(ID_EQUALS, "{$paramNumber}", CriterionHandler.OPERATOR_EQUALS)
+                        String idExp = graphPersistentEntity.idGeneratorType == IdGenerator.Type.ASSIGNED ? "${prefix}.${graphPersistentEntity.identity.name}" : ID_EQUALS
+                        return new CypherExpression(idExp, "{$paramNumber}", CriterionHandler.OPERATOR_EQUALS)
                     }
                     else {
                         return new CypherExpression("${prefix}.${CypherBuilder.IDENTIFIER}", "{$paramNumber}", CriterionHandler.OPERATOR_EQUALS)
@@ -337,11 +344,11 @@ class Neo4jQuery extends Query {
                             }
                         }
                         else {
-                            lhs = criterion.property == "id" ? "ID(${prefix})" : "${prefix}.$criterion.property"
+                            lhs = (criterion.property == GormProperties.IDENTITY) && !graphPersistentEntity.isAssignedId() ? "ID(${prefix})" : "${prefix}.$criterion.property"
                         }
                     }
                     else {
-                        lhs = criterion.property == "id" ? "${prefix}.${CypherBuilder.IDENTIFIER}" : "${prefix}.$criterion.property"
+                        lhs = criterion.property == GormProperties.IDENTITY ? "${prefix}.${CypherBuilder.IDENTIFIER}" : "${prefix}.$criterion.property"
                     }
                     builder.replaceParamAt(paramNumber, convertEnumsInList(values))
                     return new CypherExpression(lhs, "{$paramNumber}", CriterionHandler.OPERATOR_IN)
@@ -505,7 +512,12 @@ class Neo4jQuery extends Query {
                          def withMatch = "WITH n, ${previousAssociations.size() > 0 ? previousAssociations.join(", ") + ", " : ""}"
                          if(!fetchType.is(fetchType.EAGER)) {
                              if(graphPersistentEntity.idGenerator == null) {
-                                 withMatch += "collect(DISTINCT ID(${associationName}Node)) as ${associationName}Ids"
+                                 if(graphPersistentEntity.isAssignedId()) {
+                                     withMatch += "collect(DISTINCT ${associationName}Node.${graphPersistentEntity.identity.name}) as ${associationName}Ids"
+                                 }
+                                 else {
+                                     withMatch += "collect(DISTINCT ID(${associationName}Node)) as ${associationName}Ids"
+                                 }
                              }
                              else {
                                  withMatch += "collect(DISTINCT ${associationName}Node.${CypherBuilder.IDENTIFIER}) as ${associationName}Ids"
@@ -742,12 +754,12 @@ class Neo4jQuery extends Query {
                     lhs = "ID(${association.name})"
                 }
                 else {
-                    def targetNodeName = "m_${builder.getNextMatchNumber()}"
+                    String targetNodeName = "m_${builder.getNextMatchNumber()}"
                     builder.addMatch("(${prefix})${RelationshipUtils.matchForAssociation((Association)association)}(${targetNodeName})")
 
-                    def graphEntity = (GraphPersistentEntity) ((Association) association).associatedEntity
+                    GraphPersistentEntity graphEntity = (GraphPersistentEntity) ((Association) association).associatedEntity
                     if(graphEntity.idGenerator == null ) {
-                        lhs = "ID(${targetNodeName})"
+                        lhs = graphEntity.isAssignedId() ? "${targetNodeName}.${graphEntity.identity.name}" : "ID(${targetNodeName})"
                     }
                     else {
                         lhs = "${targetNodeName}.${CypherBuilder.IDENTIFIER}"

@@ -70,6 +70,12 @@ public interface Settings extends org.grails.datastore.mapping.config.Settings {
      * The embedded server options
      */
     String SETTING_NEO4J_EMBEDDED_DB_PROPERTIES = PREFIX + ".embedded.options";
+
+    /**
+     * Whether the data for this embedded server should be created in a temporary location and deleted on exit. useful for testing
+     */
+    String SETTING_NEO4J_EMBEDDED_EPHEMERAL = PREFIX + ".embedded.ephemeral";
+
     String DEFAULT_DATABASE_TYPE = "remote";
     String DATABASE_TYPE_EMBEDDED = "embedded";
     String SETTING_DEFAULT_MAPPING = "grails.neo4j.default.mapping";

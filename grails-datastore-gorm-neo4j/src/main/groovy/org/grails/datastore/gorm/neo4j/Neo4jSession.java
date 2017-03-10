@@ -469,7 +469,10 @@ public class Neo4jSession extends AbstractSession<Session> {
         final List<PersistentProperty> persistentProperties = entity.getPersistentProperties();
         Map<String, Object> simpleProps = new HashMap<>(persistentProperties.size());
         final Serializable id = (Serializable)entityInsert.getNativeKey();
-        if(graphPersistentEntity.getIdGenerator() != null && !(graphPersistentEntity instanceof RelationshipPersistentEntity)) {
+        if(graphPersistentEntity.isAssignedId()) {
+            simpleProps.put(graphPersistentEntity.getIdentity().getName(), id);
+        }
+        else if(graphPersistentEntity.getIdGenerator() != null && !(graphPersistentEntity instanceof RelationshipPersistentEntity)) {
             simpleProps.put(CypherBuilder.IDENTIFIER, id);
         }
 

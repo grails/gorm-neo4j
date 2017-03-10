@@ -45,7 +45,7 @@ class Neo4jConnectionSourceSettings extends ConnectionSourceSettings implements 
     /**
      * The data location when using embedded
      */
-    String location = DEFAULT_LOCATION
+    String location
 
 
     /**
@@ -61,11 +61,23 @@ class Neo4jConnectionSourceSettings extends ConnectionSourceSettings implements 
     @AutoClone
     @Builder(builderStrategy = SimpleStrategy, prefix = '')
     static class EmbeddedSettings {
+        /**
+         * Options to pass to the embedded server
+         */
         Map options = [:]
+        /**
+         * The directory to store embedded data
+         */
+        String directory
         /**
          * Whether to drop existing data
          */
         boolean dropData = false
+
+        /**
+         * Whether to
+         */
+        boolean ephemeral = false
     }
 
     static enum ConnectionType {
