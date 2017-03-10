@@ -414,10 +414,12 @@ public class Neo4jSession extends AbstractSession<Session> {
         final Collection<Serializable> pendingInserts = pendingRelationshipInserts.get(key);
         if(pendingInserts != null) {
             cascadingOperations.add(new RelationshipPendingInsert(parent, association, pendingInserts, this, isUpdate));
+            pendingRelationshipInserts.remove(key);
         }
         final Collection<Serializable> pendingDeletes = pendingRelationshipDeletes.get(key);
         if(pendingDeletes != null) {
             cascadingOperations.add(new RelationshipPendingDelete(parent, association, pendingDeletes, getTransaction().getNativeTransaction()));
+            pendingRelationshipDeletes.remove(key);
         }
     }
 
