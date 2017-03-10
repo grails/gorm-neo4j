@@ -24,6 +24,7 @@ import org.grails.datastore.gorm.neo4j.mapping.config.DynamicAssociation
 import org.grails.datastore.mapping.model.PersistentEntity
 import org.grails.datastore.mapping.model.types.Association
 import org.grails.datastore.mapping.model.types.ManyToMany
+import org.grails.datastore.mapping.model.types.ManyToOne
 import org.grails.datastore.mapping.model.types.OneToMany
 
 /**
@@ -51,8 +52,14 @@ class RelationshipUtils {
      * @return True if it is
      */
     static boolean useReversedMappingFor(Association association) {
-        Attribute attr = (Attribute)association.getMapping()?.getMappedForm()
-        return isIncomingRelationship(association, attr)
+        GraphPersistentEntity entity = (GraphPersistentEntity)association.getOwner()
+        if(entity.isRelationshipEntity()) {
+            return false
+        }
+        else {
+            Attribute attr = (Attribute)association.getMapping()?.getMappedForm()
+            return isIncomingRelationship(association, attr)
+        }
     }
 
     /**
@@ -158,13 +165,14 @@ class RelationshipUtils {
         }
         sb.toString()
     }
+
     protected static boolean isIncomingRelationship(Association association, Attribute mappedForm) {
         def direction = mappedForm?.direction
         if (direction == Direction.INCOMING || direction == Direction.BOTH) {
             return true
         } else {
             return association.isBidirectional() &&
-                    ((association instanceof OneToMany) ||
+                    ((association instanceof ManyToOne) ||
                             ((association instanceof ManyToMany) && (association.isOwningSide())))
         }
     }
@@ -173,19 +181,20 @@ class RelationshipUtils {
         String relationshipType = mappedForm?.getType()
         if (relationshipType != null) {
             return relationshipType
-        } else {
-            String name = useReversedMappingFor(association) ?
-                    association.getReferencedPropertyName() :
-                    association.getName()
+        }
+        else if (association instanceof DynamicAssociation) {
+            return association.getName()
+        }
+        else {
+            boolean reversed = useReversedMappingFor(association)
+            String name = reversed ?
+                    association.getName() :
+                    association.getReferencedPropertyName()
             if(name != null) {
-                if (association instanceof DynamicAssociation) {
-                    return name
-                } else {
-                    return name.toUpperCase()
-                }
+                return name.toUpperCase(Locale.ENGLISH)
             }
             else {
-                return association.getName()
+                return association.getName().toUpperCase(Locale.ENGLISH)
             }
         }
     }

@@ -96,8 +96,8 @@ public class Neo4jEntityPersister extends EntityPersister {
 
         GraphPersistentEntity graphPersistentEntity = (GraphPersistentEntity) pe;
 
-        List<Serializable> idList = new ArrayList<Serializable>();
-        if(graphPersistentEntity.getIdGenerator() == null) {
+        List<Serializable> idList = new ArrayList<>();
+        if(graphPersistentEntity.getIdGenerator() == null && !graphPersistentEntity.isAssignedId()) {
             List<EntityAccess> entityAccesses = new ArrayList<>();
             // optimize batch inserts for multiple entities with native id
             final Neo4jSession session = getSession();
@@ -987,6 +987,10 @@ public class Neo4jEntityPersister extends EntityPersister {
 
         for (PersistentProperty pp: pe.getAssociations()) {
             String propertyName = pp.getName();
+            if(pp instanceof Basic) {
+                continue;
+            }
+
             if ((!isUpdate) || ((dirtyCheckable!=null) && dirtyCheckable.hasChanged(propertyName))) {
 
                 Object propertyValue = entityAccess.getProperty(propertyName);
@@ -1049,11 +1053,20 @@ public class Neo4jEntityPersister extends EntityPersister {
                         persistEntity(to.getAssociatedEntity(), propertyValue);
 
                         boolean reversed = RelationshipUtils.useReversedMappingFor(to);
+                        Serializable thisId = (Serializable) entityAccess.getIdentifier();
+                        final EntityAccess assocationAccess = neo4jSession.createEntityAccess(to.getAssociatedEntity(), propertyValue);
+                        Serializable associationId = (Serializable) assocationAccess.getIdentifier();
 
-                        if (!reversed) {
-                            final EntityAccess assocationAccess = neo4jSession.createEntityAccess(to.getAssociatedEntity(), propertyValue);
-                            neo4jSession.addPendingRelationshipInsert((Serializable) entityAccess.getIdentifier(), to, (Serializable) assocationAccess.getIdentifier());
+                        if (reversed) {
+                            Association inverseSide = to.getInverseSide();
+                            if(inverseSide != null) {
+                                neo4jSession.addPendingRelationshipInsert(associationId, inverseSide, thisId);
+                            }
                         }
+                        else {
+                            neo4jSession.addPendingRelationshipInsert(thisId, to, associationId);
+                        }
+
 
                     }
                     else if(isUpdate) {
@@ -1064,19 +1077,6 @@ public class Neo4jEntityPersister extends EntityPersister {
                             if (associationId != null) {
                                 neo4jSession.addPendingRelationshipDelete((Serializable) entityAccess.getIdentifier(), to, associationId);
                             }
-                        }
-                    }
-                } else if(pp instanceof Basic) {
-                    Basic basic = ((Basic)pp);
-                    if(Relationship.class.isAssignableFrom(basic.getComponentType())) {
-                        if (propertyValue!= null) {
-
-                            if (propertyValue instanceof PersistentCollection) {
-                                PersistentCollection pc = (PersistentCollection) propertyValue;
-                                if (!pc.isInitialized()) continue;
-                            }
-
-                            Collection targets = (Collection) propertyValue;
                         }
                     }
                 } else {

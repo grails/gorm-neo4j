@@ -39,7 +39,11 @@ public interface IdGenerator {
         /**
          * Identifiers generated using the Snowflake algorithm
          */
-        SNOWFLAKE
+        SNOWFLAKE,
+        /**
+         * Custom generator
+         */
+        CUSTOM
     }
 
     /**

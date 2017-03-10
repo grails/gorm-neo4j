@@ -40,11 +40,29 @@ class AssignedIdSpec extends Specification {
         Fruit.get('Apple').origin.country == "Brazil"
 
     }
+
+    @Rollback
+    void "test save many end object with assigned identifier"() {
+        when:"An object with an assigned id is saved"
+        Origin origin = new Origin(country: "Brazil")
+                             .addToFruits(name:"Apple")
+                             .addToFruits(name: "Banana")
+        origin.save(flush:true)
+        origin.discard()
+
+        then:"it exists"
+        Fruit.count() == 2
+        Fruit.findByName('Apple').name == "Apple"
+        Fruit.get('Apple').name == "Apple"
+        Fruit.get('Apple').origin.country == "Brazil"
+
+    }
 }
 
 @Entity
 class Origin {
     String country
+    static hasMany = [fruits:Fruit]
     static mapping = node {
         id {
             generator "assigned"
@@ -55,7 +73,7 @@ class Origin {
 @Entity
 class Fruit {
     String name
-    Origin origin
+    static belongsTo = [origin: Origin]
     static mapping = node {
         id {
             generator "assigned"

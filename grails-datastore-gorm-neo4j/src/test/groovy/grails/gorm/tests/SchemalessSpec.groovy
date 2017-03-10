@@ -277,8 +277,7 @@ class SchemalessSpec extends GormDatastoreSpec {
         cosima = Pet.findByName("Cosima")
         cosima.buddy = new Pet(name:"Fred")
         cosima.friends << new Pet(name: "Bob").save()
-        cosima.save()
-        session.flush()
+        cosima.save(flush:true)
         session.clear()
 
         then:

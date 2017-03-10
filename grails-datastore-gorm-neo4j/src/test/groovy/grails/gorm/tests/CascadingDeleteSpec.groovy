@@ -24,7 +24,14 @@ class CascadingDeleteSpec extends GormDatastoreSpec {
             PetType.count() == 1
 
         when:
+            pet.discard()
             pet = Pet.findByName('Cosima')
+
+        then:
+            pet.type != null
+            pet.type.name == "Cat"
+
+        when:
             pet.delete()
 
         then:

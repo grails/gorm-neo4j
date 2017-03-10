@@ -1,12 +1,14 @@
 package org.grails.datastore.gorm.neo4j
 
 import groovy.transform.CompileStatic
+import org.grails.datastore.gorm.neo4j.identity.SnowflakeIdGenerator
 import org.grails.datastore.gorm.neo4j.mapping.config.NodeConfig
 import org.grails.datastore.mapping.model.AbstractPersistentEntity
 import org.grails.datastore.mapping.model.ClassMapping
 import org.grails.datastore.mapping.model.DatastoreConfigurationException
 import org.grails.datastore.mapping.model.MappingContext
 import org.grails.datastore.mapping.model.config.GormMappingConfigurationStrategy
+import org.grails.datastore.mapping.model.config.GormProperties
 import org.springframework.util.ClassUtils
 
 /**
@@ -27,10 +29,13 @@ import org.springframework.util.ClassUtils
     protected Collection<Object> labelObjects
     protected final boolean hasDynamicLabels
     protected final boolean hasDynamicAssociations
+    protected final boolean relationshipEntity
     protected final GraphClassMapping classMapping
     protected IdGenerator idGenerator
     protected IdGenerator.Type idGeneratorType
-    protected boolean assignedId = false;
+    protected boolean assignedId = false
+    protected boolean nativeId = false
+    protected String identifierProperty = GormProperties.IDENTITY
 
     GraphPersistentEntity(Class javaClass, MappingContext context) {
         this(javaClass, context, false)
@@ -44,6 +49,7 @@ import org.springframework.util.ClassUtils
         else {
             this.mappedForm = (NodeConfig) context.getMappingFactory().createMappedForm(this)
         }
+        this.relationshipEntity = this instanceof RelationshipPersistentEntity
         this.hasDynamicAssociations = mappedForm.isDynamicAssociations()
         this.hasDynamicLabels = establishLabels()
         this.external = external
@@ -62,14 +68,19 @@ import org.springframework.util.ClassUtils
         }
     }
 
+    boolean isRelationshipEntity() {
+        return relationshipEntity
+    }
+
     protected IdGenerator createIdGenerator(String generatorType) {
         try {
-            IdGenerator.Type type = generatorType == null ? IdGenerator.Type.SNOWFLAKE : IdGenerator.Type.valueOf(generatorType.toUpperCase())
+            IdGenerator.Type type = generatorType == null ? IdGenerator.Type.NATIVE : IdGenerator.Type.valueOf(generatorType.toUpperCase())
             idGeneratorType = type
 
             switch(type) {
                 case IdGenerator.Type.NATIVE:
                     // for the native generator use null to indicate that generation requires an insert
+                    nativeId = true
                     return null
                 case IdGenerator.Type.ASSIGNED:
                     assignedId = true
@@ -78,7 +89,11 @@ import org.springframework.util.ClassUtils
                 case IdGenerator.Type.SNOWFLAKE:
                     return ((Neo4jMappingContext)mappingContext).getIdGenerator()
                 default:
-                    return ((Neo4jMappingContext)mappingContext).getIdGenerator()
+                    def generator = ((Neo4jMappingContext) mappingContext).getIdGenerator()
+                    if(generator == null) {
+                        nativeId = true
+                    }
+                    return generator
             }
         } catch (IllegalArgumentException e) {
             try {
@@ -121,7 +136,44 @@ import org.springframework.util.ClassUtils
     boolean isAssignedId() {
         return assignedId
     }
-/**
+
+    /**
+     * Format a reference to the ID for cypher queries
+     * @param variable The name of the variable for the id
+     * @return The formatted id
+     */
+    String formatId(String variable = CypherBuilder.NODE_VAR) {
+        switch (idGeneratorType) {
+            case IdGenerator.Type.NATIVE:
+                return "ID($variable)"
+            case IdGenerator.Type.SNOWFLAKE:
+                return "${variable}.${CypherBuilder.IDENTIFIER}"
+            default:
+                return "${variable}.${identity.name}"
+        }
+    }
+
+    /**
+     * Format a reference to the ID for cypher queries
+     * @param variable The name of the variable for the id
+     * @return The formatted id
+     */
+    String formatProperty(String variable, String property) {
+        if(property == identity.name) {
+            return formatId(variable)
+        }
+        else {
+            return "${variable}.${property}"
+        }
+    }
+    /**
+     * @return Whether the ID is native
+     */
+    boolean isNativeId() {
+        return nativeId
+    }
+
+    /**
      * recursively join all discriminators up the class hierarchy
      * @return
      */

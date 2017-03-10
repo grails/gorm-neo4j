@@ -85,20 +85,12 @@ class Neo4jQuery extends Query {
                 @CompileStatic
                 String handle(PersistentEntity entity, Query.IdProjection projection, CypherBuilder builder) {
                     GraphPersistentEntity graphEntity = (GraphPersistentEntity) entity
-                    boolean isRelationship = graphEntity instanceof RelationshipPersistentEntity
-                    if(isRelationship) {
-                        return REL_EQUALS
-                    }
-                    else if(graphEntity.idGenerator == null) {
-                        if(graphEntity.idGeneratorType == IdGenerator.Type.ASSIGNED) {
-                            return "n.${graphEntity.identity.name}"
-                        }
-                        else {
-                            return ID_EQUALS
-                        }
+
+                    if(graphEntity.isRelationshipEntity()) {
+                        return graphEntity.formatId(CypherBuilder.REL_VAR)
                     }
                     else {
-                        return "n.${CypherBuilder.IDENTIFIER}"
+                        return graphEntity.formatId(CypherBuilder.NODE_VAR)
                     }
                 }
             },
@@ -106,9 +98,10 @@ class Neo4jQuery extends Query {
                 @Override
                 @CompileStatic
                 String handle(PersistentEntity entity, Query.CountDistinctProjection projection, CypherBuilder builder) {
-                    String var = ((GraphPersistentEntity)entity).variableName
+                    GraphPersistentEntity graphEntity = (GraphPersistentEntity) entity
+                    String var = graphEntity.variableName
                     String propertyName = projection.propertyName
-                    var = isRelationshipProjection(entity, propertyName) ? propertyName : "${var}.${propertyName}"
+                    var = isRelationshipProjection(entity, propertyName) ? propertyName : graphEntity.formatProperty(var, propertyName)
 
                     return "count( distinct ${var} )"
                 }
@@ -117,9 +110,10 @@ class Neo4jQuery extends Query {
                 @Override
                 @CompileStatic
                 String handle(PersistentEntity entity, Query.MinProjection projection, CypherBuilder builder) {
-                    String var = ((GraphPersistentEntity)entity).variableName
+                    GraphPersistentEntity graphEntity = (GraphPersistentEntity) entity
+                    String var = graphEntity.variableName
                     String propertyName = projection.propertyName
-                    var = isRelationshipProjection(entity, propertyName) ? propertyName : "${var}.${propertyName}"
+                    var = isRelationshipProjection(entity, propertyName) ? propertyName : graphEntity.formatProperty(var, propertyName)
 
                     return "min(${var})"
                 }
@@ -128,9 +122,10 @@ class Neo4jQuery extends Query {
                 @Override
                 @CompileStatic
                 String handle(PersistentEntity entity, Query.MaxProjection projection, CypherBuilder builder) {
-                    String var = ((GraphPersistentEntity)entity).variableName
+                    GraphPersistentEntity graphEntity = (GraphPersistentEntity) entity
+                    String var = graphEntity.variableName
                     String propertyName = projection.propertyName
-                    var = isRelationshipProjection(entity, propertyName) ? propertyName : "${var}.${propertyName}"
+                    var = isRelationshipProjection(entity, propertyName) ? propertyName : graphEntity.formatProperty(var, propertyName)
 
                     return "max(${var})"
                 }
@@ -139,9 +134,10 @@ class Neo4jQuery extends Query {
                 @Override
                 @CompileStatic
                 String handle(PersistentEntity entity, Query.SumProjection projection, CypherBuilder builder) {
-                    String var = ((GraphPersistentEntity)entity).variableName
+                    GraphPersistentEntity graphEntity = (GraphPersistentEntity) entity
+                    String var = graphEntity.variableName
                     String propertyName = projection.propertyName
-                    var = isRelationshipProjection(entity, propertyName) ? propertyName : "${var}.${propertyName}"
+                    var = isRelationshipProjection(entity, propertyName) ? propertyName : graphEntity.formatProperty(var, propertyName)
                     return "sum(${var})"
                 }
             },
@@ -149,9 +145,10 @@ class Neo4jQuery extends Query {
                 @Override
                 @CompileStatic
                 String handle(PersistentEntity entity, Query.AvgProjection projection, CypherBuilder builder) {
-                    String var = ((GraphPersistentEntity)entity).variableName
+                    GraphPersistentEntity graphEntity = (GraphPersistentEntity) entity
+                    String var = graphEntity.variableName
                     String propertyName = projection.propertyName
-                    var = isRelationshipProjection(entity, propertyName) ? propertyName : "${var}.${propertyName}"
+                    var = isRelationshipProjection(entity, propertyName) ? propertyName : graphEntity.formatProperty(var, propertyName)
                     return "avg($var)"
                 }
             },
@@ -161,7 +158,8 @@ class Neo4jQuery extends Query {
                 String handle(PersistentEntity entity, Query.PropertyProjection projection, CypherBuilder builder) {
                     String propertyName = ((Query.PropertyProjection) projection).propertyName
                     PersistentProperty association = entity.getPropertyByName(propertyName)
-                    String var = ((GraphPersistentEntity)entity).variableName
+                    GraphPersistentEntity graphEntity = (GraphPersistentEntity) entity
+                    String var = graphEntity.variableName
                     if (association instanceof Association && !(association instanceof Basic)) {
                         if(entity instanceof RelationshipPersistentEntity) {
                             throw new QueryException("Cannot apply projection on property [$propertyName] of class [$entity.name]. Associations on relationships are not allowed")
@@ -174,7 +172,7 @@ class Neo4jQuery extends Query {
                             return propertyName
                         }
                         else {
-                            return "${var}.${propertyName}"
+                            return graphEntity.formatProperty(var, propertyName)
                         }
                     }
                 }
@@ -239,40 +237,28 @@ class Neo4jQuery extends Query {
                     Neo4jMappingContext mappingContext = (Neo4jMappingContext)entity.mappingContext
                     int paramNumber = builder.addParam( mappingContext.convertToNative(criterion.value) )
                     PersistentProperty association = entity.getPropertyByName(criterion.property)
-                    boolean isRelationshipEntity = entity instanceof RelationshipPersistentEntity
+                    GraphPersistentEntity graphEntity = (GraphPersistentEntity)entity
+                    boolean isRelationshipEntity = graphEntity.isRelationshipEntity()
 
                     String lhs
                     if (association instanceof Association && !(association instanceof Basic)) {
 
                         if(isRelationshipEntity && RelationshipPersistentEntity.isRelationshipAssociation((Association)association)) {
-                            lhs = "ID(${association.name})"
+                            lhs = graphEntity.formatId(association.name)
                         }
                         else {
                             def targetNodeName = "m_${builder.getNextMatchNumber()}"
                             builder.addMatch("(${prefix})${RelationshipUtils.matchForAssociation((Association)association)}(${targetNodeName})")
-
-                            GraphPersistentEntity graphEntity = (GraphPersistentEntity) ((Association) association).associatedEntity
-                            if(graphEntity.idGenerator == null ) {
-                                lhs = graphEntity.isAssignedId() ? "${targetNodeName}.${graphEntity.identity.name}" : "ID(${targetNodeName})"
-                            }
-                            else {
-                                lhs = "${targetNodeName}.${CypherBuilder.IDENTIFIER}"
-                            }
+                            lhs = graphEntity.formatId(targetNodeName)
                         }
 
                     } else {
-                        def graphEntity = (GraphPersistentEntity) entity
-                        if(graphEntity.idGenerator == null || isRelationshipEntity) {
-                            if(criterion.property == RelationshipPersistentEntity.TYPE) {
-                                builder.replaceFirstRelationshipMatch( ((RelationshipPersistentEntity)graphEntity).buildMatchForType(null, CypherBuilder.REL_VAR))
-                                lhs = "TYPE($CypherBuilder.REL_VAR)"
-                            }
-                            else {
-                                lhs = criterion.property == GormProperties.IDENTITY && !graphEntity.isAssignedId() ? "ID(${prefix})" : "${prefix}.${criterion.property}"
-                            }
+                        if(isRelationshipEntity && criterion.property == RelationshipPersistentEntity.TYPE) {
+                            builder.replaceFirstRelationshipMatch( ((RelationshipPersistentEntity)graphEntity).buildMatchForType(null, CypherBuilder.REL_VAR))
+                            lhs = "TYPE($CypherBuilder.REL_VAR)"
                         }
                         else {
-                            lhs = criterion.property == "id" ? "${prefix}.${CypherBuilder.IDENTIFIER}" : "${prefix}.${criterion.property}"
+                            lhs = graphEntity.formatProperty(prefix, criterion.property)
                         }
                     }
 
@@ -286,16 +272,7 @@ class Neo4jQuery extends Query {
                 CypherExpression handle(PersistentEntity entity, Query.IdEquals criterion, CypherBuilder builder, String prefix) {
                     int paramNumber = addBuildParameterForCriterion(builder, entity, criterion)
                     GraphPersistentEntity graphPersistentEntity = (GraphPersistentEntity)entity
-                    if(graphPersistentEntity instanceof RelationshipPersistentEntity) {
-                        return new CypherExpression(REL_EQUALS, "{$paramNumber}", CriterionHandler.OPERATOR_EQUALS)
-                    }
-                    else if(graphPersistentEntity.idGenerator == null) {
-                        String idExp = graphPersistentEntity.idGeneratorType == IdGenerator.Type.ASSIGNED ? "${prefix}.${graphPersistentEntity.identity.name}" : ID_EQUALS
-                        return new CypherExpression(idExp, "{$paramNumber}", CriterionHandler.OPERATOR_EQUALS)
-                    }
-                    else {
-                        return new CypherExpression("${prefix}.${CypherBuilder.IDENTIFIER}", "{$paramNumber}", CriterionHandler.OPERATOR_EQUALS)
-                    }
+                    return new CypherExpression(graphPersistentEntity.formatId(prefix), "{$paramNumber}", CriterionHandler.OPERATOR_EQUALS)
                 }
             },
             (Query.Like): new CriterionHandler<Query.Like>() {
@@ -304,7 +281,8 @@ class Neo4jQuery extends Query {
                 CypherExpression handle(PersistentEntity entity, Query.Like criterion, CypherBuilder builder, String prefix) {
                     int paramNumber = addBuildParameterForCriterion(builder, entity, criterion)
                     builder.replaceParamAt(paramNumber, Query.patternToRegex(criterion.value))
-                    return new CypherExpression("${prefix}.$criterion.property", "{$paramNumber}", CriterionHandler.OPERATOR_LIKE)
+                    GraphPersistentEntity graphPersistentEntity = (GraphPersistentEntity)entity
+                    return new CypherExpression(graphPersistentEntity.formatProperty(prefix, criterion.property), "{$paramNumber}", CriterionHandler.OPERATOR_LIKE)
                 }
             },
             (Query.ILike): new CriterionHandler<Query.ILike>() {
@@ -314,7 +292,8 @@ class Neo4jQuery extends Query {
                     int paramNumber = addBuildParameterForCriterion(builder, entity, criterion)
                     def pattern = Query.patternToRegex(criterion.value)
                     builder.replaceParamAt(paramNumber, "(?i)${pattern}".toString())
-                    return new CypherExpression("${prefix}.$criterion.property", "{$paramNumber}", CriterionHandler.OPERATOR_LIKE)
+                    GraphPersistentEntity graphPersistentEntity = (GraphPersistentEntity)entity
+                    return new CypherExpression(graphPersistentEntity.formatProperty(prefix, criterion.property), "{$paramNumber}", CriterionHandler.OPERATOR_LIKE)
                 }
             },
             (Query.RLike): new CriterionHandler<Query.RLike>() {
@@ -322,7 +301,8 @@ class Neo4jQuery extends Query {
                 @CompileStatic
                 CypherExpression handle(PersistentEntity entity, Query.RLike criterion, CypherBuilder builder, String prefix) {
                     int paramNumber = addBuildParameterForCriterion(builder, entity, criterion)
-                    return new CypherExpression("${prefix}.$criterion.property", "{$paramNumber}", CriterionHandler.OPERATOR_LIKE)
+                    GraphPersistentEntity graphPersistentEntity = (GraphPersistentEntity)entity
+                    return new CypherExpression(graphPersistentEntity.formatProperty(prefix, criterion.property), "{$paramNumber}", CriterionHandler.OPERATOR_LIKE)
                 }
             },
             (Query.In): new CriterionHandler<Query.In>() {
@@ -332,23 +312,23 @@ class Neo4jQuery extends Query {
                     int paramNumber = addBuildParameterForCriterion(builder, entity, criterion)
                     GraphPersistentEntity graphPersistentEntity = (GraphPersistentEntity)entity
                     String lhs
-                    boolean isRelationship = graphPersistentEntity instanceof RelationshipPersistentEntity
                     Collection values = ((Query.In) criterion).values
-                    if(graphPersistentEntity.idGenerator == null || isRelationship) {
+                    if(graphPersistentEntity.isRelationshipEntity()) {
                         PersistentProperty persistentProperty = entity.getPropertyByName(criterion.property)
-                        if(isRelationship && RelationshipPersistentEntity.isRelationshipAssociation(persistentProperty)) {
-                            lhs = "ID(${criterion.property})"
-                            def associatedReflector = ((Association) persistentProperty).associatedEntity.reflector
+                        if(RelationshipPersistentEntity.isRelationshipAssociation(persistentProperty)) {
+                            GraphPersistentEntity associatedEntity = (GraphPersistentEntity)((Association) persistentProperty).associatedEntity
+                            lhs = associatedEntity.formatId(criterion.property)
+                            def associatedReflector = associatedEntity.reflector
                             values = values?.collect {
                                 associatedReflector.getIdentifier(it)
                             }
                         }
                         else {
-                            lhs = (criterion.property == GormProperties.IDENTITY) && !graphPersistentEntity.isAssignedId() ? "ID(${prefix})" : "${prefix}.$criterion.property"
+                            lhs = graphPersistentEntity.formatProperty(prefix, criterion.property)
                         }
                     }
                     else {
-                        lhs = criterion.property == GormProperties.IDENTITY ? "${prefix}.${CypherBuilder.IDENTIFIER}" : "${prefix}.$criterion.property"
+                        lhs = graphPersistentEntity.formatProperty(prefix, criterion.property)
                     }
                     builder.replaceParamAt(paramNumber, convertEnumsInList(values))
                     return new CypherExpression(lhs, "{$paramNumber}", CriterionHandler.OPERATOR_IN)
@@ -358,28 +338,32 @@ class Neo4jQuery extends Query {
                 @Override
                 @CompileStatic
                 CypherExpression handle(PersistentEntity entity, Query.IsNull criterion, CypherBuilder builder, String prefix) {
-                    return new CypherExpression("$prefix.${criterion.property} IS NULL")
+                    GraphPersistentEntity graphPersistentEntity = (GraphPersistentEntity)entity
+                    return new CypherExpression("${graphPersistentEntity.formatProperty(prefix, criterion.property)} IS NULL")
                 }
             },
             (Query.IsEmpty): new CriterionHandler<Query.IsEmpty>() {
                 @Override
                 @CompileStatic
                 CypherExpression handle(PersistentEntity entity, Query.IsEmpty criterion, CypherBuilder builder, String prefix) {
-                    return new CypherExpression("length($prefix.${criterion.property}) = 0")
+                    GraphPersistentEntity graphPersistentEntity = (GraphPersistentEntity)entity
+                    return new CypherExpression("length(${graphPersistentEntity.formatProperty(prefix, criterion.property)}) = 0")
                 }
             },
             (Query.IsNotEmpty): new CriterionHandler<Query.IsNotEmpty>() {
                 @Override
                 @CompileStatic
                 CypherExpression handle(PersistentEntity entity, Query.IsNotEmpty criterion, CypherBuilder builder, String prefix) {
-                    return new CypherExpression("length($prefix.${criterion.property}) > 0")
+                    GraphPersistentEntity graphPersistentEntity = (GraphPersistentEntity)entity
+                    return new CypherExpression("length(${graphPersistentEntity.formatProperty(prefix, criterion.property)}) > 0")
                 }
             },
             (Query.IsNotNull): new CriterionHandler<Query.IsNotNull>() {
                 @Override
                 @CompileStatic
                 CypherExpression handle(PersistentEntity entity, Query.IsNotNull criterion, CypherBuilder builder, String prefix) {
-                    return new CypherExpression("$prefix.${criterion.property} IS NOT NULL")
+                    GraphPersistentEntity graphPersistentEntity = (GraphPersistentEntity)entity
+                    return new CypherExpression("${graphPersistentEntity.formatProperty(prefix, criterion.property)} IS NOT NULL")
                 }
             },
             (AssociationQuery): new AssociationQueryHandler(),
@@ -458,15 +442,16 @@ class Neo4jQuery extends Query {
                  cypherBuilder.addReturnColumn(CypherBuilder.DEFAULT_RETURN_TYPES)
 
                  for(Association a in persistentEntity.associations) {
+                     if(a.isBasic()) continue
                      FetchType fetchType = fetchStrategy(a.name)
                      String r = "r${i++}";
                      String o = "o${i}";
                      String associationName = a.name
-                     GraphPersistentEntity graphPersistentEntity = (GraphPersistentEntity)a.associatedEntity
-                     boolean isAssociationRelationshipEntity = graphPersistentEntity instanceof RelationshipPersistentEntity
+                     GraphPersistentEntity associatedGraphEntity = (GraphPersistentEntity)a.associatedEntity
+                     boolean isAssociationRelationshipEntity = associatedGraphEntity.isRelationshipEntity()
                      String associationMatch
                      if(isAssociationRelationshipEntity) {
-                         RelationshipPersistentEntity relEntity = (RelationshipPersistentEntity)graphPersistentEntity
+                         RelationshipPersistentEntity relEntity = (RelationshipPersistentEntity)associatedGraphEntity
                          associationMatch = RelationshipUtils.matchForRelationshipEntity(a, relEntity)
                      }
                      else {
@@ -482,26 +467,24 @@ class Neo4jQuery extends Query {
                              os.add(o)
                              // if there are associations, add a join to get them
                              String withMatch = "WITH n, ${previousAssociations.size() > 0 ? previousAssociations.join(", ") + ", " : ""}"
+                             String associationIdsRef = "${associationName}Ids"
+                             String associationNodeRef = "${associationName}Node"
+                             String associationNodesRef = "${associationName}Nodes"
                              if(isLazy) {
-                                 if(graphPersistentEntity.idGenerator == null) {
-                                     withMatch += "collect(DISTINCT ID(${associationName}Node)) as ${associationName}Ids"
-                                 }
-                                 else {
-                                     withMatch += "collect(DISTINCT ${associationName}Node.${CypherBuilder.IDENTIFIER}) as ${associationName}Ids"
-                                 }
-                                 cypherBuilder.addReturnColumn("${associationName}Ids")
-                                 previousAssociations << "${associationName}Ids"
+                                 withMatch += "collect(DISTINCT ${associatedGraphEntity.formatId(associationNodeRef)}) as ${associationIdsRef}"
+                                 cypherBuilder.addReturnColumn(associationIdsRef)
+                                 previousAssociations << associationIdsRef
                              }
                              else {
-                                 withMatch += "collect(DISTINCT ${associationName}Node) as ${associationName}Nodes"
-                                 cypherBuilder.addReturnColumn("${associationName}Nodes")
+                                 withMatch += "collect(DISTINCT $associationNodeRef) as $associationNodesRef"
+                                 cypherBuilder.addReturnColumn(associationNodesRef)
                                  if(isAssociationRelationshipEntity) {
                                      withMatch += ", collect(r) as ${associationName}Rels"
                                      cypherBuilder.addReturnColumn("${associationName}Rels")
                                  }
-                                 previousAssociations << "${associationName}Nodes"
+                                 previousAssociations << associationNodesRef
                              }
-                             cypherBuilder.addOptionalMatch("(n)${associationMatch}(${associationName}Node) ${withMatch}")
+                             cypherBuilder.addOptionalMatch("(n)${associationMatch}(${associationNodeRef}) ${withMatch}")
                          }
                      }
                      else if(a instanceof ToOne) {
@@ -509,33 +492,27 @@ class Neo4jQuery extends Query {
                          rs.add(r)
                          os.add(o)
                          // if there are associations, add a join to get them
-                         def withMatch = "WITH n, ${previousAssociations.size() > 0 ? previousAssociations.join(", ") + ", " : ""}"
+                         String withMatch = "WITH n, ${previousAssociations.size() > 0 ? previousAssociations.join(", ") + ", " : ""}"
+                         String associationIdsRef = "${associationName}Ids"
+                         String associationNodeRef = "${associationName}Node"
+                         String associationNodesRef = "${associationName}Nodes"
+
                          if(!fetchType.is(fetchType.EAGER)) {
-                             if(graphPersistentEntity.idGenerator == null) {
-                                 if(graphPersistentEntity.isAssignedId()) {
-                                     withMatch += "collect(DISTINCT ${associationName}Node.${graphPersistentEntity.identity.name}) as ${associationName}Ids"
-                                 }
-                                 else {
-                                     withMatch += "collect(DISTINCT ID(${associationName}Node)) as ${associationName}Ids"
-                                 }
-                             }
-                             else {
-                                 withMatch += "collect(DISTINCT ${associationName}Node.${CypherBuilder.IDENTIFIER}) as ${associationName}Ids"
-                             }
-                             cypherBuilder.addReturnColumn("${associationName}Ids")
-                             previousAssociations << "${associationName}Ids"
+                             withMatch += "collect(DISTINCT ${associatedGraphEntity.formatId(associationNodeRef)}) as ${associationIdsRef}"
+                             cypherBuilder.addReturnColumn(associationIdsRef)
+                             previousAssociations << associationIdsRef
                          }
                          else {
-                             withMatch += "collect(DISTINCT ${associationName}Node) as ${associationName}Nodes"
-                             cypherBuilder.addReturnColumn("${associationName}Nodes")
+                             withMatch += "collect(DISTINCT ${associationNodeRef}) as ${associationNodesRef}"
+                             cypherBuilder.addReturnColumn(associationNodesRef)
                              if(isAssociationRelationshipEntity) {
                                  withMatch += ", collect(r) as ${associationName}Rels"
                                  cypherBuilder.addReturnColumn("${associationName}Rels")
                              }
 
-                             previousAssociations << "${associationName}Nodes"
+                             previousAssociations << associationNodesRef
                          }
-                         cypherBuilder.addOptionalMatch("(n)${associationMatch}(${associationName}Node) ${withMatch}")
+                         cypherBuilder.addOptionalMatch("(n)${associationMatch}(${associationNodeRef}) ${withMatch}")
                      }
                  }
              }
@@ -748,31 +725,26 @@ class Neo4jQuery extends Query {
             int paramNumber = addBuildParameterForCriterion(builder, entity, criterion)
             String lhs
             PersistentProperty association = entity.getPropertyByName(criterion.property)
-            boolean isRelationshipEntity = entity instanceof RelationshipPersistentEntity
+            GraphPersistentEntity graphEntity = (GraphPersistentEntity)entity
             if (association instanceof Association && !(association instanceof Basic)) {
-                if(isRelationshipEntity && RelationshipPersistentEntity.isRelationshipAssociation((Association)association)) {
-                    lhs = "ID(${association.name})"
+                GraphPersistentEntity associatedGraphEntity = (GraphPersistentEntity) ((Association) association).associatedEntity
+                if(graphEntity.isRelationshipEntity() && RelationshipPersistentEntity.isRelationshipAssociation((Association)association)) {
+                    lhs = associatedGraphEntity.formatId(association.name)
                 }
                 else {
                     String targetNodeName = "m_${builder.getNextMatchNumber()}"
                     builder.addMatch("(${prefix})${RelationshipUtils.matchForAssociation((Association)association)}(${targetNodeName})")
 
-                    GraphPersistentEntity graphEntity = (GraphPersistentEntity) ((Association) association).associatedEntity
-                    if(graphEntity.idGenerator == null ) {
-                        lhs = graphEntity.isAssignedId() ? "${targetNodeName}.${graphEntity.identity.name}" : "ID(${targetNodeName})"
-                    }
-                    else {
-                        lhs = "${targetNodeName}.${CypherBuilder.IDENTIFIER}"
-                    }
+                    lhs = graphEntity.formatId(targetNodeName)
                 }
             }
             else {
-                if(isRelationshipEntity && criterion.property == RelationshipPersistentEntity.TYPE) {
+                if(graphEntity.isRelationshipEntity() && criterion.property == RelationshipPersistentEntity.TYPE) {
                     builder.replaceFirstRelationshipMatch( ((RelationshipPersistentEntity)entity).buildMatchForType(null, CypherBuilder.REL_VAR))
                     lhs = "TYPE(r)"
                 }
                 else {
-                    lhs = "${prefix}.${criterion.property}"
+                    lhs = graphEntity.formatProperty(prefix, criterion.property)
                 }
 
             }

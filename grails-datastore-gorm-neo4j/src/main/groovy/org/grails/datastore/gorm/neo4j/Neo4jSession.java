@@ -250,19 +250,16 @@ public class Neo4jSession extends AbstractSession<Session> {
                 final String labels = graphPersistentEntity.getLabelsWithInheritance(access.getEntity());
                 final StringBuilder cypherStringBuilder = new StringBuilder();
 
-                final Map<String,Object> params =  new LinkedHashMap<String, Object>(2);
+                final Map<String,Object> params = new LinkedHashMap<>(2);
                 final Serializable id = (Serializable)pendingUpdate.getNativeKey();
                 params.put(GormProperties.IDENTITY, id);
-                final Map<String, Object> simpleProps = new HashMap<String, Object>();
+                final Map<String, Object> simpleProps = new HashMap<>();
 
                 if(isRelationshipEntity) {
                     RelationshipPersistentEntity relEntity = (RelationshipPersistentEntity) graphPersistentEntity;
                     cypherStringBuilder.append("MATCH ")
                                        .append(relEntity.buildMatch(relEntity.type(), CypherBuilder.NODE_VAR))
                                        .append(" WHERE ID(n) = {id}");
-                }
-                else if(isNativeId) {
-                    cypherStringBuilder.append(CypherBuilder.CYPHER_MATCH_NATIVE_ID);
                 }
                 else {
                     cypherStringBuilder.append(CypherBuilder.CYPHER_MATCH_ID);
@@ -271,7 +268,7 @@ public class Neo4jSession extends AbstractSession<Session> {
                 final Object object = pendingUpdate.getObject();
                 final DirtyCheckable dirtyCheckable = (DirtyCheckable) object;
                 final List<String> dirtyPropertyNames = dirtyCheckable.listDirtyPropertyNames();
-                final List<String> nulls = new ArrayList<String>();
+                final List<String> nulls = new ArrayList<>();
                 for (String dirtyPropertyName : dirtyPropertyNames) {
                     final PersistentProperty property = entity.getPropertyByName(dirtyPropertyName);
                     if(property !=null){
@@ -325,7 +322,7 @@ public class Neo4jSession extends AbstractSession<Session> {
                         }
                     }
                     cypherStringBuilder.append(Neo4jEntityPersister.RETURN_NODE_ID);
-                    String cypher = String.format(cypherStringBuilder.toString(), labels);
+                    String cypher = String.format(cypherStringBuilder.toString(), labels, graphPersistentEntity.formatId());
                     if( log.isDebugEnabled() ) {
                         log.debug("UPDATE Cypher [{}] for parameters [{}]", cypher, params);
                     }
@@ -385,7 +382,35 @@ public class Neo4jSession extends AbstractSession<Session> {
     }
 
     private void processPendingRelationshipUpdates(EntityAccess parent, Serializable parentId, Association association, List<PendingOperation<Object, Serializable>> cascadingOperations, boolean isUpdate) {
-        final RelationshipUpdateKey key = new RelationshipUpdateKey(parentId, association);
+        final RelationshipUpdateKey key;
+        if(RelationshipUtils.useReversedMappingFor(association)) {
+            if(association instanceof ManyToMany) {
+                // many-to-many updates handled by the owning side
+                return;
+            }
+            Association inverseSide = association.getInverseSide();
+            if(inverseSide != null) {
+                Object associated = parent.getPropertyValue(association.getName());
+                if(associated == null) {
+                    key = new RelationshipUpdateKey(parentId, association);
+                }
+                else {
+
+                    PersistentEntity associatedEntity = inverseSide.getOwner();
+                    parent = createEntityAccess(associatedEntity, associated);
+                    Serializable associatedId = (Serializable) parent.getIdentifier();
+                    association = inverseSide;
+                    key = new RelationshipUpdateKey(associatedId, inverseSide);
+                }
+            }
+            else {
+                key = new RelationshipUpdateKey(parentId, association);
+            }
+        }
+        else {
+            key = new RelationshipUpdateKey(parentId, association);
+        }
+
         final Collection<Serializable> pendingInserts = pendingRelationshipInserts.get(key);
         if(pendingInserts != null) {
             cascadingOperations.add(new RelationshipPendingInsert(parent, association, pendingInserts, this, isUpdate));
@@ -606,7 +631,7 @@ public class Neo4jSession extends AbstractSession<Session> {
     private List<Object> getOrInit(Map<String, List<Object>> dynRelProps, String key) {
         List<Object> objects = dynRelProps.get(key);
         if(objects == null) {
-            objects = new ArrayList<Object>();
+            objects = new ArrayList<>();
             dynRelProps.put(key, objects);
         }
         return objects;

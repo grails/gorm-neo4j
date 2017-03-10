@@ -23,8 +23,8 @@ class RelationshipUtilsSpec extends GormDatastoreSpec {
         expect:
             pets.bidirectional
             owner.bidirectional
-            RelationshipUtils.useReversedMappingFor(pets) == true
-            RelationshipUtils.useReversedMappingFor(owner) == false
+            RelationshipUtils.useReversedMappingFor(pets) == false
+            RelationshipUtils.useReversedMappingFor(owner) == true
     }
 
 

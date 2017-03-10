@@ -17,6 +17,7 @@ package org.grails.datastore.gorm.neo4j.engine;
 
 import grails.neo4j.Relationship;
 import org.grails.datastore.gorm.neo4j.*;
+import org.grails.datastore.gorm.neo4j.mapping.config.DynamicAssociation;
 import org.grails.datastore.gorm.neo4j.mapping.config.DynamicToOneAssociation;
 import org.grails.datastore.mapping.core.impl.PendingInsertAdapter;
 import org.grails.datastore.mapping.engine.EntityAccess;
@@ -47,8 +48,6 @@ public class RelationshipPendingInsert extends PendingInsertAdapter<Object, Seri
      * The name of the to property
      */
     public static final String TO = "to";
-    public static final String CYPHER_DELETE_RELATIONSHIP = "MATCH (from%s {"+CypherBuilder.IDENTIFIER+": {start}})%s() DELETE r";
-    public static final String CYPHER_DELETE_NATIVE_RELATIONSHIP = "MATCH (from%s)%s() WHERE ID(from) = {start} DELETE r";
     public static final String SOURCE_TYPE = "sourceType";
     public static final String TARGET_TYPE = "targetType";
 
@@ -103,8 +102,6 @@ public class RelationshipPendingInsert extends PendingInsertAdapter<Object, Seri
         params.put(CypherBuilder.START, parentId);
         params.put(CypherBuilder.END, targetIdentifiers);
 
-        final boolean isParentAssignedId = graphParent.isAssignedId();
-        final boolean nativeParent = graphParent.getIdGenerator() == null && !isParentAssignedId;
         String labelsFrom = graphParent.getLabelsAsString();
         String labelsTo = graphChild.getLabelsAsString();
 
@@ -151,45 +148,34 @@ public class RelationshipPendingInsert extends PendingInsertAdapter<Object, Seri
             relMatch = RelationshipUtils.matchForAssociation(association, "r");
         }
 
-        boolean reversed = RelationshipUtils.useReversedMappingFor(association);
-        if(!reversed && (association instanceof ToOne) && isUpdate) {
+        if(isUpdate && association instanceof DynamicAssociation || association.isBidirectional() && (association instanceof OneToMany) && !RelationshipUtils.useReversedMappingFor(association)) {
             // delete any previous
 
-            String cypher;
-            if(nativeParent) {
-                cypher = String.format(CYPHER_DELETE_NATIVE_RELATIONSHIP, labelsFrom, relMatch);
+            StringBuilder cypher = new StringBuilder(String.format(CypherBuilder.CYPHER_RELATIONSHIP_MATCH, labelsFrom, relMatch, labelsTo));
+            Map<String, Object> deleteParams;
+            if(association instanceof DynamicToOneAssociation) {
+                cypher.append(graphChild.formatId(FROM)).append(" IN {start} DELETE r");
+                deleteParams = Collections.singletonMap(CypherBuilder.START, parentId);
             }
             else {
-                cypher = String.format(CYPHER_DELETE_RELATIONSHIP, labelsFrom, relMatch);
+                cypher.append(graphChild.formatId(TO)).append(" IN {start} DELETE r");
+                deleteParams = Collections.<String, Object>singletonMap(CypherBuilder.START, targetIdentifiers);
             }
 
-            Map<String, Object> deleteParams = Collections.singletonMap(CypherBuilder.START, parentId);
             if(log.isDebugEnabled()) {
                 log.debug("DELETE Cypher [{}] for parameters [{}]", cypher, deleteParams);
             }
-            boltTransaction.run(cypher, deleteParams);
+            boltTransaction.run(cypher.toString(), deleteParams);
         }
 
-        StringBuilder cypherQuery = new StringBuilder("MATCH (from").append(labelsFrom).append("), (to").append(labelsTo).append(") WHERE ");
+        StringBuilder cypherQuery = new StringBuilder(String.format(CypherBuilder.CYPHER_FROM_TO_NODES_MATCH, labelsFrom, labelsTo));
 
-        if(nativeParent) {
-            cypherQuery.append("ID(from) = {start}");
-        }
-        else {
-
-            String id = isParentAssignedId ? graphParent.getIdentity().getName() :CypherBuilder.IDENTIFIER;
-            cypherQuery.append("from.").append(id).append(" = {start}");
-        }
-        cypherQuery.append(" AND ");
-        boolean isChildAssignedId = graphChild.isAssignedId();
-        if(graphChild.getIdGenerator() == null && !isChildAssignedId) {
-            cypherQuery.append(" ID(to) IN {end} ");
-        }
-        else {
-            String id = isChildAssignedId ? graphChild.getIdentity().getName() : CypherBuilder.IDENTIFIER;
-            cypherQuery.append("to.").append(id).append(" IN {end}");
-        }
-        cypherQuery.append(" MERGE (from)").append(relMatch).append("(to)");
+        cypherQuery.append(graphParent.formatId(RelationshipPersistentEntity.FROM))
+                   .append(" = {start} AND ")
+                   .append(graphChild.formatId(RelationshipPersistentEntity.TO))
+                   .append(" IN {end} MERGE (from)")
+                   .append(relMatch)
+                   .append("(to)");
         if(isRelationshipAssociation) {
             cypherQuery.append(" ON CREATE SET r={rProps}");
         }
