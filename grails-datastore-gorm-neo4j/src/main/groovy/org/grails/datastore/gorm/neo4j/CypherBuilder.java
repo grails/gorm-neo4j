@@ -242,6 +242,15 @@ public class CypherBuilder {
     }
 
     /**
+     * Produces "MATCH %s WHERE "
+     * @param relationship The relationship match
+     * @return The MATCH
+     */
+    public static String buildRelationshipMatch(String relationship) {
+        return String.format( CYPHER_RELATIONSHIP_MATCH, relationship);
+    }
+
+    /**
      * Produces "(from%s)%s(to%s)"
      * @param fromLabels The from node labels
      * @param toLabels The to node labels

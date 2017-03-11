@@ -96,7 +96,7 @@ public class Neo4jEntityPersister extends EntityPersister {
         GraphPersistentEntity graphPersistentEntity = (GraphPersistentEntity) pe;
 
         List<Serializable> idList = new ArrayList<>();
-        if(graphPersistentEntity.getIdGenerator() == null && !graphPersistentEntity.isAssignedId()) {
+        if(graphPersistentEntity.isNativeId() && !graphPersistentEntity.isRelationshipEntity()) {
             List<EntityAccess> entityAccesses = new ArrayList<>();
             // optimize batch inserts for multiple entities with native id
             final Neo4jSession session = getSession();
@@ -214,8 +214,11 @@ public class Neo4jEntityPersister extends EntityPersister {
             }
         }
         else {
-            for (Object obj: objs) {
-                idList.add(persistEntity(pe, obj));
+            for (Object obj : objs) {
+                Serializable id = persistEntity(pe, obj);
+                if(id != null) {
+                    idList.add(id);
+                }
             }
         }
         return idList;
@@ -815,7 +818,7 @@ public class Neo4jEntityPersister extends EntityPersister {
                 }
             });
 
-            if(isNativeId) {
+            if(isNativeId && !graphPersistentEntity.isRelationshipEntity()) {
                 // if we have a native identifier then we have to perform an insert to obtain the id
                 final List<PendingOperation<Object, Serializable>> preOperations = pendingInsert.getPreOperations();
                 for (PendingOperation preOperation : preOperations) {
@@ -1026,8 +1029,18 @@ public class Neo4jEntityPersister extends EntityPersister {
                                     collection = new ArrayList();
                                     assocEntityAccess.setProperty(to.getReferencedPropertyName(), collection);
                                 }
-                                if (!collection.contains(obj)) {
-                                    collection.add(obj);
+                                if(proxyFactory.isInitialized(collection)) {
+                                    boolean found = false;
+                                    for (Object o : collection) {
+                                        if(o.equals(obj)) {
+                                            found = true; break;
+                                        }
+                                    }
+                                    if (!found) {
+                                        if( !getSession().isPendingAlready(propertyValue) ) {
+                                            collection.add(obj);
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -1039,14 +1052,31 @@ public class Neo4jEntityPersister extends EntityPersister {
                         final EntityAccess assocationAccess = neo4jSession.createEntityAccess(to.getAssociatedEntity(), propertyValue);
                         Serializable associationId = (Serializable) assocationAccess.getIdentifier();
 
-                        if (reversed) {
-                            Association inverseSide = to.getInverseSide();
-                            if(inverseSide != null) {
-                                neo4jSession.addPendingRelationshipInsert(associationId, inverseSide, thisId);
+                        if(pe.isRelationshipEntity() && propertyName.equals(RelationshipPersistentEntity.FROM)) {
+                            RelationshipPersistentEntity relEntity = (RelationshipPersistentEntity) pe;
+                            // reverse the ids to correctly align from and to
+                            thisId = associationId;
+                            Object toValue = entityAccess.getProperty(RelationshipPersistentEntity.TO);
+                            if(toValue != null) {
+                                GraphPersistentEntity toEntity = relEntity.getToEntity();
+                                associationId = toEntity.getReflector().getIdentifier(toValue);
+                                if(associationId == null) {
+                                    associationId = persistEntity(toEntity,toValue);
+                                }
                             }
+
                         }
-                        else {
-                            neo4jSession.addPendingRelationshipInsert(thisId, to, associationId);
+                        if(thisId != null && associationId != null) {
+
+                            if (reversed) {
+                                Association inverseSide = to.getInverseSide();
+                                if(inverseSide != null) {
+                                    neo4jSession.addPendingRelationshipInsert(associationId, inverseSide, thisId);
+                                }
+                            }
+                            else {
+                                neo4jSession.addPendingRelationshipInsert(thisId, to, associationId);
+                            }
                         }
 
 

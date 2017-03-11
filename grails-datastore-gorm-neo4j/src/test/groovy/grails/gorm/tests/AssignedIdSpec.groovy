@@ -35,9 +35,14 @@ class AssignedIdSpec extends Specification {
         then:"it exists"
         saved != null
         !saved.hasErrors()
+
+        when:
+        Fruit fruit = Fruit.get('Apple')
+        then:
         Fruit.findByName('Apple').name == "Apple"
-        Fruit.get('Apple').name == "Apple"
-        Fruit.get('Apple').origin.country == "Brazil"
+        fruit.name == "Apple"
+        fruit.origin.country == "Brazil"
+        fruit.origin.fruits.size() == 2
 
     }
 
@@ -51,10 +56,16 @@ class AssignedIdSpec extends Specification {
         origin.discard()
 
         then:"it exists"
-        Fruit.count() == 2
+        origin != null
+        !origin.hasErrors()
+
+        when:
+        Fruit fruit = Fruit.get('Apple')
+        then:
         Fruit.findByName('Apple').name == "Apple"
-        Fruit.get('Apple').name == "Apple"
-        Fruit.get('Apple').origin.country == "Brazil"
+        fruit.name == "Apple"
+        fruit.origin.country == "Brazil"
+        fruit.origin.fruits.size() == 2
 
     }
 }

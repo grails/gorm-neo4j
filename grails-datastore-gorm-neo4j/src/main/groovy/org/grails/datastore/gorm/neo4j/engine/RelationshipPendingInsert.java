@@ -148,20 +148,20 @@ public class RelationshipPendingInsert extends PendingInsertAdapter<Object, Seri
             relMatch = RelationshipUtils.matchForAssociation(association, "r");
         }
 
-        if(isUpdate && association instanceof DynamicAssociation || association.isBidirectional() && (association instanceof OneToMany) && !RelationshipUtils.useReversedMappingFor(association)) {
+        if(isUpdate && (association instanceof DynamicAssociation || (association.isBidirectional() && (association instanceof OneToMany)) && !RelationshipUtils.useReversedMappingFor(association))) {
             // delete any previous
 
             StringBuilder cypher = new StringBuilder(CypherBuilder.buildRelationshipMatch(labelsFrom, relMatch, labelsTo));
             Map<String, Object> deleteParams;
             if(association instanceof DynamicToOneAssociation) {
-                cypher.append(graphChild.formatId(FROM)).append(" IN {start} DELETE r");
+                cypher.append(graphChild.formatId(FROM));
                 deleteParams = Collections.singletonMap(CypherBuilder.START, parentId);
             }
             else {
-                cypher.append(graphChild.formatId(TO)).append(" IN {start} DELETE r");
+                cypher.append(graphChild.formatId(TO));
                 deleteParams = Collections.<String, Object>singletonMap(CypherBuilder.START, targetIdentifiers);
             }
-
+            cypher.append(" IN {start} DELETE r");
             if(log.isDebugEnabled()) {
                 log.debug("DELETE Cypher [{}] for parameters [{}]", cypher, deleteParams);
             }

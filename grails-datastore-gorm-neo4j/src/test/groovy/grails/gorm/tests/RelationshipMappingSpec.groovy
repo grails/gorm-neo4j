@@ -22,6 +22,7 @@ class RelationshipMappingSpec extends GormDatastoreSpec{
         when:"A new relationship is created"
         def keanu = new Celeb(name: "Keanu")
         def theMatrix = new Movie(title: "The Matrix")
+        new CastMember(from: new Celeb(name: "Carrie Anne"), to: theMatrix, roles: ["Trinity"]).save()
         def newCastMember = new CastMember(from: keanu, to: theMatrix, roles: ["Neo"])
         newCastMember.putAt("foo", "bar")
         newCastMember
@@ -29,12 +30,12 @@ class RelationshipMappingSpec extends GormDatastoreSpec{
 
         then:"The CastMember count is correct"
         !newCastMember.errors.hasErrors()
-        CastMember.count == 1
+        CastMember.count == 2
         CastMember.countByRoles(['Neo']) == 1
 
         when:"The relationship is updated"
         session.clear()
-        CastMember cm = CastMember.first()
+        CastMember cm = CastMember.findByFrom(keanu)
         cm.roles = ['Neo', 'Thomas Anderson']
         cm.save(flush:true)
         session.clear()
@@ -58,12 +59,14 @@ class RelationshipMappingSpec extends GormDatastoreSpec{
         }.list()
 
         then:"The CastMember count is correct"
+        newCastMember.hashCode() == cm.hashCode()
+        newCastMember == cm
         keanuCastings.size() == 1
         countActorNames == 1
         actorNames == ["Keanu"]
         cm.dateCast != null
         cm.getAt("foo") == 'bar'
-        CastMember.count == 1
+        CastMember.count == 2
         CastMember.findByFromAndTo(keanu, theMatrix) != null
         CastMember.countByRoles(['Neo', 'Thomas Anderson']) == 1
         cm.roles == ['Neo', 'Thomas Anderson']
@@ -73,11 +76,11 @@ class RelationshipMappingSpec extends GormDatastoreSpec{
         cm.delete(flush: true)
 
         then:"The relationship was deleted"
-        CastMember.count == 0
+        CastMember.count == 1
         CastMember.countByRoles(['Neo', 'Thomas Anderson']) == 0
 
         and:"But the nodes were not deleted"
-        Celeb.count == 1
+        Celeb.count == 2
         Movie.count == 1
 
     }

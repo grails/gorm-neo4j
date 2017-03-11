@@ -245,7 +245,7 @@ public class Neo4jSession extends AbstractSession<Session> {
                 if(pendingUpdate.isVetoed()) continue;
 
                 final EntityAccess access = pendingUpdate.getEntityAccess();
-                final List<PendingOperation<Object, Serializable>> cascadingOperations = new ArrayList<PendingOperation<Object, Serializable>>(pendingUpdate.getCascadeOperations());
+                final List<PendingOperation<Object, Serializable>> cascadingOperations = new ArrayList<>(pendingUpdate.getCascadeOperations());
 
                 final String labels = graphPersistentEntity.getLabelsWithInheritance(access.getEntity());
                 final StringBuilder cypherStringBuilder = new StringBuilder();
@@ -257,9 +257,9 @@ public class Neo4jSession extends AbstractSession<Session> {
 
                 if(isRelationshipEntity) {
                     RelationshipPersistentEntity relEntity = (RelationshipPersistentEntity) graphPersistentEntity;
-                    cypherStringBuilder.append("MATCH ")
-                                       .append(relEntity.buildMatch(relEntity.type(), CypherBuilder.NODE_VAR))
-                                       .append(" WHERE ID(n) = {id}");
+                    cypherStringBuilder.append( CypherBuilder.buildRelationshipMatch(relEntity.buildMatch(relEntity.type(), CypherBuilder.NODE_VAR)))
+                                       .append(  graphPersistentEntity.formatId(CypherBuilder.NODE_VAR) )
+                                       .append(" = {id}");
                 }
                 else {
                     cypherStringBuilder.append(CypherBuilder.CYPHER_MATCH_ID);
@@ -343,7 +343,15 @@ public class Neo4jSession extends AbstractSession<Session> {
     }
 
     private void processPendingRelationshipUpdates(GraphPersistentEntity entity, EntityAccess access, Serializable id, List<PendingOperation<Object, Serializable>> cascadingOperations, boolean isUpdate) {
+        if(entity.isRelationshipEntity()) {
+            RelationshipPersistentEntity relEntity = (RelationshipPersistentEntity) entity;
+            Object from = access.getPropertyValue(RelationshipPersistentEntity.FROM);
+            if(from != null) {
+                id = relEntity.getFromEntity().getReflector().getIdentifier(from);
+            }
+        }
         for (Association association : entity.getAssociations()) {
+            if(association.isEmbedded() || association.isBasic()) continue;
             processPendingRelationshipUpdates(access, id, association, cascadingOperations, isUpdate);
         }
         if(entity.hasDynamicAssociations()) {
@@ -436,10 +444,10 @@ public class Neo4jSession extends AbstractSession<Session> {
         final Map<String, Object> params = new HashMap<>(inserts.size());
         List<PendingOperation<Object, Serializable>> cascadingOperations = new ArrayList<>();
         for (PersistentEntity entity : entities) {
+            GraphPersistentEntity graphEntity = (GraphPersistentEntity) entity;
             final Collection<PendingInsert> entityInserts = inserts.get(entity);
             for (final PendingInsert entityInsert : entityInserts) {
-                if(entityInsert.wasExecuted() || Relationship.class.isAssignableFrom(entityInsert.getEntity().getJavaClass())) {
-                    GraphPersistentEntity graphEntity = (GraphPersistentEntity) entity;
+                if(entityInsert.wasExecuted() || graphEntity.isRelationshipEntity()) {
                     processPendingRelationshipUpdates(graphEntity, entityInsert.getEntityAccess(), (Serializable) entityInsert.getNativeKey(), cascadingOperations, false);
                     cascadingOperations.addAll(entityInsert.getCascadeOperations());
                 }

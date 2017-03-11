@@ -12,7 +12,7 @@ import org.grails.datastore.gorm.schemaless.DynamicAttributes
  * @since 6.1
  */
 @CompileStatic
-trait Relationship<F extends Neo4jEntity<F>, T extends Neo4jEntity<T>> implements DynamicAttributes {
+trait Relationship<F extends Neo4jEntity<F>, T extends Neo4jEntity<T>> implements DynamicAttributes, Serializable {
 
     /**
      * The relationship type
@@ -37,4 +37,30 @@ trait Relationship<F extends Neo4jEntity<F>, T extends Neo4jEntity<T>> implement
         return type
     }
 
+    /**
+     * @return True if they are equal
+     */
+    boolean equals(Object object) {
+        if(object instanceof Relationship) {
+            Relationship other = (Relationship)object
+            return from?.ident() == other.from?.ident() && to?.ident() == other.to?.ident()
+        }
+        return false
+    }
+
+    /**
+     * @return hashCode
+     */
+    int hashCode() {
+        int result = type != null ? type.hashCode() : 0
+        def fromId = from?.ident()
+        if(fromId != null) {
+            result = 31 * result + fromId.hashCode()
+        }
+        def toId = to?.ident()
+        if(toId != null) {
+            result = 31 * result + toId.hashCode()
+        }
+        return result
+    }
 }
