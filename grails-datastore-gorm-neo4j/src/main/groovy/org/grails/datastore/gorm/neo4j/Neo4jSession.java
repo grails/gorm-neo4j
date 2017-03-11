@@ -123,8 +123,9 @@ public class Neo4jSession extends AbstractSession<Session> {
             inserts = new ConcurrentLinkedQueue<>();
             targetMap.put(key, inserts);
         }
-
-        inserts.add(id);
+        if(!inserts.contains(id)) {
+            inserts.add(id);
+        }
     }
 
     @Override
