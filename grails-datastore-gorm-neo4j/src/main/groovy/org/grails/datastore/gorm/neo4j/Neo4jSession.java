@@ -351,7 +351,7 @@ public class Neo4jSession extends AbstractSession<Session> {
             }
         }
         for (Association association : entity.getAssociations()) {
-            if(association.isEmbedded() || association.isBasic()) continue;
+            if(association.isBasic()) continue;
             processPendingRelationshipUpdates(access, id, association, cascadingOperations, isUpdate);
         }
         if(entity.hasDynamicAssociations()) {

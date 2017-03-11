@@ -1,6 +1,5 @@
 package org.grails.datastore.gorm.neo4j.engine;
 
-import grails.neo4j.Relationship;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.grails.datastore.gorm.GormEntity;
 import org.grails.datastore.gorm.neo4j.*;
@@ -934,7 +933,8 @@ public class Neo4jEntityPersister extends EntityPersister {
             }
         }
     }
-    private void persistAssociationsOfEntity(GraphPersistentEntity pe, EntityAccess entityAccess, boolean isUpdate) {
+
+    private void persistAssociationsOfEntity(GraphPersistentEntity graphEntity, EntityAccess entityAccess, boolean isUpdate) {
 
         Object obj = entityAccess.getEntity();
         DirtyCheckable dirtyCheckable = null;
@@ -943,8 +943,8 @@ public class Neo4jEntityPersister extends EntityPersister {
         }
 
         Neo4jSession neo4jSession = getSession();
-        if(pe.hasDynamicAssociations()) {
-            MappingContext mappingContext = pe.getMappingContext();
+        if(graphEntity.hasDynamicAssociations()) {
+            MappingContext mappingContext = graphEntity.getMappingContext();
             DynamicAttributes dynamicAttributes = (DynamicAttributes) obj;
             Collection<Object> values = dynamicAttributes.attributes().values();
             for (Object value : values) {
@@ -970,9 +970,9 @@ public class Neo4jEntityPersister extends EntityPersister {
             }
         }
 
-        for (PersistentProperty pp: pe.getAssociations()) {
-            String propertyName = pp.getName();
-            if(pp instanceof Basic) {
+        for (PersistentProperty persistentProperty : graphEntity.getAssociations()) {
+            String propertyName = persistentProperty.getName();
+            if(persistentProperty instanceof Basic) {
                 continue;
             }
 
@@ -980,8 +980,8 @@ public class Neo4jEntityPersister extends EntityPersister {
 
                 Object propertyValue = entityAccess.getProperty(propertyName);
 
-                if ((pp instanceof OneToMany) || (pp instanceof ManyToMany)) {
-                    Association association = (Association) pp;
+                if ((persistentProperty instanceof OneToMany) || (persistentProperty instanceof ManyToMany)) {
+                    Association association = (Association) persistentProperty;
 
                     if (propertyValue!= null) {
 
@@ -1015,9 +1015,9 @@ public class Neo4jEntityPersister extends EntityPersister {
                             entityAccess.setProperty(association.getName(), dcc);
                         }
                     }
-                } else if (pp instanceof ToOne) {
+                } else if (persistentProperty instanceof ToOne) {
                     if (propertyValue != null) {
-                        ToOne to = (ToOne) pp;
+                        ToOne to = (ToOne) persistentProperty;
 
                         if (to.isBidirectional()) {  // Populate other side of bidi
                             EntityAccess assocEntityAccess = createEntityAccess(to.getAssociatedEntity(), propertyValue);
@@ -1029,7 +1029,7 @@ public class Neo4jEntityPersister extends EntityPersister {
                                     collection = new ArrayList();
                                     assocEntityAccess.setProperty(to.getReferencedPropertyName(), collection);
                                 }
-                                if(proxyFactory.isInitialized(collection)) {
+                                if(proxyFactory.isInitialized(collection) && !collection.isEmpty()) {
                                     boolean found = false;
                                     for (Object o : collection) {
                                         if(o.equals(obj)) {
@@ -1037,23 +1037,24 @@ public class Neo4jEntityPersister extends EntityPersister {
                                         }
                                     }
                                     if (!found) {
-                                        if( !getSession().isPendingAlready(propertyValue) ) {
-                                            collection.add(obj);
-                                        }
+                                        collection.add(obj);
                                     }
+                                }
+                                else {
+                                    collection.add(obj);
                                 }
                             }
                         }
 
                         persistEntity(to.getAssociatedEntity(), propertyValue);
 
-                        boolean reversed = RelationshipUtils.useReversedMappingFor(to);
-                        Serializable thisId = (Serializable) entityAccess.getIdentifier();
-                        final EntityAccess assocationAccess = neo4jSession.createEntityAccess(to.getAssociatedEntity(), propertyValue);
-                        Serializable associationId = (Serializable) assocationAccess.getIdentifier();
 
-                        if(pe.isRelationshipEntity() && propertyName.equals(RelationshipPersistentEntity.FROM)) {
-                            RelationshipPersistentEntity relEntity = (RelationshipPersistentEntity) pe;
+                        Serializable thisId = (Serializable) entityAccess.getIdentifier();
+                        final EntityAccess associationAccess = neo4jSession.createEntityAccess(to.getAssociatedEntity(), propertyValue);
+                        Serializable associationId = (Serializable) associationAccess.getIdentifier();
+
+                        if(graphEntity.isRelationshipEntity() && propertyName.equals(RelationshipPersistentEntity.FROM)) {
+                            RelationshipPersistentEntity relEntity = (RelationshipPersistentEntity) graphEntity;
                             // reverse the ids to correctly align from and to
                             thisId = associationId;
                             Object toValue = entityAccess.getProperty(RelationshipPersistentEntity.TO);
@@ -1067,7 +1068,7 @@ public class Neo4jEntityPersister extends EntityPersister {
 
                         }
                         if(thisId != null && associationId != null) {
-
+                            boolean reversed = RelationshipUtils.useReversedMappingFor(to);
                             if (reversed) {
                                 Association inverseSide = to.getInverseSide();
                                 if(inverseSide != null) {
@@ -1084,7 +1085,7 @@ public class Neo4jEntityPersister extends EntityPersister {
                     else if(isUpdate) {
                         Object previousValue = dirtyCheckable.getOriginalValue(propertyName);
                         if (previousValue != null) {
-                            ToOne to = (ToOne) pp;
+                            ToOne to = (ToOne) persistentProperty;
                             Serializable associationId = neo4jSession.getEntityPersister(previousValue).getObjectIdentifier(previousValue);
                             if (associationId != null) {
                                 neo4jSession.addPendingRelationshipDelete((Serializable) entityAccess.getIdentifier(), to, associationId);
@@ -1092,7 +1093,7 @@ public class Neo4jEntityPersister extends EntityPersister {
                         }
                     }
                 } else {
-                    throw new IllegalArgumentException("GORM for Neo4j doesn't support properties of the given type " + pp + "(" + pp.getClass().getSuperclass() +")" );
+                    throw new IllegalArgumentException("GORM for Neo4j doesn't support properties of the given type " + persistentProperty + "(" + persistentProperty.getClass().getSuperclass() +")" );
                 }
             }
 
