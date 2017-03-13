@@ -67,7 +67,7 @@ class EagerFetchingSpec extends GormDatastoreSpec {
         def team = Team.findByName('FCB Team 1')
 
         then:"The association is a proxy"
-        session.mappingContext.proxyFactory.isProxy(team.club)
+        !session.mappingContext.proxyFactory.isInitialized(team, 'club')
 
         when:"A an eager fetch is used"
         session.clear()

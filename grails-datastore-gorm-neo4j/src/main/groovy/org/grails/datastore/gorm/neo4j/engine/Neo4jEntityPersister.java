@@ -37,6 +37,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.util.Assert;
 
+import javax.persistence.FetchType;
 import javax.persistence.LockModeType;
 import java.io.Serializable;
 import java.util.*;
@@ -172,7 +173,7 @@ public class Neo4jEntityPersister extends EntityPersister {
 
                     indexMap.put(insertIndex++, listIndex - 1);
                     entityAccesses.add(entityAccess);
-                    session.buildEntityCreateOperation(createCypher, String.valueOf(insertIndex), pe, pendingInsert, params, cascadingOperations, (Neo4jMappingContext)getMappingContext());
+                    session.buildEntityCreateOperation(createCypher, String.valueOf(insertIndex), pe, pendingInsert, params, cascadingOperations);
                     if(iterator.hasNext()) {
                         createCypher.append(CypherBuilder.COMMAND_SEPARATOR);
                     }
@@ -400,10 +401,7 @@ public class Neo4jEntityPersister extends EntityPersister {
         if(hasDynamicAssociations) {
 
             final String cypher;
-            final IdGenerator idGenerator = graphPersistentEntity.getIdGenerator();
-            final boolean isNativeId = idGenerator == null;
-
-            if(isNativeId) {
+            if(graphPersistentEntity.isNativeId()) {
                 cypher = String.format(DYNAMIC_ASSOCIATIONS_QUERY_NATIVE_ID, ((GraphPersistentEntity) persistentEntity).getLabelsAsString());
             }
             else {
@@ -571,7 +569,7 @@ public class Neo4jEntityPersister extends EntityPersister {
                         // if a lazy proxy should be created for this association then create it,
                         // note that this strategy does not allow for null checks
                         final Neo4jAssociationQueryExecutor associationQueryExecutor = new Neo4jAssociationQueryExecutor(session, association);
-                        if(association.getMapping().getMappedForm().isLazy()) {
+                        if(association.getMapping().getMappedForm().getFetchStrategy() == FetchType.LAZY) {
                             final Object proxy = getMappingContext().getProxyFactory().createProxy(
                                     this.session,
                                     associationQueryExecutor,
@@ -614,7 +612,7 @@ public class Neo4jEntityPersister extends EntityPersister {
         Map<String,Object> undeclared = new LinkedHashMap<>();
 
         // if the relationship map is not empty as this point there are dynamic relationships that need to be loaded as undeclared
-        if (!relationshipsMap.isEmpty()) {
+        if (hasDynamicAssociations && !relationshipsMap.isEmpty()) {
             for (Map.Entry<TypeDirectionPair, Map<String,Object>> entry: relationshipsMap.entrySet()) {
 
                 TypeDirectionPair key = entry.getKey();

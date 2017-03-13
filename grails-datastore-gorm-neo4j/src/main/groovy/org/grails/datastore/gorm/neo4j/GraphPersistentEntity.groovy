@@ -1,16 +1,20 @@
 package org.grails.datastore.gorm.neo4j
 
 import groovy.transform.CompileStatic
-import org.grails.datastore.gorm.neo4j.identity.SnowflakeIdGenerator
 import org.grails.datastore.gorm.neo4j.mapping.config.NodeConfig
 import org.grails.datastore.mapping.model.AbstractPersistentEntity
 import org.grails.datastore.mapping.model.ClassMapping
 import org.grails.datastore.mapping.model.DatastoreConfigurationException
 import org.grails.datastore.mapping.model.MappingContext
+import org.grails.datastore.mapping.model.MappingFactory
+import org.grails.datastore.mapping.model.PersistentProperty
 import org.grails.datastore.mapping.model.config.GormMappingConfigurationStrategy
 import org.grails.datastore.mapping.model.config.GormProperties
+import org.grails.datastore.mapping.model.types.Association
 import org.neo4j.driver.v1.types.Entity
 import org.springframework.util.ClassUtils
+
+import java.beans.Introspector
 
 /**
  * Represents an entity mapped to the Neo4j graph, adding support for dynamic labelling
@@ -32,10 +36,14 @@ class GraphPersistentEntity extends AbstractPersistentEntity<NodeConfig> {
     protected final boolean hasDynamicAssociations
     protected final boolean relationshipEntity
     protected final GraphClassMapping classMapping
+    protected final String batchId
+    protected final String variableId
+    protected final String batchCreateStatement
     protected IdGenerator idGenerator
     protected IdGenerator.Type idGeneratorType
     protected boolean assignedId = false
     protected boolean nativeId = false
+    protected PersistentProperty nodeId
 
     GraphPersistentEntity(Class javaClass, MappingContext context) {
         this(javaClass, context, false)
@@ -54,16 +62,27 @@ class GraphPersistentEntity extends AbstractPersistentEntity<NodeConfig> {
         this.hasDynamicLabels = establishLabels()
         this.external = external
         this.classMapping = new GraphClassMapping(this, context)
+        this.variableId = Introspector.decapitalize(javaClass.simpleName)
+        this.batchId = "${variableId}Batch"
+        this.batchCreateStatement = formatBatchCreate("{${batchId}}")
     }
+
 
     @Override
     void initialize() {
         super.initialize()
         if(!isExternal()) {
-            def identity = getIdentity()
+            PersistentProperty identity = getIdentity()
             if(identity != null) {
-                def generatorType = identity.getMapping().getMappedForm().getGenerator()
+                String generatorType = identity.getMapping().getMappedForm().getGenerator()
                 this.idGenerator = createIdGenerator(generatorType)
+                if(identity.name != GormProperties.IDENTITY) {
+                    MetaProperty idProp = getJavaClass().getMetaClass().getMetaProperty(GormProperties.IDENTITY)
+                    if(idProp != null) {
+                        MappingFactory mappingFactory = mappingContext.mappingFactory
+                        nodeId = mappingFactory.createSimple(this, context, mappingFactory.createPropertyDescriptor(javaClass, idProp))
+                    }
+                }
             }
         }
     }
@@ -138,6 +157,19 @@ class GraphPersistentEntity extends AbstractPersistentEntity<NodeConfig> {
     }
 
     /**
+     * @return The id used for batch parameters
+     */
+    String getBatchId() {
+        return batchId
+    }
+
+    /**
+     * @return The batch create statement
+     */
+    String getBatchCreateStatement() {
+        return batchCreateStatement
+    }
+    /**
      * Format a reference to the ID for cypher queries
      * @param variable The name of the variable for the id
      * @return The formatted id
@@ -171,6 +203,12 @@ class GraphPersistentEntity extends AbstractPersistentEntity<NodeConfig> {
     }
 
     /**
+     * @return The property that is the node id
+     */
+    PersistentProperty getNodeId() {
+        return nodeId
+    }
+    /**
      * Format a reference to the ID for cypher queries
      * @param variable The name of the variable for the id
      * @return The formatted id
@@ -183,6 +221,77 @@ class GraphPersistentEntity extends AbstractPersistentEntity<NodeConfig> {
             return "${variable}.${property}"
         }
     }
+
+    /**
+     * Formats a batch UNWIND statement for the given id
+     *
+     * @param batchId The batch id
+     * @return The formatted id
+     */
+    String formatBatchCreate(String batchId) {
+        """UNWIND ${batchId} as row
+CREATE ($variableId$labelsAsString)
+SET $variableId += row.${CypherBuilder.PROPS}
+"""
+    }
+
+    /**
+     * Formats a batch FOREACH statement for populating association data
+     *
+     * @param parentVariable The parent variable
+     * @param association The association
+     * @return The formatted FOREACH statement
+     */
+    String formatBatchCreate(String parentVariable, Association association) {
+        String batchId = association.name
+        GraphPersistentEntity associatedEntity = (GraphPersistentEntity)association.associatedEntity
+        """FOREACH (${batchId} IN row.${batchId} |
+CREATE ($variableId$labelsAsString)
+SET $variableId += ${batchId}.${CypherBuilder.PROPS}
+${formatAssociationMerge(association, parentVariable, associatedEntity.variableId)})"""
+    }
+
+    /**
+     * Formats a batch FOREACH statement for populating association data
+     *
+     * @param parentVariable The parent variable
+     * @param association The association
+     * @return The formatted FOREACH statement
+     */
+    String formatBatchMerge(String parentVariable, Association association) {
+        String batchId = association.name
+        GraphPersistentEntity associatedEntity = (GraphPersistentEntity)association.associatedEntity
+        String otherMatch = "to${associatedEntity.labelsAsString} { ${identity.name}: ${batchId} }"
+        """FOREACH (${batchId} IN row.${batchId} |
+${formatAssociationMerge(association, parentVariable, otherMatch)})"""
+    }
+
+
+
+    /**
+     * Formats an association merge
+     * @param association The association
+     * @param start The start variable
+     * @param variableName The end variable
+     * @return The MERGE statement
+     */
+    String formatAssociationMatch(Association association, String variableName) {
+        GraphPersistentEntity entity = (GraphPersistentEntity)association.associatedEntity
+        """MATCH (${variableName}${entity.labelsAsString}) WHERE ${entity.formatId(variableName)} IN ${association.name}
+"""
+    }
+
+    /**
+     * Formats an association merge
+     * @param association The association
+     * @param start The start variable
+     * @param end The end variable
+     * @return The MERGE statement
+     */
+    String formatAssociationMerge(Association association, String start, String end) {
+        "MERGE ($start)${RelationshipUtils.matchForAssociation(association)}($end)\n"
+    }
+
     /**
      * @return Whether the ID is native
      */
@@ -253,6 +362,13 @@ class GraphPersistentEntity extends AbstractPersistentEntity<NodeConfig> {
      */
     String getVariableName() {
         CypherBuilder.NODE_VAR
+    }
+
+    /**
+     * @return A unique variable name for this entity
+     */
+    String getVariableId() {
+        return variableId
     }
 
     protected boolean establishLabels() {

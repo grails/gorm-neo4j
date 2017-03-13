@@ -163,7 +163,7 @@ class Neo4jQuery extends Query {
                             throw new QueryException("Cannot apply projection on property [$propertyName] of class [$entity.name]. Associations on relationships are not allowed")
                         }
                         def targetNodeName = "${association.name}_${builder.getNextMatchNumber()}"
-                        builder.addMatch("(n)${RelationshipUtils.matchForAssociation(association)}(${targetNodeName})")
+                        builder.addMatch("(n)${RelationshipUtils.matchForAssociation((Association)association)}(${targetNodeName})")
                         return targetNodeName
                     } else {
                         if(isRelationshipProjection(entity, propertyName)) {
@@ -459,8 +459,6 @@ class Neo4jQuery extends Query {
                      if( a instanceof ToMany ) {
                          boolean isLazy = ((ToMany)a).lazy
                          if(fetchType.is(fetchType.EAGER)) {
-
-
                              rs.add(r)
                              os.add(o)
                              // if there are associations, add a join to get them
@@ -495,7 +493,7 @@ class Neo4jQuery extends Query {
                          String associationNodeRef = "${associationName}Node"
                          String associationNodesRef = "${associationName}Nodes"
 
-                         if(!fetchType.is(fetchType.EAGER)) {
+                         if(!fetchType.is(fetchType.EAGER) && !a.mapping.mappedForm.lazy) {
                              withMatch += "collect(DISTINCT ${associatedGraphEntity.formatId(associationNodeRef)}) as ${associationIdsRef}"
                              cypherBuilder.addReturnColumn(associationIdsRef)
                              previousAssociations << associationIdsRef

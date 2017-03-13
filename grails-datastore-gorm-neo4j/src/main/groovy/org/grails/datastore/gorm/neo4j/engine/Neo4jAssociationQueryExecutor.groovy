@@ -50,7 +50,7 @@ class Neo4jAssociationQueryExecutor implements AssociationQueryExecutor<Serializ
     final boolean lazy
     final boolean singleResult
 
-    Neo4jAssociationQueryExecutor(Neo4jSession session, Association association, boolean lazy = false, boolean singleResult = false) {
+    Neo4jAssociationQueryExecutor(Neo4jSession session, Association association, boolean lazy = association.mapping.mappedForm.isLazy(), boolean singleResult = false) {
         this.session = session
         PersistentEntity associatedEntity = association.associatedEntity
         if(associatedEntity != null) {
@@ -81,7 +81,7 @@ class Neo4jAssociationQueryExecutor implements AssociationQueryExecutor<Serializ
         GraphPersistentEntity parent = (GraphPersistentEntity)association.owner
         GraphPersistentEntity related = (GraphPersistentEntity)indexedEntity
 
-        boolean isRelationship = related instanceof RelationshipPersistentEntity
+        boolean isRelationship = related.isRelationshipEntity()
 
         if(isRelationship) {
             RelationshipPersistentEntity relEntity = (RelationshipPersistentEntity)related

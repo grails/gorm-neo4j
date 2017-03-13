@@ -7,7 +7,7 @@ import grails.gorm.tests.*
 
 @RunWith(Suite)
 @SuiteClasses([
-OneToManySpec
+CircularOneToManySpec
 ])
 class Neo4jSuite {
 }
