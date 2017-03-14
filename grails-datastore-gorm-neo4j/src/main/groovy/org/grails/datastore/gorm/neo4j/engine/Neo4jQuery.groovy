@@ -19,11 +19,13 @@ import groovy.transform.EqualsAndHashCode
 import groovy.util.logging.Slf4j
 import org.grails.datastore.gorm.neo4j.*
 import org.grails.datastore.gorm.neo4j.collection.Neo4jResultList
+import org.grails.datastore.mapping.config.Property
 import org.grails.datastore.mapping.model.PersistentEntity
 import org.grails.datastore.mapping.model.PersistentProperty
 import org.grails.datastore.mapping.model.config.GormProperties
 import org.grails.datastore.mapping.model.types.Association
 import org.grails.datastore.mapping.model.types.Basic
+import org.grails.datastore.mapping.model.types.ManyToOne
 import org.grails.datastore.mapping.model.types.ToMany
 import org.grails.datastore.mapping.model.types.ToOne
 import org.grails.datastore.mapping.query.AssociationQuery
@@ -494,7 +496,11 @@ class Neo4jQuery extends Query {
                          String associationNodesRef = "${associationName}Nodes"
 
                          if(!fetchType.is(fetchType.EAGER) ) {
-                             if(!a.mapping.mappedForm.lazy) {
+                             Property propertyMapping = a.mapping.mappedForm
+                             Boolean isLazy = propertyMapping.getLazy()
+                             boolean isNullable = propertyMapping.isNullable()
+                             boolean lazy = (isLazy != null ? isLazy : (a instanceof ManyToOne ? !a.isCircular() : true))
+                             if(isNullable || !lazy) {
                                  withMatch += "collect(DISTINCT ${associatedGraphEntity.formatId(associationNodeRef)}) as ${associationIdsRef}"
                                  cypherBuilder.addReturnColumn(associationIdsRef)
                                  previousAssociations << associationIdsRef

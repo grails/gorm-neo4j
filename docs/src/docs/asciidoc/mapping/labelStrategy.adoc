@@ -20,6 +20,8 @@ class Person {
 }
 ----
 
+WARNING: Dynamic labels have a negative impact on write performance as GORM is unable to batch operations with dynamic labels so should be used sparingly.
+
 Or mix static and dynamic labels:
 
 [source,groovy]
@@ -29,7 +31,7 @@ static mapping = {
 }
 ----
 
-At a small read/write performance cost you can define dynamic labels based on an instance:
+At the cost of read/write performance you can define dynamic labels based on an instance:
 
 [source,groovy]
 ----

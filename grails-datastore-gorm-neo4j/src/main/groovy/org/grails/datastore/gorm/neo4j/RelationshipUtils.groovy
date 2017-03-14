@@ -188,8 +188,8 @@ class RelationshipUtils {
         else {
             boolean reversed = useReversedMappingFor(association)
             String name = reversed ?
-                    association.getName() :
-                    association.getReferencedPropertyName()
+                    association.getReferencedPropertyName() :
+                    association.getName()
             if(name != null) {
                 return name.toUpperCase(Locale.ENGLISH)
             }

@@ -1,5 +1,6 @@
 package org.grails.datastore.gorm.neo4j
 
+import grails.neo4j.Relationship
 import groovy.transform.CompileStatic
 import org.grails.datastore.gorm.neo4j.mapping.config.NodeConfig
 import org.grails.datastore.mapping.model.AbstractPersistentEntity
@@ -15,6 +16,9 @@ import org.neo4j.driver.v1.types.Entity
 import org.springframework.util.ClassUtils
 
 import java.beans.Introspector
+
+import static org.grails.datastore.gorm.neo4j.engine.RelationshipPendingInsert.FROM
+import static org.grails.datastore.gorm.neo4j.engine.RelationshipPendingInsert.TO
 
 /**
  * Represents an entity mapped to the Neo4j graph, adding support for dynamic labelling
@@ -253,36 +257,6 @@ ${formatAssociationMerge(association, parentVariable, associatedEntity.variableI
     }
 
     /**
-     * Formats a batch FOREACH statement for populating association data
-     *
-     * @param parentVariable The parent variable
-     * @param association The association
-     * @return The formatted FOREACH statement
-     */
-    String formatBatchMerge(String parentVariable, Association association) {
-        String batchId = association.name
-        GraphPersistentEntity associatedEntity = (GraphPersistentEntity)association.associatedEntity
-        String otherMatch = "to${associatedEntity.labelsAsString} { ${identity.name}: ${batchId} }"
-        """FOREACH (${batchId} IN row.${batchId} |
-${formatAssociationMerge(association, parentVariable, otherMatch)})"""
-    }
-
-
-
-    /**
-     * Formats an association merge
-     * @param association The association
-     * @param start The start variable
-     * @param variableName The end variable
-     * @return The MERGE statement
-     */
-    String formatAssociationMatch(Association association, String variableName) {
-        GraphPersistentEntity entity = (GraphPersistentEntity)association.associatedEntity
-        """MATCH (${variableName}${entity.labelsAsString}) WHERE ${entity.formatId(variableName)} IN ${association.name}
-"""
-    }
-
-    /**
      * Formats an association merge
      * @param association The association
      * @param start The start variable
@@ -293,6 +267,45 @@ ${formatAssociationMerge(association, parentVariable, otherMatch)})"""
         "MERGE ($start)${RelationshipUtils.matchForAssociation(association)}($end)\n"
     }
 
+    /**
+     * Formats an association merge
+     * @param association The association
+     * @param start The start variable
+     * @param end The end variable
+     * @return The DELETE statement or null if it isn't possible
+     */
+    String formatAssociationDelete(Association association, Object entity = null) {
+
+        GraphPersistentEntity parent = (GraphPersistentEntity)association.owner
+        GraphPersistentEntity child = (GraphPersistentEntity)association.associatedEntity
+        String associationMatch
+        if(parent.isRelationshipEntity() && entity instanceof Relationship) {
+            if(association.name == FROM) {
+                RelationshipPersistentEntity relEntity = (RelationshipPersistentEntity)parent
+                child = relEntity.getToEntity()
+                parent = relEntity.getFromEntity()
+                associationMatch = RelationshipUtils.toMatch(association, (Relationship) entity)
+            }
+            else {
+                return null
+            }
+
+        }
+        else {
+            associationMatch = RelationshipUtils.matchForAssociation(association, CypherBuilder.REL_VAR)
+        }
+
+        if(RelationshipUtils.useReversedMappingFor(association)) {
+            return """MATCH (from$parent.labelsAsString)${ associationMatch}(to$child.labelsAsString)
+WHERE ${parent.formatId(RelationshipPersistentEntity.FROM)} = {${GormProperties.IDENTITY}}
+DELETE r"""
+        }
+        else {
+            return """MATCH (from$parent.labelsAsString)${associationMatch}(to$child.labelsAsString)
+WHERE ${parent.formatId(RelationshipPersistentEntity.FROM)} = {${CypherBuilder.START}} AND ${parent.formatId(RelationshipPersistentEntity.TO)} IN {${CypherBuilder.END}}
+DELETE r"""
+        }
+    }
     /**
      * @return Whether the ID is native
      */

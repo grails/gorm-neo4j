@@ -43,7 +43,9 @@ asciidoctor {
                 'reproducible'  : '',
                 'version'       : project.version,
                 'pluginVersion' : project.version - '.RELEASE',
-                'sourcedir'     : "${project.projectDir}/src/main/groovy"
+                'neo4jVersion'  : neo4jVersion,
+                'sourcedir'     : "${project.rootProject.projectDir}/grails-datastore-gorm-neo4j/src/main/groovy",
+                'testsdir'     : "${project.rootProject.projectDir}/grails-datastore-gorm-neo4j/src/test/groovy"
 }
 
 asciidoctorj {

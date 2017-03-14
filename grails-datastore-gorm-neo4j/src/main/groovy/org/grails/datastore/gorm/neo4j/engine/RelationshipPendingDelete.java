@@ -15,13 +15,13 @@
  */
 package org.grails.datastore.gorm.neo4j.engine;
 
-import grails.neo4j.Relationship;
 import org.grails.datastore.gorm.neo4j.CypherBuilder;
 import org.grails.datastore.gorm.neo4j.GraphPersistentEntity;
 import org.grails.datastore.gorm.neo4j.RelationshipPersistentEntity;
 import org.grails.datastore.gorm.neo4j.RelationshipUtils;
 import org.grails.datastore.mapping.core.impl.PendingOperationAdapter;
 import org.grails.datastore.mapping.engine.EntityAccess;
+import org.grails.datastore.mapping.model.config.GormProperties;
 import org.grails.datastore.mapping.model.types.Association;
 import org.neo4j.driver.v1.Transaction;
 import org.slf4j.Logger;
@@ -62,19 +62,14 @@ public class RelationshipPendingDelete extends PendingOperationAdapter<Object, S
     @Override
     public void run() {
         GraphPersistentEntity graphParent = (GraphPersistentEntity) getEntity();
-        GraphPersistentEntity graphChild = (GraphPersistentEntity) association.getAssociatedEntity();
 
-        final String labelsFrom = graphParent.getLabelsAsString();
-        final String labelsTo = graphChild.getLabelsAsString();
         Serializable parentId = getNativeKey();
-        final boolean isRelationshipAssociation = Relationship.class.isAssignableFrom(graphParent.getJavaClass());
+        final boolean isRelationshipAssociation = graphParent.isRelationshipEntity();
         if(isRelationshipAssociation) {
             if(association.getName().equals(FROM)) {
-                Association endProperty = (Association) graphParent.getPropertyByName(TO);
-                Association startProperty = (Association) graphParent.getPropertyByName(FROM);
-
-                graphChild = (GraphPersistentEntity) endProperty.getAssociatedEntity();
-                graphParent = (GraphPersistentEntity) startProperty.getAssociatedEntity();
+                RelationshipPersistentEntity relEntity = (RelationshipPersistentEntity) graphParent;
+                GraphPersistentEntity graphChild = relEntity.getToEntity();
+                graphParent = relEntity.getFromEntity();
 
                 Object endEntity = entityAccess.getProperty(TO);
                 Object startEntity = entityAccess.getProperty(FROM);
@@ -87,30 +82,24 @@ public class RelationshipPendingDelete extends PendingOperationAdapter<Object, S
                 return;
             }
         }
-        final String relMatch;
-        if(isRelationshipAssociation) {
-            relMatch = RelationshipUtils.toMatch(association, (Relationship) entityAccess.getEntity());
-        }
-        else {
-            relMatch = RelationshipUtils.matchForAssociation(association, "r");
-        }
 
         final Map<String, Object> params = new LinkedHashMap<>(2);
 
-        params.put(CypherBuilder.START, parentId);
-        params.put(CypherBuilder.END, targetIdentifiers);
-
-
-        StringBuilder cypherQuery = new StringBuilder(CypherBuilder.buildRelationshipMatch(labelsFrom, relMatch, labelsTo));
-        cypherQuery.append(graphParent.formatId(RelationshipPersistentEntity.FROM))
-                   .append(" = {start} AND ")
-                   .append(graphChild.formatId(RelationshipPersistentEntity.TO))
-                   .append(" IN {end} DELETE r");
-
-        String cypher = cypherQuery.toString();
-        if (log.isDebugEnabled()) {
-            log.debug("DELETE Cypher [{}] for parameters [{}]", cypher, params);
+        if(RelationshipUtils.useReversedMappingFor(association)) {
+            params.put(GormProperties.IDENTITY, parentId);
         }
-        boltTransaction.run(cypher, params);
+        else {
+            params.put(CypherBuilder.START, parentId);
+            params.put(CypherBuilder.END, targetIdentifiers);
+        }
+
+
+        String cypher = graphParent.formatAssociationDelete(association, entityAccess.getEntity());
+        if(cypher != null) {
+            if (log.isDebugEnabled()) {
+                log.debug("DELETE Cypher [{}] for parameters [{}]", cypher, params);
+            }
+            boltTransaction.run(cypher, params);
+        }
     }
 }

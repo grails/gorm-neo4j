@@ -2,21 +2,22 @@ GORM for Neo4j will create Neo4j relationships between nodes for you based on th
 
 [source,groovy]
 ----
-class Owner {
-    String name
-    static hasMany = [pets:Pet]
-}
-class Pet {
-    String name
-    static belongsTo = [owner:Owner]
-}
+include::{testsdir}/grails/gorm/tests/cypher/domain/Owner.groovy[tags=class,indent=0]
+include::{testsdir}/grails/gorm/tests/cypher/domain/Pet.groovy[tags=class,indent=0]
 ----
 
-Will generate a Cypher relationship creation query as follows:
+When you save the relationship:
 
 [source,groovy]
 ----
-MATCH (from:Owner {__id__:{start}}), (to:Pet) WHERE to.__id__ IN {end} CREATE (from)-[r:PETS]->(to)
+include::{testsdir}/grails/gorm/tests/cypher/OneToManyCreateSpec.groovy[tags=save,indent=0]
+----
+
+The `save()` method will generate a Cypher relationship creation query as follows:
+
+[source,cypher]
+----
+MATCH (from:Owner),(to:Pet) WHERE ID(from) = {start} AND ID(to) IN {end} MERGE (from)-[r:PETS]->(to)
 ----
 
 As you can see from the query the relationship is defined as `(from)-[r:PETS]->(to)`, with the direction of the association defined by who "owns" the association. Since `Pet` defines a `belongTo` association to `Owner`, this means that `Owner` owns the association and the relationship is from `Owner` to `Pet`.

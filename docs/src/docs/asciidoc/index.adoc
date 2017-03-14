@@ -118,6 +118,11 @@ include::querying/cypher.adoc[]
 
 include::querying/indexing.adoc[]
 
+[[testing]]
+== Testing
+
+include::testing.adoc[]
+
 [[multipleDataSources]]
 == Multiple Data Sources
 include::multipleDataSources/index.adoc[]

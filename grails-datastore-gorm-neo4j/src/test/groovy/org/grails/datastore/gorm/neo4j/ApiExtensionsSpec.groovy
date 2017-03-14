@@ -50,7 +50,7 @@ class ApiExtensionsSpec extends GormDatastoreSpec {
         session.clear()
 
         when:
-        def result = team.cypher("MATCH (p:Team)<-[:CLUB]->(m) WHERE ID(p) = {this} return m")
+        def result = team.cypher("MATCH (p:Team)<-[:TEAMS]->(m) WHERE ID(p) = {this} return m")
 
         then:
         result.iterator().size() == 1

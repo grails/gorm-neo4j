@@ -29,13 +29,13 @@ class RelationshipUtilsSpec extends Specification {
 
         where:
         entty |    association             |  match                         |   bidirectional   |   owningSide
+        Foo   |   'bidirectionalBars'      | '-[:BIDIRECTIONALBARS]->'      |   true            |   true
+        Bar   |   'foo'                    | '<-[:BIDIRECTIONALBARS]-'      |   true            |   false
         Foo   |   'evenMoreBars'           | '<-[:EVEN_MOREEE]-'            |   false           |   true
         Foo   |   'soManyBars'             | '<-[:SOMANYBARS]->'            |   false           |   true
         Foo   |   'bars'                   | '-[:BARS]->'                   |   false           |   true
         Foo   |   'bar'                    | '-[:BAR]->'                    |   false           |   true
         Foo   |   'anotherBar'             | '-[:ANOTHERBAR]->'             |   false           |   true
-        Foo   |   'bidirectionalBars'      | '-[:FOO]->'                    |   true            |   true
-        Bar   |   'foo'                    | '<-[:FOO]-'                    |   true            |   false
     }
 
 

@@ -46,7 +46,7 @@ public class Neo4jConnectionSourceFactory extends AbstractConnectionSourceFactor
         final String password = settings.getPassword();
         final Neo4jConnectionSourceSettings.ConnectionType type = settings.getType();
         if(type == Neo4jConnectionSourceSettings.ConnectionType.embedded && ConnectionSource.DEFAULT.equals(name)) {
-            if(ClassUtils.isPresent("org.neo4j.harness.ServerControls") && EmbeddedNeo4jServer.isAvailable()) {
+            if(isEmbeddedAvailable()) {
                 Neo4jConnectionSourceSettings.EmbeddedSettings embeddedSettings = settings.getEmbedded();
                 final String location = settings.getLocation() != null ? settings.getLocation() : embeddedSettings.getDirectory();
                 final Map options = embeddedSettings.getOptions();
@@ -94,4 +94,12 @@ public class Neo4jConnectionSourceFactory extends AbstractConnectionSourceFactor
     public Serializable getConnectionSourcesConfigurationKey() {
         return Settings.SETTING_CONNECTIONS;
     }
+
+    /**
+     * @return Whether the embedded server capability is available or not
+     */
+    public static boolean isEmbeddedAvailable() {
+        return ClassUtils.isPresent("org.neo4j.harness.ServerControls", Neo4jConnectionSourceFactory.class.getClassLoader());
+    }
+
 }

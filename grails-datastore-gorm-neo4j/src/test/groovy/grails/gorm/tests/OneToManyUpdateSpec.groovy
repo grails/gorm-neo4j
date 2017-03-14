@@ -1,5 +1,6 @@
 package grails.gorm.tests
 
+import org.springframework.dao.DataIntegrityViolationException
 import spock.lang.Issue
 
 /*
@@ -110,7 +111,12 @@ class OneToManyUpdateSpec extends GormDatastoreSpec {
         t = Team.first()
         then:"The association was cleared"
         t != null
-        t.club == null
+
+        when:
+        t.club.name
+
+        then:
+        thrown DataIntegrityViolationException
 
     }
 

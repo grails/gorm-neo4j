@@ -74,6 +74,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.grails.datastore.gorm.neo4j.config.Settings.DATABASE_TYPE_EMBEDDED;
+import static org.grails.datastore.gorm.neo4j.config.Settings.SETTING_NEO4J_EMBEDDED_EPHEMERAL;
+import static org.grails.datastore.gorm.neo4j.config.Settings.SETTING_NEO4J_TYPE;
+
 /**
  * Datastore implementation for Neo4j backend
  *
@@ -267,12 +271,13 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
     }
 
     /**
-     * Configures a new {@link Neo4jDatastore} for the given arguments
+     * Configures a new {@link Neo4jDatastore} for the given arguments. This constructor is mainly used for testing, since no configuration is supplied
+     * it will be default try to create an embedded server
      *
      * @param classes The persistent classes
      */
     public Neo4jDatastore(Class...classes) {
-        this(mapToPropertyResolver(null), classes);
+        this(resolveEmbeddedConfiguration(), classes);
     }
 
     /**
@@ -295,7 +300,6 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
         this(configuration, new DefaultApplicationEventPublisher(), classes);
     }
 
-
     /**
      * Construct a Mongo datastore scanning the given packages
      *
@@ -304,6 +308,16 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
     public Neo4jDatastore(Package...packagesToScan) {
         this(new ClasspathEntityScanner().scan(packagesToScan));
     }
+
+    /**
+     * Construct a Mongo datastore scanning the given packages
+     *
+     * @param packageToScan The packages to scan
+     */
+    public Neo4jDatastore(Package packageToScan) {
+        this(new ClasspathEntityScanner().scan(packageToScan));
+    }
+
 
     /**
      * Construct a Mongo datastore scanning the given packages
@@ -325,7 +339,6 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
         this(DatastoreUtils.createPropertyResolver(configuration), packagesToScan);
     }
 
-
     /**
      * @return The transaction manager
      */
@@ -333,6 +346,7 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
     public Neo4jDatastoreTransactionManager getTransactionManager() {
         return transactionManager;
     }
+
 
     @Override
     public ConfigurableApplicationEventPublisher getApplicationEventPublisher() {
@@ -368,6 +382,18 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
                 defaultValidatorRegistry
         );
         return neo4jMappingContext;
+    }
+
+    private static PropertyResolver resolveEmbeddedConfiguration() {
+        if(Neo4jConnectionSourceFactory.isEmbeddedAvailable()) {
+            Map<String, Object> config = new LinkedHashMap<>();
+            config.put(SETTING_NEO4J_TYPE, DATABASE_TYPE_EMBEDDED);
+            config.put(SETTING_NEO4J_EMBEDDED_EPHEMERAL, true );
+            return mapToPropertyResolver(config);
+        }
+        else {
+            return mapToPropertyResolver(null);
+        }
     }
 
     private static ValidatorRegistry createValidatorRegistry(Neo4jConnectionSourceSettings settings, Neo4jMappingContext neo4jMappingContext, MessageSource messageSource) {

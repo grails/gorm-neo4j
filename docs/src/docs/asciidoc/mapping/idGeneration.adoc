@@ -14,24 +14,42 @@ Club.saveAll([
 ])
 ----
 
-However, it is generally better to consider a different id generation strategy. The recommended approach is to use `assigned` identifiers that relate to your domain. For example:
+However, it is generally better to consider a different id generation strategy.
+
+==== Assigned Identifiers
+
+The recommended approach is to use `assigned` identifiers that relate to your domain. For example:
 
 [source,groovy]
 ----
-import static grails.neo4j.mapping.MappingBuilder.*
-class Club {
-    String name
-    ...
-    static mapping = node {
-        id {
-            generator "assigned"
-            name "name"
-        }
-    }
-
-}
+include::{testsdir}/grails/gorm/tests/assignedid/domain/Owner.groovy[tags=class,indent=0]
+include::{testsdir}/grails/gorm/tests/assignedid/domain/Pet.groovy[tags=class,indent=0]
 ----
 
+With assigned identifiers GORM can do a much better job of optimizing write operations. For example the following logic:
+
+[source,groovy]
+----
+include::{testsdir}/grails/gorm/tests/assignedid/OneToManyCreateSpec.groovy[tags=save,indent=0]
+----
+
+GORM will generate the following Cypher:
+
+[source,cypher]
+----
+UNWIND {ownerBatch} as row
+CREATE (owner:Owner)
+SET owner += row.props
+FOREACH (pets IN row.pets |
+    CREATE (pet:Pet)
+    SET pet += pets.props
+    MERGE (owner)-[:PETS]->(pet)
+)
+----
+
+Notice how `UNWIND` and `FOREACH` are used to create both the entity and its associations in one go, significantly improving write performance for large data sets.
+
+==== Snowflake Identifiers
 
 Another option is a custom identity generator based on the Snowflake algorithm and stores the generated identifier in a property of each Neo4j node called `__id__`:
 
@@ -50,6 +68,8 @@ class Club {
 }
 ----
 
+==== Globally Changing Identity Strategy
+
 If you wish to globally change id generation then you can do so in `grails-app/conf/application.groovy` (`Config.groovy` in Grails 2.x):
 
 
@@ -59,6 +79,8 @@ grails.neo4j.default.mapping = {
     id generator:'assigned'
 }
 ----
+
+==== Custom Identifiers
 
 In addition, if you wish to use a custom identity generation strategy you can do so by specifying a class name that implements the `IdGenerator` interface:
 

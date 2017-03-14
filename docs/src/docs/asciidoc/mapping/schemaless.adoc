@@ -32,6 +32,7 @@ class Plant {
  }
 ----
 
+
 With this in place you can define dynamic associations:
 
 [source,groovy]
@@ -41,7 +42,8 @@ def p = new Plant(name:"Carrot")
   p.save(flush:true)
 ----
 
-The downside of dynamic associations is that GORM has to issue a separate query for each loaded instance when retrieving entities. If you have a small amount of data this is not a problem, but for larger data sets it is not recommended.
+WARNING: Dynamic associations have a runtime performance cost and are not recommended since GORM has to issue a separate query for each instance to obtain the dynamic associations. The functionality they provide should instead be modelled with Relationship entities (see the next section).
+
 
 
 

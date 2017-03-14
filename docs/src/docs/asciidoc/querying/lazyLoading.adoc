@@ -28,14 +28,54 @@ def club = Club.findByName("Manchester United")
 
 You will get the following Cypher query:
 
-[source,groovy]
+[source,cypher]
 ----
-MATCH (n:Club) WHERE ( n.__id__={1} )
-OPTIONAL MATCH(n)-[:LEAGUE]->(leagueNode)
-RETURN n as data, collect(DISTINCT leagueNode.__id__) as leagueIds
+MATCH (n:Club) WHERE ( ID(n)={1} ) RETURN n as data
 ----
 
-As you can see the `teams` association is not loaded in the query, and only the ID of the `league` association is retrieved. If you then iterate over the teams you will get a second query to obtain the teams:
+As you can see the `teams` association is not loaded in the query and nor is the `league` association. Note that if you were to make the `league` association nullable:
+
+[source,groovy]
+----
+class Club {
+ ...
+ static belongsTo = [league:League]
+ static constraints = {
+    league nullable:true
+ }
+}
+----
+
+This would alter the query executed to:
+
+[source,cypher]
+----
+MATCH (n:Club) WHERE ( ID(n) = {1} )
+OPTIONAL MATCH(n)-[:LEAGUE]->(leagueNode)
+RETURN n as data, collect(DISTINCT ID(leagueNode)) as leagueIds
+----
+
+Note that only the ID of the `league` association is retrieved.
+
+The reason the `id` of the associated entity is retrieved is to differentiate between whether an association exists or is `null`. You can restore the previous behaviour by making the `league` association `lazy`:
+
+[source,groovy]
+----
+class Club {
+ ...
+ static belongsTo = [league:League]
+ static constraints = {
+    league nullable:true
+ }
+ static maping = {
+    league lazy:true
+ }
+}
+----
+
+However if you were to access the `league` association and it were `null` you would get an exception.
+
+With all of these approaches, if you then iterate over the teams you will get a second query to obtain the teams:
 
 [source,groovy]
 ----
@@ -48,7 +88,7 @@ The query generated will be:
 
 [source,groovy]
 ----
-MATCH (from:Club)<-[:CLUB]-(to:Team) WHERE from.__id__ = {id} RETURN to as data
+MATCH (from:Club)-[:TEAMS]->(to:Team) WHERE ID(from) = {id} RETURN to as data
 ----
 
 If you wish to avoid this secondary query to retrieve the data you can do so using an eager query:
@@ -74,12 +114,11 @@ def club = query.get {
 
 This will instead generate the following query:
 
-[source,groovy]
+[source,cypher]
 ----
 MATCH (n:Club) WHERE ( n.name={1} )
-OPTIONAL MATCH(n)<-[:CLUB]-(teamsNode)
-OPTIONAL MATCH(n)-[:LEAGUE]->(leagueNode)
-RETURN n as data, collect(DISTINCT leagueNode.__id__) as leagueIds, collect(DISTINCT teamsNode) as teamsNodes
+OPTIONAL MATCH(n)-[:TEAMS]->(teamsNode) WITH n, collect(DISTINCT teamsNode) as teamsNodes
+RETURN n as data, teamsNodes
 ----
 
 As you can see the associated team nodes are loaded by the query. If you prefer this to happen for every query, then this can also be configured in the mapping:
