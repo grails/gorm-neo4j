@@ -29,12 +29,12 @@ class AssignedIdSpec extends Specification {
         def coconut = new Fruit(name: "Coconut")
         Origin origin = new Origin(country: "Brazil", nationalFruit: coconut)
         coconut.origin = origin
-        origin.save()
+        origin.save(flush:true)
         expect:"An object with an assigned id is saved"
         !origin.errors.hasErrors()
+        origin.id != null // check node id is set
         new Fruit(name: "Apple", origin: origin).save()
         new Fruit(name: "Banana", origin: origin).save(flush:true)
-
     }
     @Rollback
     void "test save object with assigned identifier"() {
@@ -59,6 +59,7 @@ class AssignedIdSpec extends Specification {
         when:
         Fruit fruit = Fruit.get('Apple')
         then:
+        fruit.id != null
         Fruit.findByName('Apple').name == "Apple"
         fruit.name == "Apple"
         fruit.origin.country == "Brazil"
@@ -175,6 +176,9 @@ class Fruit {
     static belongsTo = [origin: Origin]
     static mappedBy = [origin: 'fruits']
     static mapping = node {
+        origin property {
+            lazy true
+        }
         id {
             generator "assigned"
             name "name"

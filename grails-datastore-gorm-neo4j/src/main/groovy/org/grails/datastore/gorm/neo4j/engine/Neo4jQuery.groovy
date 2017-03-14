@@ -493,10 +493,13 @@ class Neo4jQuery extends Query {
                          String associationNodeRef = "${associationName}Node"
                          String associationNodesRef = "${associationName}Nodes"
 
-                         if(!fetchType.is(fetchType.EAGER) && !a.mapping.mappedForm.lazy) {
-                             withMatch += "collect(DISTINCT ${associatedGraphEntity.formatId(associationNodeRef)}) as ${associationIdsRef}"
-                             cypherBuilder.addReturnColumn(associationIdsRef)
-                             previousAssociations << associationIdsRef
+                         if(!fetchType.is(fetchType.EAGER) ) {
+                             if(!a.mapping.mappedForm.lazy) {
+                                 withMatch += "collect(DISTINCT ${associatedGraphEntity.formatId(associationNodeRef)}) as ${associationIdsRef}"
+                                 cypherBuilder.addReturnColumn(associationIdsRef)
+                                 previousAssociations << associationIdsRef
+                                 cypherBuilder.addOptionalMatch("(n)${associationMatch}(${associationNodeRef}) ${withMatch}")
+                             }
                          }
                          else {
                              withMatch += "collect(DISTINCT ${associationNodeRef}) as ${associationNodesRef}"
@@ -507,8 +510,8 @@ class Neo4jQuery extends Query {
                              }
 
                              previousAssociations << associationNodesRef
+                             cypherBuilder.addOptionalMatch("(n)${associationMatch}(${associationNodeRef}) ${withMatch}")
                          }
-                         cypherBuilder.addOptionalMatch("(n)${associationMatch}(${associationNodeRef}) ${withMatch}")
                      }
                  }
              }

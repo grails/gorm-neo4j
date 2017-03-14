@@ -1,5 +1,6 @@
 package org.grails.datastore.gorm.neo4j.engine;
 
+import groovy.lang.GroovyObject;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.grails.datastore.gorm.GormEntity;
 import org.grails.datastore.gorm.neo4j.*;
@@ -393,6 +394,12 @@ public class Neo4jEntityPersister extends EntityPersister {
         GraphPersistentEntity graphPersistentEntity = (GraphPersistentEntity) persistentEntity;
         EntityAccess entityAccess = session.createEntityAccess(persistentEntity, persistentEntity.newInstance());
         entityAccess.setIdentifierNoConversion(id);
+
+        PersistentProperty nodeId = graphPersistentEntity.getNodeId();
+        if( nodeId != null ) {
+            ((GroovyObject)entityAccess.getEntity()).setProperty(nodeId.getName(), node.id());
+        }
+
         final Object entity = entityAccess.getEntity();
         session.cacheInstance(persistentEntity.getJavaClass(), id, entity);
 

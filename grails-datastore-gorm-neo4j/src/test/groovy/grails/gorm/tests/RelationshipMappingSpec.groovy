@@ -193,19 +193,7 @@ class RelationshipMappingSpec extends GormDatastoreSpec{
 
     void "test relationship join fetching"() {
         given: " A relationship"
-        Celeb c = new Celeb(name: "Keanu")
-        c.save()
-        Celeb c2 = new Celeb(name: "Carrie-Anne")
-        c2.save()
-        Movie m = new Movie(title: "The Matrix")
-        m.addToCast(
-                new CastMember(type: "ACTED_IN", from: c, to: m, roles: ['Neo'])
-        )
-        m.addToCast(
-                new CastMember(type: "ACTED_IN", from: c2, to: m, roles: ['Trinity'])
-        )
-        m.save(flush:true)
-        neo4jDatastore.currentSession.clear()
+        setupRelationship()
 
 
         when:"A relationship is join fetched"
@@ -219,8 +207,44 @@ class RelationshipMappingSpec extends GormDatastoreSpec{
         !(castMember.to instanceof EntityProxy)
         !(castMember.from instanceof EntityProxy)
 
+    }
 
+    void "test convert relationship to entity"() {
+        given: " A relationship"
+        setupRelationship()
 
+        when:" a query is executed that returns a relationship"
+        String title = "The Matrix"
+        List results = Movie.executeQuery("MATCH (m:Movie)-[r]-(to) WHERE m.title = $title RETURN r")
+
+        then:
+        !results.isEmpty()
+        results.get(0) instanceof org.neo4j.driver.v1.types.Relationship
+
+        when:"The relationship is converted"
+        CastMember castMember = results.get(0) as CastMember
+
+        then:"it is correct"
+        castMember != null
+        castMember.id != null
+        castMember.to.title == title
+
+    }
+
+    protected void setupRelationship() {
+        Celeb c = new Celeb(name: "Keanu")
+        c.save()
+        Celeb c2 = new Celeb(name: "Carrie-Anne")
+        c2.save()
+        Movie m = new Movie(title: "The Matrix")
+        m.addToCast(
+                new CastMember(type: "ACTED_IN", from: c, to: m, roles: ['Neo'])
+        )
+        m.addToCast(
+                new CastMember(type: "ACTED_IN", from: c2, to: m, roles: ['Trinity'])
+        )
+        m.save(flush: true)
+        neo4jDatastore.currentSession.clear()
     }
 
 }

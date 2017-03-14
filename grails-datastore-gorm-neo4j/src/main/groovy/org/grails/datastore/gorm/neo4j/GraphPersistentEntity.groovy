@@ -78,9 +78,10 @@ class GraphPersistentEntity extends AbstractPersistentEntity<NodeConfig> {
                 this.idGenerator = createIdGenerator(generatorType)
                 if(identity.name != GormProperties.IDENTITY) {
                     MetaProperty idProp = getJavaClass().getMetaClass().getMetaProperty(GormProperties.IDENTITY)
-                    if(idProp != null) {
+                    if(idProp != null && Long.class.isAssignableFrom(idProp.getType())) {
                         MappingFactory mappingFactory = mappingContext.mappingFactory
                         nodeId = mappingFactory.createSimple(this, context, mappingFactory.createPropertyDescriptor(javaClass, idProp))
+                        propertiesByName.put(GormProperties.IDENTITY, nodeId)
                     }
                 }
             }

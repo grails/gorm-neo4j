@@ -44,4 +44,9 @@ class NodeConfig extends Entity<Attribute> {
      * @return True if the entity supports dynamic associations
      */
     boolean dynamicAssociations
+
+    @Override
+    protected Attribute newProperty() {
+        return new Attribute()
+    }
 }

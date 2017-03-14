@@ -151,18 +151,24 @@ class Neo4jGormStaticApi<D> extends GormStaticApi<D> {
     @Override
     List executeQuery(CharSequence query, Map params, Map args) {
         StatementResult result = cypherStatic(query, params)
+        adaptResults(result)
+    }
+
+    protected List adaptResults(StatementResult result) {
         result.list({ Record r ->
-            r.asMap()
+            def map = r.asMap()
+            if (map.size() == 1) {
+                return map.values().first()
+            } else {
+                return map
+            }
         } as Function<Record, Map>)
     }
 
     @Override
     List executeQuery(CharSequence query, Collection params, Map args) {
         StatementResult result = cypherStatic(query, params.toList())
-        result.list({ Record r ->
-            r.asMap()
-        } as Function<Record, Map>)
-
+        adaptResults(result)
     }
 
     @Override

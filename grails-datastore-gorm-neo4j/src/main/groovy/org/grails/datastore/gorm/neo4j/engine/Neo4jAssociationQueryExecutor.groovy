@@ -28,6 +28,7 @@ import org.grails.datastore.mapping.model.PersistentEntity
 import org.grails.datastore.mapping.model.config.GormProperties
 import org.grails.datastore.mapping.model.types.Association
 import org.grails.datastore.mapping.model.types.Basic
+import org.grails.datastore.mapping.model.types.ToMany
 import org.grails.datastore.mapping.model.types.ToOne
 import org.neo4j.driver.v1.Session
 import org.neo4j.driver.v1.StatementResult
@@ -107,9 +108,10 @@ class Neo4jAssociationQueryExecutor implements AssociationQueryExecutor<Serializ
         cypher.append(parent.formatId(RelationshipPersistentEntity.FROM))
               .append(" = {id} RETURN ")
 
-        if(lazy && !isRelationship) {
+        boolean isLazyToMany = lazy && !isRelationship && association instanceof ToMany
+        if(isLazyToMany) {
             cypher.append(related.formatId(RelationshipPersistentEntity.TO))
-                  .append("as id")
+                  .append(" as id")
         }
         else {
             if(!isRelationship) {
@@ -129,13 +131,11 @@ class Neo4jAssociationQueryExecutor implements AssociationQueryExecutor<Serializ
         log.debug("QUERY Cypher [$cypher] for params [$params]")
 
         StatementResult result = statementRunner.run(cypher.toString(), params)
-        if(isLazy() && !isRelationship) {
+        if(isLazyToMany) {
             List<Object> results = []
             while(result.hasNext()) {
-                def id = result.next().get(GormProperties.IDENTITY).asNumber()
-                if(id instanceof Long) {
-                    results.add( session.proxy(related.javaClass, id) )
-                }
+                def id = result.next().get(GormProperties.IDENTITY).asObject()
+                results.add( session.proxy(related.javaClass, id as Serializable) )
             }
             return results
         }

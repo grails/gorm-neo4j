@@ -1,8 +1,10 @@
 ==== 6.1.x
 
+* Support for assigned identifiers
+* Batch inserts with UNWIND and FOREACH when using assigned ids
 * Support for mapping entities to Neo4j Relationships
 * Support for lists and maps of basic types
-* Upgrade to Neo4j Bolt Driver 1.1
+* Upgrade to Neo4j Bolt Driver 1.2
 
 ==== 6.0.x
 
