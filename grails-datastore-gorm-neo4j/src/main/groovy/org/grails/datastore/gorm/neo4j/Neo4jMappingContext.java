@@ -74,7 +74,7 @@ public class Neo4jMappingContext extends AbstractMappingContext  {
     GraphGormMappingFactory mappingFactory = new GraphGormMappingFactory();
     MappingConfigurationStrategy mappingSyntaxStrategy = new GormMappingConfigurationStrategy(mappingFactory);
 
-    protected Map<Collection<String>, GraphPersistentEntity> entitiesByLabel = new LinkedHashMap<Collection<String>, GraphPersistentEntity>();
+    protected Map<Iterable<String>, GraphPersistentEntity> entitiesByLabel = new LinkedHashMap<>();
 
     // default id generator strategy is native
     protected IdGenerator idGenerator = null;
@@ -139,7 +139,7 @@ public class Neo4jMappingContext extends AbstractMappingContext  {
      * @param labels The labels
      * @return The entity or null if it is not found
      */
-    public GraphPersistentEntity findPersistentEntityForLabels(Collection<String> labels) {
+    public GraphPersistentEntity findPersistentEntityForLabels(Iterable<String> labels) {
         final GraphPersistentEntity entity = entitiesByLabel.get(labels);
         if(entity != null) {
             return entity;

@@ -358,6 +358,11 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
         return datastoresByConnectionSource.get(connectionName);
     }
 
+    @Override
+    public Neo4jMappingContext getMappingContext() {
+        return (Neo4jMappingContext)super.getMappingContext();
+    }
+
     /**
      * Creates the connection sources for an existing {@link Driver}
      *

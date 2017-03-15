@@ -20,15 +20,11 @@ import org.grails.datastore.gorm.neo4j.Neo4jDatastore
 import org.grails.datastore.gorm.neo4j.Neo4jSession
 import org.grails.datastore.gorm.neo4j.collection.Neo4jResultList
 import org.grails.datastore.mapping.core.AbstractDatastore
-import org.neo4j.driver.internal.InternalRelationship
-import org.neo4j.driver.v1.Session
 import org.neo4j.driver.v1.StatementResult
 import org.neo4j.driver.v1.StatementRunner
-import org.neo4j.driver.v1.types.Entity
 import org.neo4j.driver.v1.types.MapAccessor
 import org.neo4j.driver.v1.types.Node
-import org.neo4j.graphdb.Relationship
-
+import org.neo4j.driver.v1.types.Relationship
 
 /**
  * Extension methods to improve the Neo4j experience in Groovy.
@@ -92,11 +88,11 @@ class Neo4jExtensions {
      * @param c The domain class type
      * @return The domain instance
      */
-    static <N> N asType(InternalRelationship rel, Class<N> c) {
+    static <N> N asType(Relationship rel, Class<N> c) {
         Neo4jSession session = (Neo4jSession)AbstractDatastore.retrieveSession(Neo4jDatastore)
         def entityPersister = session.getEntityPersister(c)
         if(entityPersister != null) {
-            return (N)entityPersister.unmarshallOrFromCache(entityPersister.getPersistentEntity(), (org.neo4j.driver.v1.types.Relationship)rel, Collections.emptyMap(), Collections.emptyMap())
+            return (N)entityPersister.unmarshallOrFromCache(entityPersister.getPersistentEntity(), rel, Collections.emptyMap(), Collections.emptyMap())
         }
         else {
             throw new ClassCastException("Class [$c.name] is not a GORM relationship entity")

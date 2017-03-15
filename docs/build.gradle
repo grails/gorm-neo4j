@@ -45,6 +45,7 @@ asciidoctor {
                 'pluginVersion' : project.version - '.RELEASE',
                 'neo4jVersion'  : neo4jVersion,
                 'sourcedir'     : "${project.rootProject.projectDir}/grails-datastore-gorm-neo4j/src/main/groovy",
+                'exampledir'     : "${project.rootProject.projectDir}/examples/grails3-neo4j",
                 'testsdir'     : "${project.rootProject.projectDir}/grails-datastore-gorm-neo4j/src/test/groovy"
 }
 

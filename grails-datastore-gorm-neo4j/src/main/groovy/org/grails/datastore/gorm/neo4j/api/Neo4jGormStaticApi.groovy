@@ -1,17 +1,23 @@
 package org.grails.datastore.gorm.neo4j.api
 
 import grails.gorm.multitenancy.Tenants
+import grails.neo4j.Path
 import groovy.transform.CompileStatic
 import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
 import org.grails.datastore.gorm.GormStaticApi
 import org.grails.datastore.gorm.finders.FinderMethod
+import org.grails.datastore.gorm.neo4j.GraphPersistentEntity
 import org.grails.datastore.gorm.neo4j.Neo4jDatastore
 import org.grails.datastore.gorm.neo4j.Neo4jSession
+import org.grails.datastore.gorm.neo4j.RelationshipPersistentEntity
+import org.grails.datastore.gorm.neo4j.collection.Neo4jPath
 import org.grails.datastore.gorm.neo4j.collection.Neo4jResultList
 import org.grails.datastore.gorm.neo4j.extensions.Neo4jExtensions
 import org.grails.datastore.mapping.core.Datastore
 import org.grails.datastore.mapping.core.SessionCallback
+import org.grails.datastore.mapping.engine.EntityPersister
+import org.grails.datastore.mapping.model.PersistentEntity
 import org.grails.datastore.mapping.model.config.GormProperties
 import org.grails.datastore.mapping.multitenancy.MultiTenancySettings
 import org.grails.datastore.mapping.multitenancy.exceptions.TenantNotFoundException
@@ -19,6 +25,8 @@ import org.grails.datastore.mapping.query.QueryException
 import org.neo4j.driver.v1.Record
 import org.neo4j.driver.v1.StatementResult
 import org.neo4j.driver.v1.StatementRunner
+import org.neo4j.driver.v1.Value
+import org.neo4j.driver.v1.types.Node
 import org.neo4j.driver.v1.util.Function
 import org.springframework.transaction.PlatformTransactionManager
 
@@ -181,6 +189,68 @@ class Neo4jGormStaticApi<D> extends GormStaticApi<D> {
         return super.executeUpdate(query, params, args)
     }
 
+
+    Path findPath(CharSequence query, Map params) {
+        StatementResult result = cypherStatic(query, params)
+        if(result.hasNext()) {
+            Record record = result.next()
+            GraphPersistentEntity graphEntity = (GraphPersistentEntity) persistentEntity
+            return new Neo4jPath((Neo4jDatastore)datastore, record.values().first().asPath(), graphEntity, graphEntity)
+        }
+        return null
+    }
+
+    Path findPathTo(Class type, CharSequence query, Map params) {
+        StatementResult result = cypherStatic(query, params)
+        if(result.hasNext()) {
+            Record record = result.next()
+            GraphPersistentEntity graphEntity = (GraphPersistentEntity) persistentEntity
+            GraphPersistentEntity toEntity = (GraphPersistentEntity)persistentEntity.mappingContext.getPersistentEntity(type.name)
+            if(toEntity == null) {
+                throw new QueryException("Target type [$type] is not a persistent entity")
+            }
+            return new Neo4jPath((Neo4jDatastore)datastore, record.values().first().asPath(), graphEntity, toEntity)
+        }
+        return null
+    }
+
+    public <F, T> Path<F, T> findShortestPath(F from, T to, int maxDistance = 10) {
+        (Path<F, T>)execute({ Neo4jSession session ->
+            EntityPersister fromPersister = (EntityPersister) session.getPersister(from)
+            EntityPersister toPersister = (EntityPersister) session.getPersister(to)
+            GraphPersistentEntity fromEntity = (GraphPersistentEntity) fromPersister?.getPersistentEntity()
+            GraphPersistentEntity toEntity = (GraphPersistentEntity) toPersister?.getPersistentEntity()
+            if(fromEntity == null) {
+                throw new QueryException("From type [$from] is not a persistent entity")
+            }
+            if(toEntity == null) {
+                throw new QueryException("Target type [$to] is not a persistent entity")
+            }
+
+            Serializable fromId = fromPersister.getObjectIdentifier(from)
+            Serializable toId = toPersister.getObjectIdentifier(to)
+            if(fromId == null) {
+                throw new QueryException("From type [$from] has not been persisted (null id)")
+            }
+            if(toId == null) {
+                throw new QueryException("Target type [$to] has not been persisted (null id)")
+            }
+            String query = """MATCH ${
+                fromEntity.formatMatch(RelationshipPersistentEntity.FROM)
+            },${
+                toEntity.formatMatch(RelationshipPersistentEntity.TO)
+            }, p = shortestPath((from)-[*..$maxDistance]-(to)) WHERE ${
+                fromEntity.formatId(RelationshipPersistentEntity.FROM)
+            } = {start} AND ${toEntity.formatId(RelationshipPersistentEntity.TO)} = {end} RETURN p"""
+            StatementResult result = cypherStatic(query, [start: fromId, end: toId])
+            if(result.hasNext()) {
+                Record record = result.next()
+                return new Neo4jPath((Neo4jDatastore)datastore, record.values().first().asPath(), (GraphPersistentEntity)fromEntity, (GraphPersistentEntity)toEntity)
+            }
+            return null
+
+        } as SessionCallback)
+    }
     /**
      * perform a cypher query
      *

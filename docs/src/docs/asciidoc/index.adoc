@@ -118,6 +118,16 @@ include::querying/cypher.adoc[]
 
 include::querying/indexing.adoc[]
 
+[[paths]]
+=== Querying for Paths
+
+include::querying/paths.adoc[]
+
+[[dataServices]]
+=== GORM for Neo4j Data Services
+
+include::dataServices.adoc[]
+
 [[testing]]
 == Testing
 

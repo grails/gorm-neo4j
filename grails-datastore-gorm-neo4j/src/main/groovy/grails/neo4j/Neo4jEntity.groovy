@@ -105,6 +105,59 @@ trait Neo4jEntity<D> implements GormEntity<D>, DynamicAttributes {
     }
 
     /**
+     * Execute cypher that finds a path to the given entity
+     *
+     * @param cypher The cypher
+     * @return The path
+     */
+    static Path<D, D> findPath(CharSequence cypher) {
+        ((Neo4jGormStaticApi) GormEnhancer.findStaticApi(this)).findPath(cypher, Collections.emptyMap())
+    }
+
+    /**
+     * Execute cypher that finds a path to the given entity
+     *
+     * @param from The from entity (can be a proxy)
+     * @param to The to entity (can be a proxy)
+     * @param maxDistance The maximum distance to traverse (defaults to 10)
+     * @return The path or null if non exists
+     */
+    static <F, T> Path<F, T> findShortestPath(F from, T to, int maxDistance = 10) {
+        ((Neo4jGormStaticApi) GormEnhancer.findStaticApi(this)).findShortestPath(from, to, maxDistance)
+    }
+    /**
+     * Execute cypher that finds a path to the given entity
+     *
+     * @param cypher The cypher
+     * @param params The parameters
+     * @return The path or null if non exists
+     */
+    static Path<D, D> findPath(CharSequence cypher, Map params) {
+        ((Neo4jGormStaticApi) GormEnhancer.findStaticApi(this)).findPath(cypher, params)
+    }
+
+    /**
+     * Execute cypher that finds a path to the given entity
+     *
+     * @param type The type to find a path to
+     * @param cypher The cypher
+     * @return The path
+     */
+    static <T> Path<D, T> findPathTo(Class<T> type, CharSequence cypher) {
+        ((Neo4jGormStaticApi) GormEnhancer.findStaticApi(this)).findPathTo(type, cypher, Collections.emptyMap())
+    }
+
+    /**
+     * Execute cypher that finds a path to the given entity
+     *
+     * @param cypher The cypher
+     * @return The path
+     */
+    static <T> Path<D, T> findPathTo(Class<T> type, CharSequence cypher, Map params) {
+        ((Neo4jGormStaticApi) GormEnhancer.findStaticApi(this)).findPathTo(type, cypher, params)
+    }
+
+    /**
      * perform a cypher query
      * @param queryString
      * @return

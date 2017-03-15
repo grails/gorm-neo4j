@@ -68,6 +68,16 @@ class RelationshipPersistentEntity extends GraphPersistentEntity {
     }
 
     @Override
+    String formatProperty(String variable, String property) {
+        if(property.startsWith(FROM) || property.startsWith(TO)) {
+            return property
+        }
+        else {
+            return super.formatProperty(variable, property)
+        }
+    }
+
+    @Override
     boolean isVersioned() {
         return false
     }

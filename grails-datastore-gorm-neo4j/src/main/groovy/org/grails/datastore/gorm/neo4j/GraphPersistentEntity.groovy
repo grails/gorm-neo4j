@@ -228,6 +228,15 @@ class GraphPersistentEntity extends AbstractPersistentEntity<NodeConfig> {
     }
 
     /**
+     * Format a match to this entity node
+     * @param variable The name of the variable for the id of the node
+     * @return The formatted match
+     */
+    String formatMatch(String variable) {
+        return "(${variable}${labelsAsString})"
+    }
+
+    /**
      * Formats a batch UNWIND statement for the given id
      *
      * @param batchId The batch id
