@@ -490,7 +490,9 @@ public class Neo4jSession extends AbstractSession<Session> {
 
 
                             for (Association association : graphEntity.getAssociations()) {
-                                if(association.isOwningSide() && !association.isBasic()) {
+                                if(association.isBasic()) continue;
+                                boolean isTree = association.isCircular();
+                                if(association.isOwningSide() || isTree) {
                                     RelationshipUpdateKey key = new RelationshipUpdateKey((Serializable) parentId, association);
                                     Collection<Serializable> childIds = pendingRelationshipInserts.get(key);
                                     if(childIds != null) {

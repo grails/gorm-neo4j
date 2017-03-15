@@ -258,11 +258,11 @@ SET $variableId += row.${CypherBuilder.PROPS}
      */
     String formatBatchCreate(String parentVariable, Association association) {
         String batchId = association.name
-        GraphPersistentEntity associatedEntity = (GraphPersistentEntity)association.associatedEntity
+        String variableId = association.isCircular() ? 'child' : variableId
         """FOREACH (${batchId} IN row.${batchId} |
 CREATE ($variableId$labelsAsString)
 SET $variableId += ${batchId}.${CypherBuilder.PROPS}
-${formatAssociationMerge(association, parentVariable, associatedEntity.variableId)})"""
+${formatAssociationMerge(association, parentVariable, variableId)})"""
     }
 
     /**
