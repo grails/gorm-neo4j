@@ -16,14 +16,17 @@
 package org.grails.datastore.gorm.neo4j.extensions
 
 import groovy.transform.CompileStatic
+import org.codehaus.groovy.runtime.typehandling.GroovyCastException
 import org.grails.datastore.gorm.neo4j.Neo4jDatastore
 import org.grails.datastore.gorm.neo4j.Neo4jSession
+import org.grails.datastore.gorm.neo4j.collection.Neo4jPath
 import org.grails.datastore.gorm.neo4j.collection.Neo4jResultList
 import org.grails.datastore.mapping.core.AbstractDatastore
 import org.neo4j.driver.v1.StatementResult
 import org.neo4j.driver.v1.StatementRunner
 import org.neo4j.driver.v1.types.MapAccessor
 import org.neo4j.driver.v1.types.Node
+import org.neo4j.driver.v1.types.Path
 import org.neo4j.driver.v1.types.Relationship
 
 /**
@@ -96,6 +99,24 @@ class Neo4jExtensions {
         }
         else {
             throw new ClassCastException("Class [$c.name] is not a GORM relationship entity")
+        }
+    }
+
+    /**
+     * Allow casting from a Neo4j path to a GORM Path
+     *
+     * @param path The path
+     *
+     * @param c The domain class type
+     * @return The domain instance
+     */
+    static grails.neo4j.Path asType(Path path, Class<grails.neo4j.Path> c) {
+        if(grails.neo4j.Path.isAssignableFrom(c)) {
+            Neo4jSession session = (Neo4jSession)AbstractDatastore.retrieveSession(Neo4jDatastore)
+            return new Neo4jPath<>(session.datastore, path)
+        }
+        else {
+            throw new GroovyCastException(path, c)
         }
     }
 

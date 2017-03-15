@@ -65,16 +65,23 @@ trait Neo4jEntity<D> implements GormEntity<D>, DynamicAttributes {
     }
 
     /**
-     * perform a cypher query
-     * @param queryString
-     * @param params
-     * @return
+     * Perform a cypher query. The id if this entity will be included within a parameter called "this" passed to the query execution
+     *
+     * @param cypher The cypher query
+     * @param params The parameters
+     * @return The statement result
      */
-    StatementResult cypher(String queryString, Map params) {
+    StatementResult cypher(CharSequence cypher, Map params) {
         GormEnhancer.findDatastore(getClass()).withSession { Neo4jSession session ->
             StatementRunner boltSession = getStatementRunner(session)
 
-
+            String queryString
+            if(cypher instanceof GString) {
+                queryString = Neo4jGormStaticApi.buildNamedParameterQueryFromGString((GString) cypher, params)
+            }
+            else {
+                queryString = cypher.toString()
+            }
             params['this'] = session.getObjectIdentifier(this)
             includeTenantIdIfNecessary(session, queryString, params)
             boltSession.run(queryString, (Map<String, Object>) params)
@@ -82,25 +89,26 @@ trait Neo4jEntity<D> implements GormEntity<D>, DynamicAttributes {
     }
 
     /**
-     * perform a cypher query
-     * @param queryString
-     * @param params
-     * @return
+     * Perform a cypher query. The id if this entity will be included within a parameter called "this" passed to the query execution
+     *
+     * @param cypher The cypher query
+     * @param params The parameters
+     * @return The statement result
      */
-    StatementResult cypher(String queryString, List params) {
+    StatementResult cypher(String cypher, List params) {
         GormEnhancer.findDatastore(getClass()).withSession { Neo4jSession session ->
             StatementRunner boltSession = getStatementRunner(session)
 
             Map<String, Object> paramsMap = new LinkedHashMap()
             paramsMap.put("this", session.getObjectIdentifier(this))
 
-            includeTenantIdIfNecessary(session, queryString, paramsMap)
+            includeTenantIdIfNecessary(session, cypher, paramsMap)
 
             int i = 0
             for (p in params) {
                 paramsMap.put(String.valueOf(++i), p)
             }
-            boltSession.run(queryString, paramsMap)
+            boltSession.run(cypher, paramsMap)
         }
     }
 
@@ -186,7 +194,9 @@ trait Neo4jEntity<D> implements GormEntity<D>, DynamicAttributes {
      *
      * @param queryString
      * @return
+     * @deprecated Use {@link #executeCypher(java.lang.CharSequence, java.util.Map)} intead
      */
+    @Deprecated
     static StatementResult cypherStatic(CharSequence queryString, Map params) {
         ((Neo4jGormStaticApi) GormEnhancer.findStaticApi(this)).cypherStatic(queryString, params)
     }
@@ -196,7 +206,9 @@ trait Neo4jEntity<D> implements GormEntity<D>, DynamicAttributes {
      *
      * @param queryString
      * @return
+     * @deprecated Use {@link #executeCypher(java.lang.CharSequence, java.util.Map)} intead
      */
+    @Deprecated
     static StatementResult cypherStatic(CharSequence queryString, List params) {
         ((Neo4jGormStaticApi) GormEnhancer.findStaticApi(this)).cypherStatic(queryString, params)
     }
@@ -206,11 +218,32 @@ trait Neo4jEntity<D> implements GormEntity<D>, DynamicAttributes {
      *
      * @param queryString
      * @return
+     * @deprecated Use {@link #executeCypher(java.lang.CharSequence)} intead
      */
+    @Deprecated
     static StatementResult cypherStatic(CharSequence queryString) {
         ((Neo4jGormStaticApi) GormEnhancer.findStaticApi(this)).cypherStatic(queryString)
     }
 
+    /**
+     * perform a cypher query
+     *
+     * @param queryString
+     * @return The statement result
+     */
+    static StatementResult executeCypher(CharSequence queryString, Map params) {
+        ((Neo4jGormStaticApi) GormEnhancer.findStaticApi(this)).cypherStatic(queryString, params)
+    }
+
+    /**
+     * perform a cypher query
+     *
+     * @param queryString
+     * @return The statement result
+     */
+    static StatementResult executeCypher(CharSequence queryString) {
+        ((Neo4jGormStaticApi) GormEnhancer.findStaticApi(this)).cypherStatic(queryString)
+    }
     /**
      * Varargs version of {@link #findAll(java.lang.String, java.util.Collection, java.util.Map)}
      */

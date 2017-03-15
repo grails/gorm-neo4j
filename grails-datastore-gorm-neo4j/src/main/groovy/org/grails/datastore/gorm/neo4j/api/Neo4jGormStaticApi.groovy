@@ -360,7 +360,7 @@ class Neo4jGormStaticApi<D> extends GormStaticApi<D> {
      * @param params The parameters
      * @return The final String
      */
-    protected String buildNamedParameterQueryFromGString(GString query, Map params) {
+    static String buildNamedParameterQueryFromGString(GString query, Map params) {
         StringBuilder sqlString = new StringBuilder()
         int i = 0
         Object[] values = query.values
