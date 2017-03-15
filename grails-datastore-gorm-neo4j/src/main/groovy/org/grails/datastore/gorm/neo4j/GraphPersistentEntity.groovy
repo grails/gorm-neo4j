@@ -192,6 +192,14 @@ class GraphPersistentEntity extends AbstractPersistentEntity<NodeConfig> {
     }
 
     /**
+     * Format a reference to the ID for cypher queries
+     * @param variable The name of the variable for the id
+     * @return The formatted id
+     */
+    String formatReturnId(String variable = CypherBuilder.NODE_VAR) {
+        return " RETURN ${formatId(variable)} as ${GormProperties.IDENTITY}"
+    }
+    /**
      * Reads the id from given Neo4j entity
      *
      * @param entity The entity

@@ -843,7 +843,7 @@ public class Neo4jEntityPersister extends EntityPersister {
                     dynamicAssociations = (Map<String, List<Object>>) params.remove(DYNAMIC_ASSOCIATION_PARAM);
                 }
                 final StatementRunner boltSession = session.hasTransaction() ? session.getTransaction().getNativeTransaction() : session.getNativeInterface();
-                final String finalCypher = cypher + graphPersistentEntity.formatId();
+                final String finalCypher = cypher + graphPersistentEntity.formatReturnId();
                 if(log.isDebugEnabled()) {
                     log.debug("CREATE Cypher [{}] for parameters [{}]", finalCypher, params);
                 }
