@@ -63,7 +63,6 @@ public class Neo4jEntityPersister extends EntityPersister {
                                                                         "(labels(o))} as values";
 
 
-    public static final String RETURN_NODE_ID = " RETURN ID(n) as id";
     public static final String DYNAMIC_ASSOCIATION_PARAM = "org.grails.neo4j.DYNAMIC_ASSOCIATIONS";
 
     private static Logger log = LoggerFactory.getLogger(Neo4jEntityPersister.class);
@@ -844,7 +843,7 @@ public class Neo4jEntityPersister extends EntityPersister {
                     dynamicAssociations = (Map<String, List<Object>>) params.remove(DYNAMIC_ASSOCIATION_PARAM);
                 }
                 final StatementRunner boltSession = session.hasTransaction() ? session.getTransaction().getNativeTransaction() : session.getNativeInterface();
-                final String finalCypher = cypher + RETURN_NODE_ID;
+                final String finalCypher = cypher + graphPersistentEntity.formatId();
                 if(log.isDebugEnabled()) {
                     log.debug("CREATE Cypher [{}] for parameters [{}]", finalCypher, params);
                 }

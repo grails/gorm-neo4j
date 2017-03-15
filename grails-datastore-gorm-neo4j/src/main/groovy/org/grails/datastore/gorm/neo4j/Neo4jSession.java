@@ -232,7 +232,6 @@ public class Neo4jSession extends AbstractSession<Session> {
         for (PersistentEntity entity : entities) {
             final Collection<PendingUpdate> pendingUpdates = updates.get(entity);
             GraphPersistentEntity graphPersistentEntity = (GraphPersistentEntity) entity;
-            final boolean isRelationshipEntity = graphPersistentEntity.isRelationshipEntity();
             final boolean isVersioned = entity.isVersioned() && entity.hasProperty(GormProperties.VERSION, Long.class);
 
             for (PendingUpdate pendingUpdate : pendingUpdates) {
@@ -246,28 +245,15 @@ public class Neo4jSession extends AbstractSession<Session> {
                 final EntityAccess access = pendingUpdate.getEntityAccess();
                 final List<PendingOperation<Object, Serializable>> cascadingOperations = new ArrayList<>(pendingUpdate.getCascadeOperations());
                 final Object object = pendingUpdate.getObject();
-                final String labels = graphPersistentEntity.hasDynamicLabels() ? graphPersistentEntity.getLabelsWithInheritance(object) : graphPersistentEntity.getLabelsAsString();
-                final StringBuilder cypherStringBuilder = new StringBuilder();
 
                 final Map<String,Object> params = new LinkedHashMap<>(2);
                 final Serializable id = (Serializable)pendingUpdate.getNativeKey();
                 params.put(GormProperties.IDENTITY, id);
                 final Map<String, Object> simpleProps = new HashMap<>();
 
-                if(isRelationshipEntity) {
-                    RelationshipPersistentEntity relEntity = (RelationshipPersistentEntity) graphPersistentEntity;
-                    cypherStringBuilder.append( CypherBuilder.buildRelationshipMatch(relEntity.buildMatch(relEntity.type(), CypherBuilder.NODE_VAR)))
-                                       .append(  graphPersistentEntity.formatId(CypherBuilder.NODE_VAR) )
-                                       .append(" = {id}");
-                }
-                else {
-                    cypherStringBuilder.append(CypherBuilder.CYPHER_MATCH_ID);
-                }
-
 
                 final DirtyCheckable dirtyCheckable = (DirtyCheckable) object;
                 final List<String> dirtyPropertyNames = dirtyCheckable.listDirtyPropertyNames();
-                final List<String> nulls = new ArrayList<>();
                 for (String dirtyPropertyName : dirtyPropertyNames) {
                     final PersistentProperty property = entity.getPropertyByName(dirtyPropertyName);
                     if(property !=null){
@@ -278,7 +264,7 @@ public class Neo4jSession extends AbstractSession<Session> {
                                 simpleProps.put(name,  mappingContext.convertToNative(value));
                             }
                             else {
-                                nulls.add(name);
+                                simpleProps.put(name, null);
                             }
                         }
                         else if(property instanceof Custom) {
@@ -287,14 +273,14 @@ public class Neo4jSession extends AbstractSession<Session> {
                     }
                 }
 
-                Map<String, List<Object>> dynamicAssociations = amendMapWithUndeclaredProperties(graphPersistentEntity, simpleProps, object, mappingContext, nulls);
+                Map<String, List<Object>> dynamicAssociations = amendMapWithUndeclaredProperties(graphPersistentEntity, simpleProps, object, mappingContext);
                 if(graphPersistentEntity.hasDynamicAssociations()) {
                     getEntityPersister(object).processDynamicAssociations(graphPersistentEntity, access, mappingContext, dynamicAssociations, cascadingOperations, true);
                 }
                 processPendingRelationshipUpdates(graphPersistentEntity, access, id, cascadingOperations, true);
 
                 final boolean hasNoUpdates = simpleProps.isEmpty();
-                if(hasNoUpdates && nulls.isEmpty()) {
+                if(hasNoUpdates) {
                     // if there are no simple property updates then only the associations were dirty
                     // reset track changes
                     dirtyCheckable.trackChanges();
@@ -308,19 +294,12 @@ public class Neo4jSession extends AbstractSession<Session> {
                             version = 0l;
                         }
                         params.put(GormProperties.VERSION, version);
-                        cypherStringBuilder.append(" AND n.version={version}");
                         long newVersion = version + 1;
                         simpleProps.put(GormProperties.VERSION, newVersion);
                         access.setProperty(GormProperties.VERSION, newVersion);
                     }
-                    cypherStringBuilder.append(" SET n+={props}");
-                    if(!nulls.isEmpty()) {
-                        for (String aNull : nulls) {
-                            cypherStringBuilder.append(",n.").append(aNull).append(" = NULL");
-                        }
-                    }
-                    cypherStringBuilder.append(Neo4jEntityPersister.RETURN_NODE_ID);
-                    String cypher = String.format(cypherStringBuilder.toString(), labels, graphPersistentEntity.formatId());
+
+                    String cypher = graphPersistentEntity.formatMatchAndUpdate(CypherBuilder.NODE_VAR, simpleProps);
                     if( log.isDebugEnabled() ) {
                         log.debug("UPDATE Cypher [{}] for parameters [{}]", cypher, params);
                     }
@@ -744,10 +723,6 @@ public class Neo4jSession extends AbstractSession<Session> {
     }
 
     protected Map<String, List<Object>> amendMapWithUndeclaredProperties(GraphPersistentEntity graphEntity, Map<String, Object> simpleProps, Object pojo, MappingContext mappingContext) {
-        return amendMapWithUndeclaredProperties(graphEntity, simpleProps, pojo, mappingContext, new ArrayList<String>());
-    }
-
-    protected Map<String, List<Object>> amendMapWithUndeclaredProperties(GraphPersistentEntity graphEntity, Map<String, Object> simpleProps, Object pojo, MappingContext mappingContext, List<String> nulls) {
         boolean hasDynamicAssociations = graphEntity.hasDynamicAssociations();
         Map<String, List<Object>> dynRelProps =  hasDynamicAssociations ? new LinkedHashMap<String, List<Object>>() : Collections.<String, List<Object>>emptyMap();
         if(pojo instanceof DynamicAttributes) {
@@ -757,7 +732,7 @@ public class Neo4jSession extends AbstractSession<Session> {
                     Object value = entry.getValue();
                     String key = entry.getKey();
                     if(value == null) {
-                        nulls.add(key);
+                        simpleProps.put(key, value);
                         continue;
                     }
 

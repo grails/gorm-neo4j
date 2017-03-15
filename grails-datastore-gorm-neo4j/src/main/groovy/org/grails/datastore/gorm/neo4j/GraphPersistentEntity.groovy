@@ -33,6 +33,7 @@ import static org.grails.datastore.gorm.neo4j.engine.RelationshipPendingInsert.T
 class GraphPersistentEntity extends AbstractPersistentEntity<NodeConfig> {
 
     public static final String LABEL_SEPARATOR = ':'
+    protected static final String MATCH_ID = "MATCH %s WHERE %s = {id}"
     protected final NodeConfig mappedForm
     protected final Collection<String> staticLabels = []
     protected Collection<Object> labelObjects
@@ -228,14 +229,49 @@ class GraphPersistentEntity extends AbstractPersistentEntity<NodeConfig> {
     }
 
     /**
-     * Format a match to this entity node
+     * Format a match for a node to this entity node
      * @param variable The name of the variable for the id of the node
      * @return The formatted match
      */
-    String formatMatch(String variable) {
-        return "(${variable}${labelsAsString})"
+    String formatNode(String variable, Object o = null) {
+        String labels = hasDynamicLabels() && o != null ? getLabelsAsString(o) : labelsAsString
+        return "(${variable}${labels})"
     }
 
+    /**
+     * Formats a match for the ID for this entity
+     *
+     * @param variable The ID
+     * @return The match for the ID
+     */
+    String formatMatchId(String variable = CypherBuilder.NODE_VAR, Object o = null) {
+        return String.format(MATCH_ID, formatNode(variable, o), formatId())
+    }
+
+    /**
+     * Formats a match for the ID for this entity
+     *
+     * @param variable The ID
+     * @return The match for the ID
+     */
+    String formatMatchAndUpdate(String variable, Map<String, Object> props) {
+        StringBuilder builder = new StringBuilder( formatMatchId(variable) )
+        if(isVersioned() && hasProperty(GormProperties.VERSION, Long)) {
+            builder.append(" AND n.version={version}")
+        }
+        builder.append(" SET ").append(variable).append(" +={props}")
+        Set keysToRemove = []
+        for(key in props.keySet()) {
+            Object v = props.get(key)
+            if(v == null) {
+                builder.append(", n.").append(key).append(" = NULL")
+            }
+        }
+        for(key in keysToRemove) {
+            props.remove(key)
+        }
+        builder.append(CypherBuilder.RETURN).append(formatId(variable))
+    }
     /**
      * Formats a batch UNWIND statement for the given id
      *

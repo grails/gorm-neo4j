@@ -3,7 +3,6 @@ package org.grails.datastore.gorm.neo4j.api
 import grails.gorm.multitenancy.Tenants
 import grails.neo4j.Path
 import groovy.transform.CompileStatic
-import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
 import org.grails.datastore.gorm.GormStaticApi
 import org.grails.datastore.gorm.finders.FinderMethod
@@ -17,7 +16,6 @@ import org.grails.datastore.gorm.neo4j.extensions.Neo4jExtensions
 import org.grails.datastore.mapping.core.Datastore
 import org.grails.datastore.mapping.core.SessionCallback
 import org.grails.datastore.mapping.engine.EntityPersister
-import org.grails.datastore.mapping.model.PersistentEntity
 import org.grails.datastore.mapping.model.config.GormProperties
 import org.grails.datastore.mapping.multitenancy.MultiTenancySettings
 import org.grails.datastore.mapping.multitenancy.exceptions.TenantNotFoundException
@@ -25,8 +23,6 @@ import org.grails.datastore.mapping.query.QueryException
 import org.neo4j.driver.v1.Record
 import org.neo4j.driver.v1.StatementResult
 import org.neo4j.driver.v1.StatementRunner
-import org.neo4j.driver.v1.Value
-import org.neo4j.driver.v1.types.Node
 import org.neo4j.driver.v1.util.Function
 import org.springframework.transaction.PlatformTransactionManager
 
@@ -236,9 +232,9 @@ class Neo4jGormStaticApi<D> extends GormStaticApi<D> {
                 throw new QueryException("Target type [$to] has not been persisted (null id)")
             }
             String query = """MATCH ${
-                fromEntity.formatMatch(RelationshipPersistentEntity.FROM)
+                fromEntity.formatNode(RelationshipPersistentEntity.FROM)
             },${
-                toEntity.formatMatch(RelationshipPersistentEntity.TO)
+                toEntity.formatNode(RelationshipPersistentEntity.TO)
             }, p = shortestPath((from)-[*..$maxDistance]-(to)) WHERE ${
                 fromEntity.formatId(RelationshipPersistentEntity.FROM)
             } = {start} AND ${toEntity.formatId(RelationshipPersistentEntity.TO)} = {end} RETURN p"""

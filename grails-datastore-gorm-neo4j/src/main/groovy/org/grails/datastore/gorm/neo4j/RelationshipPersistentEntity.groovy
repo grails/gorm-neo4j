@@ -44,6 +44,8 @@ class RelationshipPersistentEntity extends GraphPersistentEntity {
         return TO == association.name || (FROM == association.name)
     }
 
+
+
     @Override
     void initialize() {
         super.initialize()
@@ -67,6 +69,8 @@ class RelationshipPersistentEntity extends GraphPersistentEntity {
         return CypherBuilder.REL_VAR
     }
 
+
+
     @Override
     String formatProperty(String variable, String property) {
         if(property.startsWith(FROM) || property.startsWith(TO)) {
@@ -78,7 +82,22 @@ class RelationshipPersistentEntity extends GraphPersistentEntity {
     }
 
     @Override
+    String formatMatchId(String variable) {
+        return String.format(MATCH_ID, buildMatch(type(), CypherBuilder.NODE_VAR), formatId())
+    }
+
+    @Override
     boolean isVersioned() {
+        return false
+    }
+
+    @Override
+    boolean hasDynamicAssociations() {
+        return false
+    }
+
+    @Override
+    boolean hasDynamicLabels() {
         return false
     }
 
@@ -97,6 +116,7 @@ class RelationshipPersistentEntity extends GraphPersistentEntity {
     GraphPersistentEntity getToEntity() {
         (GraphPersistentEntity)getTo().getAssociatedEntity()
     }
+
 
     String buildMatch(String type = this.type(), String var = "r") {
         String toMatch = buildMatchForType(type, var)
