@@ -1,4 +1,4 @@
-package grails.gorm.services
+package grails.neo4j.services
 
 import java.lang.annotation.ElementType
 import java.lang.annotation.Retention

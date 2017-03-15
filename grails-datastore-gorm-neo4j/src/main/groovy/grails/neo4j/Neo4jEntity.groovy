@@ -24,16 +24,13 @@ import org.grails.datastore.gorm.GormEntity
 import org.grails.datastore.gorm.neo4j.Neo4jDatastore
 import org.grails.datastore.gorm.neo4j.Neo4jSession
 import org.grails.datastore.gorm.neo4j.api.Neo4jGormStaticApi
-import org.grails.datastore.gorm.neo4j.collection.Neo4jResultList
-import org.grails.datastore.gorm.neo4j.engine.Neo4jEntityPersister
-import org.grails.datastore.gorm.neo4j.extensions.Neo4jExtensions
 import org.grails.datastore.gorm.schemaless.DynamicAttributes
-import org.grails.datastore.mapping.core.AbstractDatastore
 import org.grails.datastore.mapping.model.config.GormProperties
 import org.grails.datastore.mapping.multitenancy.MultiTenancySettings
 import org.grails.datastore.mapping.multitenancy.exceptions.TenantNotFoundException
 import org.neo4j.driver.v1.StatementResult
 import org.neo4j.driver.v1.StatementRunner
+
 /**
  * Extends the default {@org.grails.datastore.gorm.GormEntity} trait, adding new methods specific to Neo4j
  *

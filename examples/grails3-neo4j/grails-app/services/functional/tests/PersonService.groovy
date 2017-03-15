@@ -1,8 +1,8 @@
 package functional.tests
 
-import grails.gorm.services.Cypher
 import grails.gorm.services.Service
 import grails.neo4j.Path
+import grails.neo4j.services.Cypher
 
 // tag::class[]
 @Service(Person)

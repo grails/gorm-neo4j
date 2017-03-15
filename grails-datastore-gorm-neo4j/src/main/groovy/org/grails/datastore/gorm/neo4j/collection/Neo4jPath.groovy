@@ -28,7 +28,6 @@ class Neo4jPath<F extends Neo4jEntity<F>, T extends Neo4jEntity<T>> implements P
     private F start
     private T end
     private Iterable nodes
-    private List<Relationship> relationships
 
     Neo4jPath(Neo4jDatastore datastore, org.neo4j.driver.v1.types.Path neo4jPath, GraphPersistentEntity from, GraphPersistentEntity to) {
         this.datastore = datastore

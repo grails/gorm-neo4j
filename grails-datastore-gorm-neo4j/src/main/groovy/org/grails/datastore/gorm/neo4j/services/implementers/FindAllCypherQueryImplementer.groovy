@@ -1,6 +1,6 @@
 package org.grails.datastore.gorm.neo4j.services.implementers
 
-import grails.gorm.services.Cypher
+import grails.neo4j.services.Cypher
 import groovy.transform.CompileStatic
 import org.codehaus.groovy.ast.ClassNode
 import org.codehaus.groovy.ast.MethodNode
