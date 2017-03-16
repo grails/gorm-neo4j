@@ -23,4 +23,21 @@ class OneToManyCreateSpec extends Specification {
         Owner.count == 1
         Owner.first().pets.size() == 1
     }
+
+    @Rollback
+    void "test save one-to-many with dynamic attributes"() {
+
+        given:
+        def owner = new Owner(name: "Fred")
+                            .addToPets(name: "Dino")
+        owner.age = 40
+        owner
+            .save(flush:true)
+            .discard()
+
+        expect:
+        Owner.count == 1
+        Owner.first().pets.size() == 1
+        Owner.first().age == 40
+    }
 }

@@ -21,9 +21,12 @@ import grails.gorm.multitenancy.Tenants
 import groovy.transform.CompileStatic
 import org.grails.datastore.gorm.GormEnhancer
 import org.grails.datastore.gorm.GormEntity
+import org.grails.datastore.gorm.GormStaticApi
+import org.grails.datastore.gorm.neo4j.GraphPersistentEntity
 import org.grails.datastore.gorm.neo4j.Neo4jDatastore
 import org.grails.datastore.gorm.neo4j.Neo4jSession
 import org.grails.datastore.gorm.neo4j.api.Neo4jGormStaticApi
+import org.grails.datastore.gorm.neo4j.engine.DynamicAssociationSupport
 import org.grails.datastore.gorm.schemaless.DynamicAttributes
 import org.grails.datastore.mapping.model.config.GormProperties
 import org.grails.datastore.mapping.multitenancy.MultiTenancySettings
@@ -48,7 +51,7 @@ trait Neo4jEntity<D> implements GormEntity<D>, DynamicAttributes {
      * @return The property value
      */
     def propertyMissing(String name) {
-        DynamicAttributes.super.getAt(name)
+        return getAt(name)
     }
 
     /**
@@ -59,6 +62,30 @@ trait Neo4jEntity<D> implements GormEntity<D>, DynamicAttributes {
      */
     def propertyMissing(String name, val) {
         DynamicAttributes.super.putAt(name, val)
+    }
+
+
+    /**
+     * Obtains a dynamic attribute
+     *
+     * @param name The name of the attribute
+     * @return The value of the attribute
+     */
+    @Override
+    def getAt(String name) {
+        def val = DynamicAttributes.super.getAt(name)
+        if(val == null) {
+            GormStaticApi staticApi = GormEnhancer.findStaticApi(getClass())
+            GraphPersistentEntity entity = (GraphPersistentEntity) staticApi.gormPersistentEntity
+            def id = ident()
+            if(id != null && entity.hasDynamicAssociations()) {
+                staticApi.withSession { Neo4jSession session ->
+                    DynamicAssociationSupport.loadDynamicAssociations(session, entity, this, id)
+                }
+                return DynamicAttributes.super.getAt(name)
+            }
+        }
+        return val
     }
 
     /**

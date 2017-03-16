@@ -1,20 +1,17 @@
 package grails.gorm.tests
 
-import org.grails.datastore.gorm.neo4j.engine.Neo4jEntityPersister
-import org.grails.datastore.mapping.model.MappingContext
+import org.grails.datastore.gorm.neo4j.mapping.reflect.Neo4jNameUtils
 import spock.lang.Specification
 
 /**
  * @author Stefan Armbruster
  */
-class Neo4jEntityPersisterSpec extends Specification {
+class Neo4jNameUtilsSpec extends Specification {
 
     def "verify singular detection"() {
-        setup:
-        def cut = new Neo4jEntityPersister(Mock(MappingContext), null, null, null)
 
         expect:
-        cut.isSingular(term) == result
+        Neo4jNameUtils.isSingular(term) == result
 
         where:
         term       | result

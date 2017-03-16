@@ -33,7 +33,8 @@ import static org.grails.datastore.gorm.neo4j.engine.RelationshipPendingInsert.T
 class GraphPersistentEntity extends AbstractPersistentEntity<NodeConfig> {
 
     public static final String LABEL_SEPARATOR = ':'
-    protected static final String MATCH_ID = "MATCH %s WHERE %s = {id}"
+    protected static final String MATCH = "MATCH %s"
+    protected static final String MATCH_ID = "$MATCH WHERE %s = {id}"
     protected final NodeConfig mappedForm
     protected final Collection<String> staticLabels = []
     protected Collection<Object> labelObjects
@@ -199,6 +200,16 @@ class GraphPersistentEntity extends AbstractPersistentEntity<NodeConfig> {
     String formatReturnId(String variable = CypherBuilder.NODE_VAR) {
         return " RETURN ${formatId(variable)} as ${GormProperties.IDENTITY}"
     }
+
+    /**
+     * Formats a dynamic association query
+     * @param variable The variable to use
+     * @return The query which accepts an {id} argument
+     */
+    String formatDynamicAssociationQuery(String variable = CypherBuilder.NODE_VAR) {
+        """${formatMatch(variable)}-[r]-(o) WHERE ${formatId(variable)} = {${GormProperties.IDENTITY}} RETURN type(r) as relType, startNode(r) = $variable as out, r.sourceType as sourceType, r.targetType as targetType, {ids: collect(ID(o)), labels: collect(labels(o))} as values"""
+    }
+
     /**
      * Reads the id from given Neo4j entity
      *
@@ -231,6 +242,9 @@ class GraphPersistentEntity extends AbstractPersistentEntity<NodeConfig> {
         if(property == identity.name) {
             return formatId(variable)
         }
+        else if(nodeId != null && property == nodeId.name) {
+            return "ID($variable)"
+        }
         else {
             return "${variable}.${property}"
         }
@@ -253,9 +267,18 @@ class GraphPersistentEntity extends AbstractPersistentEntity<NodeConfig> {
      * @return The match for the ID
      */
     String formatMatchId(String variable = CypherBuilder.NODE_VAR, Object o = null) {
-        return String.format(MATCH_ID, formatNode(variable, o), formatId())
+        return String.format(MATCH_ID, formatNode(variable, o), formatId(variable))
     }
 
+    /**
+     * Formats a match for the ID for this entity
+     *
+     * @param variable The ID
+     * @return The match for the ID
+     */
+    String formatMatch(String variable = CypherBuilder.NODE_VAR, Object o = null) {
+        return String.format(MATCH, formatNode(variable, o), formatId(variable))
+    }
     /**
      * Formats a match for the ID for this entity
      *
