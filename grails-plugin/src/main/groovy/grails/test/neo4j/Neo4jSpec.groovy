@@ -11,6 +11,7 @@ import org.grails.datastore.mapping.transactions.Transaction
 import org.springframework.boot.env.PropertySourcesLoader
 import org.springframework.core.env.PropertyResolver
 import org.springframework.core.io.DefaultResourceLoader
+import org.springframework.core.io.Resource
 import org.springframework.core.io.ResourceLoader
 import org.springframework.transaction.support.TransactionSynchronizationManager
 import spock.lang.AutoCleanup
@@ -52,16 +53,39 @@ abstract class Neo4jSpec extends Specification {
     void setupSpec() {
         PropertySourcesLoader loader = new PropertySourcesLoader()
         ResourceLoader resourceLoader = new DefaultResourceLoader()
-        loader.load resourceLoader.getResource("application.yml")
-        loader.load resourceLoader.getResource("application.groovy")
-        Config config = new PropertySourcesConfig(loader.propertySources)
-        List<Class> domainClasses = getDomainClasses()
-        if (!domainClasses) {
-            def packageToScan = getPackageToScan(config)
-            neo4jDatastore = new Neo4jDatastore((PropertyResolver) config, packageToScan)
+        def applicationYml = resourceLoader.getResource("application.yml")
+        boolean hasConfig = false
+        if(applicationYml != null && applicationYml.exists()) {
+            hasConfig = true
+            loader.load applicationYml
+        }
+
+        def applicationGroovy = resourceLoader.getResource("application.groovy")
+        if(applicationGroovy != null && applicationGroovy.exists()) {
+            hasConfig = true
+            loader.load applicationGroovy
+        }
+
+        if(hasConfig) {
+
+            Config config = new PropertySourcesConfig(loader.propertySources)
+            List<Class> domainClasses = getDomainClasses()
+            if (!domainClasses) {
+                def packageToScan = getPackageToScan(config)
+                neo4jDatastore = new Neo4jDatastore((PropertyResolver) config, packageToScan)
+            }
+            else {
+                neo4jDatastore = new Neo4jDatastore((PropertyResolver) config, (Class[])domainClasses.toArray())
+            }
         }
         else {
-            neo4jDatastore = new Neo4jDatastore((PropertyResolver) config, (Class[])domainClasses.toArray())
+            List<Class> domainClasses = getDomainClasses()
+            if (!domainClasses) {
+                neo4jDatastore = new Neo4jDatastore(getClass().getPackage())
+            }
+            else {
+                neo4jDatastore = new Neo4jDatastore((Class[])domainClasses.toArray())
+            }
         }
     }
 
