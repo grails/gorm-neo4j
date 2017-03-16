@@ -282,10 +282,11 @@ LIMIT 1"""
             }
             List<Relationship> rels = []
             if(from != null && to != null) {
+                String skip = params.offset ? " SKIP ${Integer.valueOf(params.offset.toString())}" : ''
                 String limit = params.max ? " LIMIT ${Integer.valueOf(params.max.toString())}" : ''
                 String query = """MATCH (from)-[r]-(to) 
 WHERE ${fromEntity.formatId(RelationshipPersistentEntity.FROM)} = {start} AND ${toEntity.formatId(RelationshipPersistentEntity.TO)} = {end}
-RETURN DISTINCT(r)$limit"""
+RETURN DISTINCT(r)$skip$limit"""
                 List<org.neo4j.driver.v1.types.Relationship> results = executeQuery(query, [start:from.ident(), end:to.ident()])
 
                 for(neoRel in results) {
@@ -313,9 +314,10 @@ RETURN DISTINCT(r)$limit"""
             }
             List<Relationship> rels = []
             if(from != null && to != null) {
+                String skip = params.offset ? " SKIP ${Integer.valueOf(params.offset.toString())}" : ''
                 String limit = params.max ? " LIMIT ${Integer.valueOf(params.max.toString())}" : ''
                 String query = """MATCH ${fromEntity.formatNode(RelationshipPersistentEntity.FROM)}-[r]-${toEntity.formatNode(RelationshipPersistentEntity.TO)}
-RETURN DISTINCT(r), from, to $limit"""
+RETURN DISTINCT(r), from, to$skip$limit"""
                 StatementResult results = cypherStatic(query)
 
                 while(results.hasNext()) {

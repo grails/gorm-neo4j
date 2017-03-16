@@ -20,7 +20,14 @@ Notice how you can use the class names within the Cypher query and it will corre
 
 Variable references within the `@Cypher` string declaration are also compile time checked.
 
-Support for implementing methods that find paths has also been added. For example:
+You can also automatically implement Cypher update operations:
+
+[source,groovy]
+----
+include::{exampledir}/grails-app/services/functional/tests/PersonService.groovy[tags=updatePerson,indent=0]
+----
+
+Finally, support for implementing methods that find paths is also possible. For example:
 
 [source,groovy]
 ----

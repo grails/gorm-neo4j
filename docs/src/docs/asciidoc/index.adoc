@@ -123,6 +123,11 @@ include::querying/indexing.adoc[]
 
 include::querying/paths.adoc[]
 
+[[queryingRelationships]]
+=== Querying for Relationships
+
+include::querying/queryingRelationships.adoc[]
+
 [[dataServices]]
 === GORM for Neo4j Data Services
 

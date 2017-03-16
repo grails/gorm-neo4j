@@ -85,12 +85,10 @@ class RelationshipSpec extends Specification {
 
         when:
         // tag::findRelationshipsForTypes[]
-        fred = Person.get(fred.name)
-        println "PERSON ${Person.findById(fred.id)}"
-        List<Relationship<Person, Person>> rels = Person.findRelationships(Person, Person)
+        List<Relationship<Person, Person>> rels = Person.findRelationships(Person, Person, [max:10])
         for(rel in rels) {
-            println("Type $rel.type")
-            println("From $rel.from.name to $rel.to.name")
+            println("Type ${rel.type}")
+            println("From ${rel.from.name} to ${rel.to.name}")
         }
         // end::findRelationshipsForTypes[]
 
