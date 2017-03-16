@@ -27,6 +27,8 @@ import org.grails.datastore.mapping.reflect.EntityReflector;
 import org.neo4j.driver.v1.Record;
 import org.neo4j.driver.v1.StatementResult;
 import org.neo4j.driver.v1.StatementRunner;
+import org.neo4j.driver.v1.summary.ResultSummary;
+import org.neo4j.driver.v1.summary.SummaryCounters;
 import org.neo4j.driver.v1.types.Entity;
 import org.neo4j.driver.v1.types.Node;
 import org.slf4j.Logger;
@@ -60,6 +62,7 @@ public class Neo4jEntityPersister extends EntityPersister {
     public Neo4jEntityPersister(MappingContext mappingContext, PersistentEntity entity, Session session, ApplicationEventPublisher publisher) {
         super(mappingContext, entity, session, publisher);
     }
+
 
     @Override
     public Neo4jSession getSession() {
@@ -1038,5 +1041,15 @@ public class Neo4jEntityPersister extends EntityPersister {
     @Override
     public Serializable refresh(Object o) {
         throw new UnsupportedOperationException();
+    }
+
+    public static long countUpdates(StatementResult execute) {
+        ResultSummary resultSummary = execute.consume();
+        SummaryCounters counters = resultSummary.counters();
+        if (counters.containsUpdates()) {
+            return counters.nodesCreated() + counters.nodesDeleted() + counters.propertiesSet() + counters.relationshipsCreated() + counters.relationshipsDeleted();
+        } else {
+            return 0;
+        }
     }
 }

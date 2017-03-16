@@ -15,6 +15,28 @@ class PersonSpec extends Specification {
     @Shared @AutoCleanup Neo4jDatastore datastore = new Neo4jDatastore(getClass().getPackage())
 
     @Rollback
+    void 'test update person'() {
+        given:
+        def barney = new Person(name: "Barney")
+        def joe = new Person(name: "Joe")
+        barney.addToFriends(joe)
+
+        def fred = new Person(name: "Fred")
+                .addToFriends(barney)
+
+        fred.save(flush:true)
+        Person.withSession { it.clear() }
+
+        when:
+        PersonService service = datastore.getService(PersonService)
+        service.updatePerson("Fred", 40)
+
+        fred = Person.findByName("Fred")
+
+        then:
+        fred.age == 40
+    }
+    @Rollback
     void "test shortest path service implementer"() {
         given:
         def barney = new Person(name: "Barney")

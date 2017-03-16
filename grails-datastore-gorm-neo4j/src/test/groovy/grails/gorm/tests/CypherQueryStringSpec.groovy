@@ -23,6 +23,19 @@ import org.neo4j.driver.v1.StatementResult
  */
 class CypherQueryStringSpec extends GormDatastoreSpec {
 
+    void "test execute update method"() {
+        given:
+        setupDomain()
+
+        when:
+        int result = Club.executeUpdate("MATCH (n) where n.name = {name} SET n.ground = {ground}", [name:'FC Bayern Muenchen', ground:"Alliance Arena"])
+        def club = Club.find("MATCH (n) where n.name = {1} RETURN n", 'FC Bayern Muenchen')
+
+        then:
+        result == 1
+        club.ground == "Alliance Arena"
+    }
+
     void "test find method that accepts cypher"() {
         given:
         setupDomain()
@@ -103,7 +116,7 @@ class CypherQueryStringSpec extends GormDatastoreSpec {
         clubs[0].teams.size() == 2
 
         when:"A find method is executed with a gstring"
-        StatementResult result  = Club.cypherStatic("MATCH (n) where n.name = $name RETURN n")
+        StatementResult result  = Club.executeCypher("MATCH (n) where n.name = $name RETURN n")
 
         then:"The result is correct"
         result.hasNext()
@@ -115,7 +128,7 @@ class CypherQueryStringSpec extends GormDatastoreSpec {
         setupDomain()
 
         when:"A cypher query is executed"
-        def result = Club.cypherStatic("MATCH (n) where n.name = {name} RETURN n", [name:'FC Bayern Muenchen'])
+        def result = Club.executeCypher("MATCH (n) where n.name = {name} RETURN n", [name:'FC Bayern Muenchen'])
         Club club = result as Club
 
         then:"the conversion is correct"
@@ -125,7 +138,7 @@ class CypherQueryStringSpec extends GormDatastoreSpec {
         club.teams.size() == 2
 
         when:"A cypher query is executed"
-        result = Club.cypherStatic("MATCH (n) where n.name = {name} RETURN n", [name:'FC Bayern Muenchen'])
+        result = Club.executeCypher("MATCH (n) where n.name = {name} RETURN n", [name:'FC Bayern Muenchen'])
         List<Club> clubs = result.toList(Club)
 
         then:"the conversion is correct"

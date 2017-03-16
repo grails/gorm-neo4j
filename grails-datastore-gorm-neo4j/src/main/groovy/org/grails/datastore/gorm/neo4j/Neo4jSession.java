@@ -25,7 +25,6 @@ import org.grails.datastore.mapping.query.api.QueryableCriteria;
 import org.grails.datastore.mapping.transactions.SessionHolder;
 import org.grails.datastore.mapping.transactions.Transaction;
 import org.neo4j.driver.v1.Driver;
-import org.neo4j.driver.v1.Record;
 import org.neo4j.driver.v1.Session;
 import org.neo4j.driver.v1.StatementResult;
 import org.slf4j.Logger;
@@ -930,7 +929,6 @@ public class Neo4jSession extends AbstractSession<Session> {
 
         final CypherBuilder baseQuery = query.getBaseQuery();
         baseQuery.addPropertySet(properties);
-        baseQuery.addReturnColumn(COUNT_RETURN);
 
         final String cypher = baseQuery.build();
         final Map<String, Object> params = baseQuery.getParams();
@@ -939,14 +937,7 @@ public class Neo4jSession extends AbstractSession<Session> {
         }
 
         final StatementResult execute = getTransaction().getNativeTransaction().run(cypher, params);
-        if(execute.hasNext()) {
-            Record currentRecord = execute.next();
-            final Map<String, Object> result = currentRecord.asMap();
-            return ((Number) result.get(TOTAL_COUNT)).longValue();
-        }
-        else {
-            return 0;
-        }
+        return Neo4jEntityPersister.countUpdates(execute);
     }
 
     private static class RelationshipUpdateKey {

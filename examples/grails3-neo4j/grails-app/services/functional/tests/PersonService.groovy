@@ -20,4 +20,10 @@ interface PersonService {
     Path<Person, Person> findPath(String start, String end)
     // end::findPathCypher[]
 
+    // tag::updatePerson[]
+    @Cypher("""MATCH ${Person p} 
+               WHERE $p.name = $name  
+               SET p.age = $age""")
+    void updatePerson(String name, int age)
+    // end::updatePerson[]
 }

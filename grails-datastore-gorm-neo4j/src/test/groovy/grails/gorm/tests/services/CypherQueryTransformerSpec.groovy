@@ -29,6 +29,18 @@ class CypherQueryTransformerSpec extends Specification{
         query.asConstantString().text == 'MATCH (b:Book) WHERE b.title = '
     }
 
+    void 'test transform cypher update query'() {
+        given:
+        GStringExpression query = transformedQuery('''MATCH ${Book b} 
+               WHERE $b.title = $name  
+               SET b.age = $age''', varX("title"),varX("age"))
+
+        expect:
+        query.values.size() == 2
+        query.asConstantString().text == '''MATCH (b:Book) 
+               WHERE b.title =   
+               SET b.age = '''
+    }
 
     void 'test transform cypher query on entity with ID query'() {
         given:

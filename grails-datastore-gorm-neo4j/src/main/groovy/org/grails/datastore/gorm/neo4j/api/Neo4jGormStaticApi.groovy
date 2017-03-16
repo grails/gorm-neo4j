@@ -28,6 +28,8 @@ import org.grails.datastore.mapping.query.QueryException
 import org.neo4j.driver.v1.Record
 import org.neo4j.driver.v1.StatementResult
 import org.neo4j.driver.v1.StatementRunner
+import org.neo4j.driver.v1.Value
+import org.neo4j.driver.v1.summary.SummaryCounters
 import org.neo4j.driver.v1.types.Node
 import org.neo4j.driver.v1.util.Function
 import org.springframework.transaction.PlatformTransactionManager
@@ -183,12 +185,31 @@ class Neo4jGormStaticApi<D> extends GormStaticApi<D> {
 
     @Override
     Integer executeUpdate(CharSequence query, Map params, Map args) {
-        return super.executeUpdate(query, params, args)
+        execute({ Neo4jSession session ->
+            StatementRunner boltSession = getStatementRunner(session)
+            params = new LinkedHashMap(params)
+            String queryString
+            if(query instanceof GString) {
+                queryString = buildNamedParameterQueryFromGString((GString) query, params)
+            }
+            else {
+                queryString = query.toString()
+            }
+            includeTenantIdIfNecessary(session, queryString, params)
+            if(log.isDebugEnabled()) {
+                log.debug("UPDATE Cypher [$queryString] for params [$params]")
+            }
+
+            StatementResult sr = boltSession.run(queryString, params)
+            return Neo4jEntityPersister.countUpdates(sr)
+        } as SessionCallback<Integer>)
     }
+
+
 
     @Override
     Integer executeUpdate(CharSequence query, Collection params, Map args) {
-        return super.executeUpdate(query, params, args)
+        return Neo4jEntityPersister.countUpdates(cypherStatic(query, params.toList()) )
     }
 
 
@@ -489,5 +510,6 @@ RETURN DISTINCT(r), from, to $limit"""
             }
         }
     }
+
 
 }
