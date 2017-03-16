@@ -67,7 +67,7 @@ class Club {
  static constraints = {
     league nullable:true
  }
- static maping = {
+ static mapping = {
     league lazy:true
  }
 }
