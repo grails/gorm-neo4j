@@ -21,10 +21,16 @@ enum Direction {
         }
     }
 
+    /**
+     * @return Whether the direction is incoming
+     */
     boolean isIncoming() {
         return this == INCOMING || this == BOTH
     }
 
+    /**
+     * @return Whether the direction is outgoing
+     */
     boolean isOutgoing() {
         return this == OUTGOING || this == BOTH
     }

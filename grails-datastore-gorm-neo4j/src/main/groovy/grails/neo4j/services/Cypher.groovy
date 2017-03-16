@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy
 import java.lang.annotation.Target
 
 /**
- * Allow specifying the query to execute
+ * An annotation for use on {@link grails.gorm.services.Service} interfaces to automatically implement Cypher queries
  *
  * @author Graeme Rocher
  * @since 6.1

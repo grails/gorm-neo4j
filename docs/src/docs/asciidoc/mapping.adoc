@@ -8,11 +8,13 @@ class Pet {
 }
 ----
 
-Each domain class will implement the link:../api/grails/neo4j/Neo4jEntity.html[Neo4jEntity] trait. You can define this explicitly if you prefer:
+Each domain class will implement the link:../api/grails/neo4j/Neo4jEntity.html[Neo4jEntity] trait. You can define this explicitly if you prefer (the `Node` trait is a subtrait of `Neo4jEntity`):
 
 [source,groovy]
 ----
-class Pet implements Neo4jEntity<Pet> {
+import grails.neo4j.Node
+
+class Pet implements Node<Pet> {
     String name
 }
 ----
