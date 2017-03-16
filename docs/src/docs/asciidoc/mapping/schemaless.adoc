@@ -42,7 +42,7 @@ def p = new Plant(name:"Carrot")
   p.save(flush:true)
 ----
 
-WARNING: Dynamic associations have a runtime performance cost and are not recommended since GORM has to issue a separate query for each instance to obtain the dynamic associations. The functionality they provide should instead be modelled with Relationship entities (see the next section).
+WARNING: Dynamic associations have a runtime performance cost as when you access any dynamic property GORM has to issue a separate query to retrieve that association if the value is null, use with care.
 
 
 

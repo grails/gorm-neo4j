@@ -5,8 +5,9 @@ By default GORM uses the class name for the relationship type. You can configure
 [source,groovy]
 ----
 import grails.neo4j.*
+import static grails.neo4j.mapping.MappingBuilder.*
 
-static mapping = {
+static mapping = relationship {
    type "ACTED_IN"
    direction Direction.OUTGOING
 }
