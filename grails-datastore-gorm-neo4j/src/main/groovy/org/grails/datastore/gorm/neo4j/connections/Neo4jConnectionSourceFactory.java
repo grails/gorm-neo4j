@@ -52,7 +52,15 @@ public class Neo4jConnectionSourceFactory extends AbstractConnectionSourceFactor
                 final Map options = embeddedSettings.getOptions();
                 final File dataDir;
                 try {
-                    dataDir = location != null ? new File(location) : embeddedSettings.isEphemeral() ? File.createTempFile("neo4j-temporary-data", "-tempdir") : new File((Settings.SETTING_NEO4J_TYPE));
+                    if(location != null) {
+                        dataDir = new File(location);
+                    }
+                    else if(embeddedSettings.isEphemeral()) {
+                        dataDir = File.createTempFile("neo4j-temporary-data", "-tempdir");
+                    }
+                    else {
+                        dataDir = new File(Settings.DEFAULT_LOCATION);
+                    }
                 } catch (IOException e) {
                     throw new DatastoreConfigurationException("Unable to create temporary data directory: " + e.getMessage(), e);
                 }
