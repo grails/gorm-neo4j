@@ -64,6 +64,7 @@ class RelationshipMappingSpec extends GormDatastoreSpec{
         keanuCastings.size() == 1
         countActorNames == 1
         actorNames == ["Keanu"]
+        cm.id != null
         cm.dateCast != null
         cm.getAt("foo") == 'bar'
         CastMember.count == 2

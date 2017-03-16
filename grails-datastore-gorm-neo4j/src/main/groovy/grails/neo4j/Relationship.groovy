@@ -21,6 +21,11 @@ trait Relationship<F,T> implements DynamicAttributes, Serializable {
     private String theType
 
     /**
+     * The relationship id
+     */
+    Long id
+
+    /**
      * The node where relationship originates from
      */
     F from

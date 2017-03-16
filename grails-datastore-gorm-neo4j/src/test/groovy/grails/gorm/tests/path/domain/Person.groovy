@@ -1,6 +1,8 @@
 package grails.gorm.tests.path.domain
 
 import grails.gorm.annotation.Entity
+import grails.neo4j.Neo4jEntity
+
 import static grails.neo4j.mapping.MappingBuilder.*
 import groovy.transform.EqualsAndHashCode
 
@@ -10,7 +12,7 @@ import groovy.transform.EqualsAndHashCode
 @Entity
 // tag::class[]
 @EqualsAndHashCode(includes = 'name')
-class Person {
+class Person implements Neo4jEntity<Person> {
     String name
     static hasMany = [friends: Person]
 

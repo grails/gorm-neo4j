@@ -147,7 +147,7 @@ trait Neo4jEntity<D> implements GormEntity<D>, DynamicAttributes {
     }
 
     /**
-     * Execute cypher that finds a path to the given entity
+     * Finds a path between two entities
      *
      * @param from The from entity (can be a proxy)
      * @param to The to entity (can be a proxy)
@@ -156,6 +156,39 @@ trait Neo4jEntity<D> implements GormEntity<D>, DynamicAttributes {
      */
     static <F, T> Path<F, T> findShortestPath(F from, T to, int maxDistance = 10) {
         ((Neo4jGormStaticApi) GormEnhancer.findStaticApi(this)).findShortestPath(from, to, maxDistance)
+    }
+
+    /**
+     * Finds a relationship between two entities
+     *
+     * @param from The from entity (can be a proxy)
+     * @param to The to entity (can be a proxy)
+     * @return The relationship or null if it doesn't exist
+     */
+    static <F extends GormEntity, T extends GormEntity> Relationship<F, T> findRelationship(F from, T to) {
+        ((Neo4jGormStaticApi) GormEnhancer.findStaticApi(this)).findRelationship(from, to)
+    }
+
+    /**
+     * Finds a relationship between two entities
+     *
+     * @param from The from entity (can be a proxy)
+     * @param to The to entity (can be a proxy)
+     * @return The relationship or null if it doesn't exist
+     */
+    static <F extends GormEntity, T extends GormEntity> List<Relationship<F, T>> findRelationships(F from, T to, Map params = Collections.emptyMap()) {
+        ((Neo4jGormStaticApi) GormEnhancer.findStaticApi(this)).findRelationships(from, to, params)
+    }
+
+    /**
+     * Finds a relationship between two entity types
+     *
+     * @param from The from entity (can be a proxy)
+     * @param to The to entity (can be a proxy)
+     * @return The relationship or null if it doesn't exist
+     */
+    static <F extends GormEntity, T extends GormEntity> List<Relationship<F, T>> findRelationships(Class<F> from, Class<T> to, Map params = Collections.emptyMap()) {
+        ((Neo4jGormStaticApi) GormEnhancer.findStaticApi(this)).findRelationships(from, to, params)
     }
     /**
      * Execute cypher that finds a path to the given entity

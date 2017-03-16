@@ -143,7 +143,7 @@ class Neo4jPath<F extends Neo4jEntity<F>, T extends Neo4jEntity<T>> implements P
 
         @Override
         Relationship relationship() {
-            return new Neo4jPathSegmentRelationship(from: start(), to: end(), type: neoSegment.relationship().type())
+            return new Neo4jRelationship(start(), end(), neoSegment.relationship().type())
         }
 
         @Override
@@ -174,6 +174,4 @@ class Neo4jPath<F extends Neo4jEntity<F>, T extends Neo4jEntity<T>> implements P
         return (Neo4jEntity) persister.unmarshallOrFromCache(entity, node)
     }
 
-    static class Neo4jPathSegmentRelationship implements Relationship {
-    }
 }

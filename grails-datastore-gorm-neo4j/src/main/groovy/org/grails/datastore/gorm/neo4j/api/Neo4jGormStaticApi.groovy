@@ -2,16 +2,21 @@ package org.grails.datastore.gorm.neo4j.api
 
 import grails.gorm.multitenancy.Tenants
 import grails.neo4j.Path
+import grails.neo4j.Relationship
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
+import org.grails.datastore.gorm.GormEntity
 import org.grails.datastore.gorm.GormStaticApi
 import org.grails.datastore.gorm.finders.FinderMethod
+import org.grails.datastore.gorm.neo4j.CypherBuilder
 import org.grails.datastore.gorm.neo4j.GraphPersistentEntity
 import org.grails.datastore.gorm.neo4j.Neo4jDatastore
 import org.grails.datastore.gorm.neo4j.Neo4jSession
 import org.grails.datastore.gorm.neo4j.RelationshipPersistentEntity
 import org.grails.datastore.gorm.neo4j.collection.Neo4jPath
+import org.grails.datastore.gorm.neo4j.collection.Neo4jRelationship
 import org.grails.datastore.gorm.neo4j.collection.Neo4jResultList
+import org.grails.datastore.gorm.neo4j.engine.Neo4jEntityPersister
 import org.grails.datastore.gorm.neo4j.extensions.Neo4jExtensions
 import org.grails.datastore.mapping.core.Datastore
 import org.grails.datastore.mapping.core.SessionCallback
@@ -23,6 +28,7 @@ import org.grails.datastore.mapping.query.QueryException
 import org.neo4j.driver.v1.Record
 import org.neo4j.driver.v1.StatementResult
 import org.neo4j.driver.v1.StatementRunner
+import org.neo4j.driver.v1.types.Node
 import org.neo4j.driver.v1.util.Function
 import org.springframework.transaction.PlatformTransactionManager
 
@@ -208,6 +214,104 @@ class Neo4jGormStaticApi<D> extends GormStaticApi<D> {
             return new Neo4jPath((Neo4jDatastore)datastore, record.values().first().asPath(), graphEntity, toEntity)
         }
         return null
+    }
+
+    public <F extends GormEntity, T extends GormEntity> Relationship<F, T> findRelationship(F from, T to) {
+        (Relationship<F, T>)execute({ Neo4jSession session ->
+            EntityPersister fromPersister = (EntityPersister) session.getPersister(from)
+            EntityPersister toPersister = (EntityPersister) session.getPersister(to)
+            GraphPersistentEntity fromEntity = (GraphPersistentEntity) fromPersister?.getPersistentEntity()
+            GraphPersistentEntity toEntity = (GraphPersistentEntity) toPersister?.getPersistentEntity()
+            if (fromEntity == null) {
+                throw new QueryException("From type [$from] is not a persistent entity")
+            }
+            if (toEntity == null) {
+                throw new QueryException("Target type [$to] is not a persistent entity")
+            }
+            Relationship<F, T> relationship = null
+            if(from != null && to != null) {
+                String query = """MATCH (from)-[r]-(to) 
+WHERE ${fromEntity.formatId(RelationshipPersistentEntity.FROM)} = {start} AND ${toEntity.formatId(RelationshipPersistentEntity.TO)} = {end}
+RETURN r
+LIMIT 1"""
+                List<org.neo4j.driver.v1.types.Relationship> results = executeQuery(query, [start:from.ident(), end:to.ident()])
+
+                if(!results.isEmpty()) {
+                    org.neo4j.driver.v1.types.Relationship neoRel = results.first()
+                    relationship = new Neo4jRelationship<>(from, to, neoRel)
+                    relationship.attributes(neoRel.asMap())
+                }
+            }
+            return relationship
+
+        } as SessionCallback)
+    }
+
+    public <F extends GormEntity, T extends GormEntity> List<Relationship<F, T>>  findRelationships(F from, T to, Map params = Collections.emptyMap()) {
+        (List<Relationship>)execute({ Neo4jSession session ->
+            EntityPersister fromPersister = (EntityPersister) session.getPersister(from)
+            EntityPersister toPersister = (EntityPersister) session.getPersister(to)
+            GraphPersistentEntity fromEntity = (GraphPersistentEntity) fromPersister?.getPersistentEntity()
+            GraphPersistentEntity toEntity = (GraphPersistentEntity) toPersister?.getPersistentEntity()
+            if (fromEntity == null) {
+                throw new QueryException("From type [$from] is not a persistent entity")
+            }
+            if (toEntity == null) {
+                throw new QueryException("Target type [$to] is not a persistent entity")
+            }
+            List<Relationship> rels = []
+            if(from != null && to != null) {
+                String limit = params.max ? " LIMIT ${Integer.valueOf(params.max.toString())}" : ''
+                String query = """MATCH (from)-[r]-(to) 
+WHERE ${fromEntity.formatId(RelationshipPersistentEntity.FROM)} = {start} AND ${toEntity.formatId(RelationshipPersistentEntity.TO)} = {end}
+RETURN DISTINCT(r)$limit"""
+                List<org.neo4j.driver.v1.types.Relationship> results = executeQuery(query, [start:from.ident(), end:to.ident()])
+
+                for(neoRel in results) {
+                    def relationship = new Neo4jRelationship<F,T>(from, to, neoRel)
+                    relationship.attributes(neoRel.asMap())
+                    rels.add(relationship)
+                }
+            }
+            return rels
+
+        } as SessionCallback)
+    }
+
+    public <F extends GormEntity, T extends GormEntity> List<Relationship<F, T>>  findRelationships(Class<F> from, Class<T> to, Map params = Collections.emptyMap()) {
+        (List<Relationship>)execute({ Neo4jSession session ->
+            Neo4jEntityPersister fromPersister = (Neo4jEntityPersister) session.getPersister(from)
+            Neo4jEntityPersister toPersister = (Neo4jEntityPersister) session.getPersister(to)
+            GraphPersistentEntity fromEntity = (GraphPersistentEntity) fromPersister?.getPersistentEntity()
+            GraphPersistentEntity toEntity = (GraphPersistentEntity) toPersister?.getPersistentEntity()
+            if (fromEntity == null) {
+                throw new QueryException("From type [$from] is not a persistent entity")
+            }
+            if (toEntity == null) {
+                throw new QueryException("Target type [$to] is not a persistent entity")
+            }
+            List<Relationship> rels = []
+            if(from != null && to != null) {
+                String limit = params.max ? " LIMIT ${Integer.valueOf(params.max.toString())}" : ''
+                String query = """MATCH ${fromEntity.formatNode(RelationshipPersistentEntity.FROM)}-[r]-${toEntity.formatNode(RelationshipPersistentEntity.TO)}
+RETURN DISTINCT(r), from, to $limit"""
+                StatementResult results = cypherStatic(query)
+
+                while(results.hasNext()) {
+                    Record record = results.next()
+                    org.neo4j.driver.v1.types.Relationship neoRel = record.get(CypherBuilder.REL_VAR).asRelationship()
+                    Node fromNode = record.get(RelationshipPersistentEntity.FROM).asNode()
+                    Node toNode = record.get(RelationshipPersistentEntity.TO).asNode()
+                    F fromObject = (F) fromPersister.unmarshallOrFromCache(fromEntity, fromNode)
+                    T toObject = (T) fromPersister.unmarshallOrFromCache(toEntity, toNode)
+                    def relationship = new Neo4jRelationship<F,T>(fromObject, toObject, neoRel)
+                    relationship.attributes(neoRel.asMap())
+                    rels.add(relationship)
+                }
+            }
+            return rels
+
+        } as SessionCallback)
     }
 
     public <F, T> Path<F, T> findShortestPath(F from, T to, int maxDistance = 10) {

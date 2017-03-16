@@ -380,7 +380,8 @@ public class Neo4jEntityPersister extends EntityPersister {
         }
         final Neo4jSession session = getSession();
         GraphPersistentEntity graphPersistentEntity = (GraphPersistentEntity) persistentEntity;
-        EntityAccess entityAccess = session.createEntityAccess(persistentEntity, persistentEntity.newInstance());
+        Object instance = persistentEntity.newInstance();
+        EntityAccess entityAccess = session.createEntityAccess(persistentEntity, instance);
         entityAccess.setIdentifierNoConversion(id);
 
         PersistentProperty nodeId = graphPersistentEntity.getNodeId();
