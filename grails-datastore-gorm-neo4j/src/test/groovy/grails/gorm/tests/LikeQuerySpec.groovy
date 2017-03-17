@@ -34,11 +34,14 @@ class LikeQuerySpec extends GormDatastoreSpec {
         new Pet(name: "*").save(flush:true, failOnError:true)
         new Pet(name: "**").save(flush:true, failOnError:true)
         new Pet(name: "***").save(flush:true, failOnError:true)
+
+        session.transaction.commit()
         session.clear()
 
         when:
-        def results = Pet.findAllByNameLike(search)
 
+        def results = Pet.findAllByNameLike(search)
+        println "FOUND ${results*.name} (EXPECTED $expected) for search [$search]"
         then:
         results*.name.sort() == expected
 
@@ -66,6 +69,7 @@ class LikeQuerySpec extends GormDatastoreSpec {
         new Pet(name: "*").save(flush:true, failOnError:true)
         new Pet(name: "**").save(flush:true, failOnError:true)
         new Pet(name: "***").save(flush:true, failOnError:true)
+        session.transaction.commit()
         session.clear()
 
         when:

@@ -227,7 +227,7 @@ class Neo4jQuery extends Query {
                             lhs = graphEntity.formatId(association.name)
                         }
                         else {
-                            def targetNodeName = "m_${builder.getNextMatchNumber()}"
+                            String targetNodeName = "m_${builder.getNextMatchNumber()}"
                             builder.addMatch("(${prefix})${RelationshipUtils.matchForAssociation((Association)association)}(${targetNodeName})")
                             lhs = graphEntity.formatId(targetNodeName)
                         }
@@ -260,9 +260,9 @@ class Neo4jQuery extends Query {
                 @CompileStatic
                 CypherExpression handle(PersistentEntity entity, Query.Like criterion, CypherBuilder builder, String prefix) {
                     int paramNumber = addBuildParameterForCriterion(builder, entity, criterion)
-                    builder.replaceParamAt(paramNumber, Query.patternToRegex(criterion.value))
+                    String operator = handleLike(criterion, builder, paramNumber, false)
                     GraphPersistentEntity graphPersistentEntity = (GraphPersistentEntity)entity
-                    return new CypherExpression(graphPersistentEntity.formatProperty(prefix, criterion.property), "{$paramNumber}", CriterionHandler.OPERATOR_LIKE)
+                    return new CypherExpression(graphPersistentEntity.formatProperty(prefix, criterion.property), "{$paramNumber}", operator)
                 }
             },
             (Query.ILike): new CriterionHandler<Query.ILike>() {
@@ -270,10 +270,16 @@ class Neo4jQuery extends Query {
                 @CompileStatic
                 CypherExpression handle(PersistentEntity entity, Query.ILike criterion, CypherBuilder builder, String prefix) {
                     int paramNumber = addBuildParameterForCriterion(builder, entity, criterion)
-                    def pattern = Query.patternToRegex(criterion.value)
-                    builder.replaceParamAt(paramNumber, "(?i)${pattern}".toString())
+                    String operator = handleLike(criterion, builder, paramNumber, true)
+
                     GraphPersistentEntity graphPersistentEntity = (GraphPersistentEntity)entity
-                    return new CypherExpression(graphPersistentEntity.formatProperty(prefix, criterion.property), "{$paramNumber}", CriterionHandler.OPERATOR_LIKE)
+                    String propertyRef = graphPersistentEntity.formatProperty(prefix, criterion.property)
+                    String parameterRef = "{$paramNumber}"
+                    if(operator != CriterionHandler.OPERATOR_LIKE) {
+                        propertyRef = "lower($propertyRef)"
+                        parameterRef = "lower($parameterRef)"
+                    }
+                    return new CypherExpression(propertyRef, parameterRef, operator)
                 }
             },
             (Query.RLike): new CriterionHandler<Query.RLike>() {
@@ -630,6 +636,42 @@ class Neo4jQuery extends Query {
         return (org.neo4j.driver.v1.Session)getSession().getNativeInterface()
     }
 
+
+    protected static String handleLike(Query.PropertyCriterion criterion, CypherBuilder builder, int paramNumber, boolean caseSensitive) {
+        String value = criterion.value?.toString()
+        String operator
+        if (value) {
+            int length = value.length()
+            boolean left = value.charAt(0) == CriterionHandler.PATTERN_CHAR
+            boolean right = value.charAt(length - 1) == CriterionHandler.PATTERN_CHAR
+            if (left && right) {
+                operator = CriterionHandler.OPERATOR_CONTAINS
+                builder.replaceParamAt(paramNumber, value.substring(1, length - 1))
+            } else if (right) {
+                operator = CriterionHandler.OPERATOR_STARTS_WITH
+                builder.replaceParamAt(paramNumber, value.substring(0, length - 1))
+            } else if (left) {
+                operator = CriterionHandler.OPERATOR_ENDS_WITH
+                builder.replaceParamAt(paramNumber, value.substring(1, length))
+            } else if(value.indexOf((int)CriterionHandler.PATTERN_CHAR) > -1) {
+                operator = CriterionHandler.OPERATOR_LIKE
+                String pattern = Query.patternToRegex(value)
+                if(caseSensitive) {
+                    builder.replaceParamAt(paramNumber, "(?i)${pattern}".toString())
+                }
+                else {
+                    builder.replaceParamAt(paramNumber, pattern)
+                }
+
+            }
+            else {
+                operator = CriterionHandler.OPERATOR_EQUALS
+            }
+        } else {
+            operator = CriterionHandler.OPERATOR_EQUALS
+        }
+        return operator
+    }
     /**
      * Interface for handling projections when building Cypher queries
      *
@@ -646,10 +688,14 @@ class Neo4jQuery extends Query {
      * @param < T > The criterion type
      */
     static interface CriterionHandler<T extends Query.Criterion> {
+        char PATTERN_CHAR = '%'
         String COUNT = "count"
         String OPERATOR_EQUALS = '='
         String OPERATOR_NOT_EQUALS = '<>'
         String OPERATOR_LIKE = "=~"
+        String OPERATOR_CONTAINS = " CONTAINS "
+        String OPERATOR_STARTS_WITH = " STARTS WITH "
+        String OPERATOR_ENDS_WITH = " ENDS WITH "
         String OPERATOR_IN = " IN "
         String OPERATOR_AND = " AND "
         String OPERATOR_OR = " OR "
