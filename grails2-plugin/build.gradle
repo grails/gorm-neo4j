@@ -14,7 +14,7 @@ import org.gradle.api.internal.artifacts.publish.*
 apply plugin: "grails"
 
 grails {
-    grailsVersion = "2.5.5"
+    grailsVersion = grails2Version
     groovyVersion = rootProject.groovyVersion
 }
 
@@ -25,7 +25,7 @@ configurations.all { Configuration c ->
     resolutionStrategy {
         eachDependency { DependencyResolveDetails details ->
             if(details.requested.group == 'org.grails' && !details.requested.name.startsWith('grails-datastore')) {
-                details.useVersion(grailsVersion)
+                details.useVersion(grails2Version)
             }
         }
     }
@@ -68,7 +68,7 @@ project.tasks.withType(PublishToMavenRepository) { task ->
     task.dependsOn("assemble")
 }
 
-//test.jvmOptions.jvmArgs "-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005", "-Xdebug"
+test.jvmOptions.jvmArgs "-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005", "-Xdebug"
 
 class GrailsPluginComponent implements SoftwareComponentInternal {
 

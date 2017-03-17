@@ -7,7 +7,7 @@ import grails.neo4j.bootstrap.Neo4jDataStoreSpringInitializer
  */
 class Neo4jGrails2PluginSpec extends spock.lang.Specification {
 
-    void "Test that mongodb works with Grails 2"() {
+    void "Test that Neo4j works with Grails 2"() {
         when:"A new book is created that is invalid"
         def b = new Book(title:"")
 

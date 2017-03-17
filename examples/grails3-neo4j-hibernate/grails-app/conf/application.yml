@@ -15,8 +15,9 @@ spring:
 ---
 grails:
   neo4j:
-    url: bolt://localhost:7687
     type: embedded
+    embedded:
+      ephemeral: true
     options:
       encryptionLevel: NONE
 ---
