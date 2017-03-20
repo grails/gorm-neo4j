@@ -48,20 +48,23 @@ class RelationshipPersistentEntity extends GraphPersistentEntity {
 
     @Override
     void initialize() {
-        super.initialize()
-        for(association in associations) {
-            if(!isRelationshipAssociation(association) && !(association instanceof Basic)) {
-                throw new IllegalMappingException("Invalid association $association. You cannot have associations to other nodes within a relationship entity")
+        if(!isInitialized()) {
+
+            super.initialize()
+            for(association in associations) {
+                if(!isRelationshipAssociation(association) && !(association instanceof Basic)) {
+                    throw new IllegalMappingException("Invalid association $association. You cannot have associations to other nodes within a relationship entity")
+                }
             }
+            NodeConfig mappedForm = getMapping().getMappedForm()
+            if(mappedForm instanceof RelationshipConfig) {
+                RelationshipConfig rc = (RelationshipConfig) mappedForm
+                this.type = rc.type ?: type
+                this.direction = rc.direction
+            }
+            getFrom().getMapping().getMappedForm().setLazy(true)
+            getTo().getMapping().getMappedForm().setLazy(true)
         }
-        NodeConfig mappedForm = getMapping().getMappedForm()
-        if(mappedForm instanceof RelationshipConfig) {
-            RelationshipConfig rc = (RelationshipConfig) mappedForm
-            this.type = rc.type ?: type
-            this.direction = rc.direction
-        }
-        getFrom().getMapping().getMappedForm().setLazy(true)
-        getTo().getMapping().getMappedForm().setLazy(true)
     }
 
     @Override
@@ -69,7 +72,15 @@ class RelationshipPersistentEntity extends GraphPersistentEntity {
         return CypherBuilder.REL_VAR
     }
 
-
+    String formatBatchCreate(String batchId, String type = this.type()) {
+        fromEntity.initialize()
+        toEntity.initialize()
+        """UNWIND ${batchId} as row
+MATCH ${fromEntity.formatNode(FROM)} WHERE ${fromEntity.formatId(FROM)} = row.from
+MATCH ${toEntity.formatNode(TO)} WHERE ${toEntity.formatId(TO)} IN row.to
+MERGE ($FROM)${buildRelationshipMatch(type)}($TO) 
+ON CREATE SET r = row.props"""
+    }
 
     @Override
     String formatProperty(String variable, String property) {
@@ -119,27 +130,31 @@ class RelationshipPersistentEntity extends GraphPersistentEntity {
 
 
     String buildMatch(String type = this.type(), String var = "r") {
-        String toMatch = buildMatchForType(type, var)
-        return "(from${fromEntity.labelsAsString})$toMatch"
+        String toMatch = buildRelationshipMatchTo(type, var)
+        return fromEntity.formatNode(FROM) + toMatch
     }
 
     String buildToMatch(String var = "r") {
         String type = type()
-        return buildMatchForType(type, var)
+        return buildRelationshipMatchTo(type, var)
     }
 
     String type() {
         return this.type
     }
 
-    String buildMatchForType(String type, String var = "r") {
+    String buildRelationshipMatchTo(String type, String var = "r") {
+        buildRelationshipMatch(type ,var) + toEntity.formatNode(TO)
+    }
+
+    String buildRelationshipMatch(String type, String var = "r") {
         boolean incoming = direction.isIncoming()
         boolean outgoing = direction.isOutgoing()
         if(type != null) {
-            return "${incoming ? RelationshipUtils.INCOMING_CHAR : ''}-[$var:${type}]-${outgoing ? RelationshipUtils.OUTGOING_CHAR : ''}(to${toEntity.labelsAsString})"
+            return "${incoming ? RelationshipUtils.INCOMING_CHAR : ''}-[$var:${type}]-${outgoing ? RelationshipUtils.OUTGOING_CHAR : ''}"
         }
         else {
-            return "${incoming ? RelationshipUtils.INCOMING_CHAR : ''}-[$var]-${outgoing ? RelationshipUtils.OUTGOING_CHAR : ''}(to${toEntity.labelsAsString})"
+            return "${incoming ? RelationshipUtils.INCOMING_CHAR : ''}-[$var]-${outgoing ? RelationshipUtils.OUTGOING_CHAR : ''}"
         }
     }
 }

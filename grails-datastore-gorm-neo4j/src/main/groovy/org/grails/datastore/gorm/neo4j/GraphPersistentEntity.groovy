@@ -44,7 +44,7 @@ class GraphPersistentEntity extends AbstractPersistentEntity<NodeConfig> {
     protected final GraphClassMapping classMapping
     protected final String batchId
     protected final String variableId
-    protected final String batchCreateStatement
+    protected String batchCreateStatement
     protected IdGenerator idGenerator
     protected IdGenerator.Type idGeneratorType
     protected boolean assignedId = false
@@ -70,24 +70,27 @@ class GraphPersistentEntity extends AbstractPersistentEntity<NodeConfig> {
         this.classMapping = new GraphClassMapping(this, context)
         this.variableId = Introspector.decapitalize(javaClass.simpleName)
         this.batchId = "${variableId}Batch"
-        this.batchCreateStatement = formatBatchCreate("{${batchId}}")
     }
 
 
     @Override
     void initialize() {
-        super.initialize()
-        if(!isExternal()) {
-            PersistentProperty identity = getIdentity()
-            if(identity != null) {
-                String generatorType = identity.getMapping().getMappedForm().getGenerator()
-                this.idGenerator = createIdGenerator(generatorType)
-                if(identity.name != GormProperties.IDENTITY) {
-                    MetaProperty idProp = getJavaClass().getMetaClass().getMetaProperty(GormProperties.IDENTITY)
-                    if(idProp != null && Long.class.isAssignableFrom(idProp.getType())) {
-                        MappingFactory mappingFactory = mappingContext.mappingFactory
-                        nodeId = mappingFactory.createSimple(this, context, mappingFactory.createPropertyDescriptor(javaClass, idProp))
-                        propertiesByName.put(GormProperties.IDENTITY, nodeId)
+        if(!isInitialized()) {
+
+            super.initialize()
+
+            if(!isExternal()) {
+                PersistentProperty identity = getIdentity()
+                if(identity != null) {
+                    String generatorType = identity.getMapping().getMappedForm().getGenerator()
+                    this.idGenerator = createIdGenerator(generatorType)
+                    if(identity.name != GormProperties.IDENTITY) {
+                        MetaProperty idProp = getJavaClass().getMetaClass().getMetaProperty(GormProperties.IDENTITY)
+                        if(idProp != null && Long.class.isAssignableFrom(idProp.getType())) {
+                            MappingFactory mappingFactory = mappingContext.mappingFactory
+                            nodeId = mappingFactory.createSimple(this, context, mappingFactory.createPropertyDescriptor(javaClass, idProp))
+                            propertiesByName.put(GormProperties.IDENTITY, nodeId)
+                        }
                     }
                 }
             }
@@ -174,6 +177,9 @@ class GraphPersistentEntity extends AbstractPersistentEntity<NodeConfig> {
      * @return The batch create statement
      */
     String getBatchCreateStatement() {
+        if(this.batchCreateStatement == null) {
+            this.batchCreateStatement = formatBatchCreate("{${batchId}}")
+        }
         return batchCreateStatement
     }
     /**

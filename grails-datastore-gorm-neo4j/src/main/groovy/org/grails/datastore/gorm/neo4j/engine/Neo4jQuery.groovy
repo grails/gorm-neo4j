@@ -234,7 +234,7 @@ class Neo4jQuery extends Query {
 
                     } else {
                         if(isRelationshipEntity && criterion.property == RelationshipPersistentEntity.TYPE) {
-                            builder.replaceFirstRelationshipMatch( ((RelationshipPersistentEntity)graphEntity).buildMatchForType(null, CypherBuilder.REL_VAR))
+                            builder.replaceFirstRelationshipMatch( ((RelationshipPersistentEntity)graphEntity).buildRelationshipMatchTo(null, CypherBuilder.REL_VAR))
                             lhs = "TYPE($CypherBuilder.REL_VAR)"
                         }
                         else {
@@ -771,7 +771,7 @@ class Neo4jQuery extends Query {
             }
             else {
                 if(graphEntity.isRelationshipEntity() && criterion.property == RelationshipPersistentEntity.TYPE) {
-                    builder.replaceFirstRelationshipMatch( ((RelationshipPersistentEntity)entity).buildMatchForType(null, CypherBuilder.REL_VAR))
+                    builder.replaceFirstRelationshipMatch( ((RelationshipPersistentEntity)entity).buildRelationshipMatchTo(null, CypherBuilder.REL_VAR))
                     lhs = "TYPE(r)"
                 }
                 else {

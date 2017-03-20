@@ -2,6 +2,7 @@ package org.grails.datastore.gorm.neo4j;
 
 import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
 import com.googlecode.concurrentlinkedhashmap.EvictionListener;
+import grails.neo4j.Relationship;
 import org.grails.datastore.gorm.neo4j.engine.*;
 import org.grails.datastore.gorm.neo4j.mapping.config.DynamicAssociation;
 import org.grails.datastore.gorm.neo4j.mapping.config.DynamicToOneAssociation;
@@ -22,6 +23,7 @@ import org.grails.datastore.mapping.model.types.*;
 import org.grails.datastore.mapping.query.Query;
 import org.grails.datastore.mapping.query.Restrictions;
 import org.grails.datastore.mapping.query.api.QueryableCriteria;
+import org.grails.datastore.mapping.reflect.EntityReflector;
 import org.grails.datastore.mapping.transactions.SessionHolder;
 import org.grails.datastore.mapping.transactions.Transaction;
 import org.neo4j.driver.v1.Driver;
@@ -43,16 +45,13 @@ import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
- *
  * Represents a session for interacting with Neo4j
- *
+ * <p>
  * Created by stefan on 03.03.14.
  *
  * @author Stefan
  * @author Graeme Rocher
- *
  * @since 1.0
- *
  */
 public class Neo4jSession extends AbstractSession<Session> {
 
@@ -78,26 +77,26 @@ public class Neo4jSession extends AbstractSession<Session> {
                     .maximumWeightedCapacity(5000).build();
 
 
-    /** map node id to hashmap of relationship types showing startNode id and endNode id */
+    /**
+     * map node id to hashmap of relationship types showing startNode id and endNode id
+     */
     protected final Session boltSession;
 
 
     public Neo4jSession(Datastore datastore, MappingContext mappingContext, ApplicationEventPublisher publisher, boolean stateless, Driver boltDriver) {
         super(datastore, mappingContext, publisher, stateless);
-        if(log.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             log.debug("Session created");
         }
         this.boltSession = boltDriver.session();
     }
 
 
-
-
     /**
      * Adds a relationship that is pending insertion
      *
      * @param association The association
-     * @param id The id
+     * @param id          The id
      */
     public void addPendingRelationshipInsert(Serializable parentId, Association association, Serializable id) {
         addRelationshipUpdate(parentId, association, id, this.pendingRelationshipInserts);
@@ -107,21 +106,21 @@ public class Neo4jSession extends AbstractSession<Session> {
      * Adds a relationship that is pending deletion
      *
      * @param association The association
-     * @param id The id
+     * @param id          The id
      */
     public void addPendingRelationshipDelete(Serializable parentId, Association association, Serializable id) {
         addRelationshipUpdate(parentId, association, id, this.pendingRelationshipDeletes);
     }
 
     protected void addRelationshipUpdate(Serializable parentId, Association association, Serializable id, Map<RelationshipUpdateKey, Collection<Serializable>> targetMap) {
-        if(id == null || parentId == null) return;
+        if (id == null || parentId == null) return;
         final RelationshipUpdateKey key = new RelationshipUpdateKey(parentId, association);
         Collection<Serializable> inserts = targetMap.get(key);
         if (inserts == null) {
             inserts = new ConcurrentLinkedQueue<>();
             targetMap.put(key, inserts);
         }
-        if(!inserts.contains(id)) {
+        if (!inserts.contains(id)) {
             inserts.add(id);
         }
     }
@@ -144,13 +143,13 @@ public class Neo4jSession extends AbstractSession<Session> {
      * @return A Neo4jEntityPersister
      */
     public Neo4jEntityPersister getEntityPersister(Object o) {
-        return (Neo4jEntityPersister)getPersister(o);
+        return (Neo4jEntityPersister) getPersister(o);
     }
 
     @Override
     protected Persister createPersister(Class cls, MappingContext mappingContext) {
         final PersistentEntity entity = mappingContext.getPersistentEntity(cls.getName());
-        return (entity != null ) ? new Neo4jEntityPersister(mappingContext, entity, this, publisher) : null;
+        return (entity != null) ? new Neo4jEntityPersister(mappingContext, entity, this, publisher) : null;
     }
 
     @Override
@@ -165,8 +164,7 @@ public class Neo4jSession extends AbstractSession<Session> {
     protected Transaction beginTransactionInternal(TransactionDefinition transactionDefinition, boolean sessionCreated) {
         if (transaction != null && transaction.isActive()) {
             return transaction;
-        }
-        else {
+        } else {
             // if there is a current transaction, return that, since Neo4j doesn't really supported transaction nesting
             Transaction tx = null;
             if (TransactionSynchronizationManager.isSynchronizationActive()) {
@@ -174,8 +172,8 @@ public class Neo4jSession extends AbstractSession<Session> {
                 tx = sessionHolder.getTransaction();
             }
 
-            if(tx == null || !tx.isActive()) {
-                if(transactionDefinition.getName() == null) {
+            if (tx == null || !tx.isActive()) {
+                if (transactionDefinition.getName() == null) {
                     transactionDefinition = createDefaultTransactionDefinition(transactionDefinition);
                 }
                 tx = new Neo4jTransaction(boltSession, transactionDefinition, sessionCreated);
@@ -187,12 +185,12 @@ public class Neo4jSession extends AbstractSession<Session> {
 
     @Override
     public void disconnect() {
-        if(isConnected()) {
+        if (isConnected()) {
 
             super.disconnect();
             // if there is no active synchronization defined by a TransactionManager then close the transaction is if was created
             try {
-                if(transaction != null && !isSynchronizedWithTransaction) {
+                if (transaction != null && !isSynchronizedWithTransaction) {
                     Neo4jTransaction transaction = getTransaction();
 
                     transaction.close();
@@ -200,9 +198,8 @@ public class Neo4jSession extends AbstractSession<Session> {
                 boltSession.close();
             } catch (IOException e) {
                 log.error("Error closing transaction: " + e.getMessage(), e);
-            }
-            finally {
-                if(log.isDebugEnabled()) {
+            } finally {
+                if (log.isDebugEnabled()) {
                     log.debug("Session closed");
                 }
                 this.transaction = null;
@@ -239,14 +236,14 @@ public class Neo4jSession extends AbstractSession<Session> {
 
                 pendingUpdate.run();
 
-                if(pendingUpdate.isVetoed()) continue;
+                if (pendingUpdate.isVetoed()) continue;
 
                 final EntityAccess access = pendingUpdate.getEntityAccess();
                 final List<PendingOperation<Object, Serializable>> cascadingOperations = new ArrayList<>(pendingUpdate.getCascadeOperations());
                 final Object object = pendingUpdate.getObject();
 
-                final Map<String,Object> params = new LinkedHashMap<>(2);
-                final Serializable id = (Serializable)pendingUpdate.getNativeKey();
+                final Map<String, Object> params = new LinkedHashMap<>(2);
+                final Serializable id = (Serializable) pendingUpdate.getNativeKey();
                 params.put(GormProperties.IDENTITY, id);
                 final Map<String, Object> simpleProps = new HashMap<>();
 
@@ -255,39 +252,36 @@ public class Neo4jSession extends AbstractSession<Session> {
                 final List<String> dirtyPropertyNames = dirtyCheckable.listDirtyPropertyNames();
                 for (String dirtyPropertyName : dirtyPropertyNames) {
                     final PersistentProperty property = entity.getPropertyByName(dirtyPropertyName);
-                    if(property !=null){
+                    if (property != null) {
                         if (property instanceof Simple || property instanceof Basic) {
                             String name = property.getName();
                             Object value = access.getProperty(name);
                             if (value != null) {
-                                simpleProps.put(name,  mappingContext.convertToNative(value));
-                            }
-                            else {
+                                simpleProps.put(name, mappingContext.convertToNative(value));
+                            } else {
                                 simpleProps.put(name, null);
                             }
-                        }
-                        else if(property instanceof Custom) {
+                        } else if (property instanceof Custom) {
                             applyCustomType(access, property, simpleProps);
                         }
                     }
                 }
 
                 Map<String, List<Object>> dynamicAssociations = amendMapWithUndeclaredProperties(graphPersistentEntity, simpleProps, object, mappingContext);
-                if(graphPersistentEntity.hasDynamicAssociations()) {
+                if (graphPersistentEntity.hasDynamicAssociations()) {
                     getEntityPersister(object).processDynamicAssociations(graphPersistentEntity, access, mappingContext, dynamicAssociations, cascadingOperations, true);
                 }
                 processPendingRelationshipUpdates(graphPersistentEntity, access, id, cascadingOperations, true);
 
                 final boolean hasNoUpdates = simpleProps.isEmpty();
-                if(hasNoUpdates) {
+                if (hasNoUpdates) {
                     // if there are no simple property updates then only the associations were dirty
                     // reset track changes
                     dirtyCheckable.trackChanges();
                     executePendings(cascadingOperations);
-                }
-                else {
+                } else {
                     params.put(CypherBuilder.PROPS, simpleProps);
-                    if(isVersioned) {
+                    if (isVersioned) {
                         Long version = (Long) access.getProperty(GormProperties.VERSION);
                         if (version == null) {
                             version = 0l;
@@ -299,15 +293,14 @@ public class Neo4jSession extends AbstractSession<Session> {
                     }
 
                     String cypher = graphPersistentEntity.formatMatchAndUpdate(CypherBuilder.NODE_VAR, simpleProps);
-                    if( log.isDebugEnabled() ) {
+                    if (log.isDebugEnabled()) {
                         log.debug("UPDATE Cypher [{}] for parameters [{}]", cypher, params);
                     }
 
                     final StatementResult executionResult = getTransaction().getNativeTransaction().run(cypher, params);
                     if (!executionResult.hasNext() && isVersioned) {
                         throw new OptimisticLockingException(entity, id);
-                    }
-                    else {
+                    } else {
                         // reset track changes
                         dirtyCheckable.trackChanges();
                         executePendings(cascadingOperations);
@@ -319,31 +312,31 @@ public class Neo4jSession extends AbstractSession<Session> {
     }
 
     private void processPendingRelationshipUpdates(GraphPersistentEntity entity, EntityAccess access, Serializable id, List<PendingOperation<Object, Serializable>> cascadingOperations, boolean isUpdate) {
-        if(entity.isRelationshipEntity()) {
+        if (entity.isRelationshipEntity()) {
             RelationshipPersistentEntity relEntity = (RelationshipPersistentEntity) entity;
             Object from = access.getPropertyValue(RelationshipPersistentEntity.FROM);
-            if(from != null) {
+            if (from != null) {
                 id = relEntity.getFromEntity().getReflector().getIdentifier(from);
             }
         }
         for (Association association : entity.getAssociations()) {
-            if(association.isBasic()) continue;
+            if (association.isBasic()) continue;
             processPendingRelationshipUpdates(access, id, association, cascadingOperations, isUpdate);
         }
-        if(entity.hasDynamicAssociations()) {
-            if(!pendingRelationshipDeletes.isEmpty()) {
+        if (entity.hasDynamicAssociations()) {
+            if (!pendingRelationshipDeletes.isEmpty()) {
                 for (RelationshipUpdateKey relationshipUpdateKey : pendingRelationshipDeletes.keySet()) {
                     Association association = relationshipUpdateKey.association;
-                    if(association instanceof DynamicAssociation) {
-                        if(association.getOwner().equals(entity)) {
-                            if(relationshipUpdateKey.id.equals(id)) {
+                    if (association instanceof DynamicAssociation) {
+                        if (association.getOwner().equals(entity)) {
+                            if (relationshipUpdateKey.id.equals(id)) {
                                 cascadingOperations.add(new RelationshipPendingDelete(access, association, pendingRelationshipDeletes.get(relationshipUpdateKey), getTransaction().getTransaction()));
                             }
                         }
                     }
                 }
             }
-            if(!pendingRelationshipInserts.isEmpty()) {
+            if (!pendingRelationshipInserts.isEmpty()) {
                 List<RelationshipUpdateKey> relationshipUpdates = new ArrayList<RelationshipUpdateKey>(pendingRelationshipInserts.keySet());
                 Collections.sort(relationshipUpdates, new Comparator<RelationshipUpdateKey>() {
                     @Override
@@ -353,9 +346,9 @@ public class Neo4jSession extends AbstractSession<Session> {
                 });
                 for (RelationshipUpdateKey relationshipUpdate : relationshipUpdates) {
                     Association association = relationshipUpdate.association;
-                    if(association instanceof DynamicToOneAssociation) {
-                        if(association.getOwner().equals(entity)) {
-                            if(relationshipUpdate.id.equals(id)) {
+                    if (association instanceof DynamicToOneAssociation) {
+                        if (association.getOwner().equals(entity)) {
+                            if (relationshipUpdate.id.equals(id)) {
                                 cascadingOperations.add(new RelationshipPendingInsert(access, association, pendingRelationshipInserts.get(relationshipUpdate), this, isUpdate));
                             }
                         }
@@ -367,18 +360,17 @@ public class Neo4jSession extends AbstractSession<Session> {
 
     private void processPendingRelationshipUpdates(EntityAccess parent, Serializable parentId, Association association, List<PendingOperation<Object, Serializable>> cascadingOperations, boolean isUpdate) {
         final RelationshipUpdateKey key;
-        if(RelationshipUtils.useReversedMappingFor(association)) {
-            if(association instanceof ManyToMany) {
+        if (RelationshipUtils.useReversedMappingFor(association)) {
+            if (association instanceof ManyToMany) {
                 // many-to-many updates handled by the owning side
                 return;
             }
             Association inverseSide = association.getInverseSide();
-            if(inverseSide != null) {
+            if (inverseSide != null) {
                 Object associated = parent.getPropertyValue(association.getName());
-                if(associated == null) {
+                if (associated == null) {
                     key = new RelationshipUpdateKey(parentId, association);
-                }
-                else {
+                } else {
 
                     PersistentEntity associatedEntity = inverseSide.getOwner();
                     parent = createEntityAccess(associatedEntity, associated);
@@ -386,22 +378,20 @@ public class Neo4jSession extends AbstractSession<Session> {
                     association = inverseSide;
                     key = new RelationshipUpdateKey(associatedId, inverseSide);
                 }
-            }
-            else {
+            } else {
                 key = new RelationshipUpdateKey(parentId, association);
             }
-        }
-        else {
+        } else {
             key = new RelationshipUpdateKey(parentId, association);
         }
 
         final Collection<Serializable> pendingInserts = pendingRelationshipInserts.get(key);
-        if(pendingInserts != null && !pendingInserts.isEmpty()) {
+        if (pendingInserts != null && !pendingInserts.isEmpty()) {
             cascadingOperations.add(new RelationshipPendingInsert(parent, association, pendingInserts, this, isUpdate));
             pendingRelationshipInserts.remove(key);
         }
         final Collection<Serializable> pendingDeletes = pendingRelationshipDeletes.get(key);
-        if(pendingDeletes != null && !pendingDeletes.isEmpty()) {
+        if (pendingDeletes != null && !pendingDeletes.isEmpty()) {
             cascadingOperations.add(new RelationshipPendingDelete(parent, association, pendingDeletes, getTransaction().getNativeTransaction()));
             pendingRelationshipDeletes.remove(key);
         }
@@ -415,7 +405,7 @@ public class Neo4jSession extends AbstractSession<Session> {
         // processing relationship entities first, to ensure the most optimal queries are executed
         for (RelationshipUpdateKey relationshipUpdateKey : pendingRelationshipInserts.keySet()) {
             PersistentEntity entity = relationshipUpdateKey.association.getOwner();
-            if(inserts.containsKey(entity)) {
+            if (inserts.containsKey(entity)) {
                 processInsertsForEntity(neo4jTransaction, (GraphPersistentEntity) entity, inserts, cascadingOperations);
             }
         }
@@ -431,101 +421,150 @@ public class Neo4jSession extends AbstractSession<Session> {
     }
 
     private void processInsertsForEntity(org.neo4j.driver.v1.Transaction neo4jTransaction, GraphPersistentEntity entity, Map<PersistentEntity, Collection<PendingInsert>> inserts, List<PendingOperation<Object, Serializable>> cascadingOperations) {
-        GraphPersistentEntity graphEntity = entity;
-        final Collection<PendingInsert> entityInserts = inserts.get(graphEntity);
-        final boolean hasDynamicLabels = graphEntity.hasDynamicLabels();
-        if(!entityInserts.isEmpty()) {
+        final Collection<PendingInsert> entityInserts = inserts.get(entity);
+        final boolean hasDynamicLabels = entity.hasDynamicLabels();
+        final EntityReflector reflector = entity.getReflector();
+        Neo4jMappingContext mappingContext = getMappingContext();
+        if (!entityInserts.isEmpty()) {
 
-            if(hasDynamicLabels) {
-                buildAndExecuteCreateStatement(entityInserts, graphEntity, cascadingOperations);
-            }
-            else {
+            if (hasDynamicLabels) {
+                buildAndExecuteCreateStatement(entityInserts, entity, cascadingOperations);
+            } else {
                 // use UNWIND and FOREACH to batch
                 StringBuilder batchCypher = new StringBuilder();
                 final Map<String, Object> params = new HashMap<>(inserts.size());
                 Map<String, String> associationMerges = new LinkedHashMap<>();
-                batchCypher.append(graphEntity.getBatchCreateStatement());
+                batchCypher.append(entity.getBatchCreateStatement());
                 Collection<Map<String, Object>> rows = new ArrayList<>();
                 for (PendingInsert entityInsert : entityInserts) {
                     EntityAccess entityAccess = entityInsert.getEntityAccess();
-                    if(entityInsert.wasExecuted() || graphEntity.isRelationshipEntity()) {
-                        processPendingRelationshipUpdates(graphEntity, entityAccess, (Serializable) entityInsert.getNativeKey(), cascadingOperations, false);
+                    if (entityInsert.wasExecuted()) {
+                        processPendingRelationshipUpdates(entity, entityAccess, (Serializable) entityInsert.getNativeKey(), cascadingOperations, false);
                         cascadingOperations.addAll(entityInsert.getCascadeOperations());
-                    }
-                    else {
-                        if(isVetoedAfterPreOperations(entityInsert)) {
+                    } else {
+                        if (isVetoedAfterPreOperations(entityInsert)) {
                             continue;
                         }
 
-                        Object parentId = entityAccess.getIdentifier();
-                        if(parentId != null) {
-                            Map<String, Object> nodeProperties = readNodePropertiesForInsert(entityInsert, graphEntity, graphEntity.getPersistentProperties(), entityAccess);
-                            Object obj = entityInsert.getObject();
-                            Map<String, List<Object>> dynamicRelProps = amendMapWithUndeclaredProperties(graphEntity, nodeProperties, obj, getMappingContext());
-                            Map<String, Object> data = new LinkedHashMap<>();
-                            data.put(CypherBuilder.PROPS, nodeProperties);
-                            rows.add(data);
-
-
-                            for (Association association : graphEntity.getAssociations()) {
-                                if(association.isBasic()) continue;
-                                boolean isTree = association.isCircular();
-                                if(association.isOwningSide() || isTree) {
-                                    RelationshipUpdateKey key = new RelationshipUpdateKey((Serializable) parentId, association);
-                                    Collection<Serializable> childIds = pendingRelationshipInserts.get(key);
+                        if (entity.isRelationshipEntity()) {
+                            RelationshipPersistentEntity relEntity = (RelationshipPersistentEntity) entity;
+                            Relationship relationship = (Relationship) entityAccess.getEntity();
+                            Object type = entityAccess.getProperty(RelationshipPersistentEntity.TYPE);
+                            // if the type hasn't been modified we can batch
+                            if(relEntity.type().equals(type)) {
+                                Object from = entityAccess.getPropertyValue(RelationshipPersistentEntity.FROM);
+                                Serializable id = null;
+                                if (from != null) {
+                                    id = relEntity.getFromEntity().getReflector().getIdentifier(from);
+                                }
+                                if(id != null) {
+                                    RelationshipUpdateKey updateKey = new RelationshipUpdateKey(id, relEntity.getFrom());
+                                    Collection<Serializable> childIds = pendingRelationshipInserts.get(updateKey);
                                     if(childIds != null) {
-                                        GraphPersistentEntity associatedEntity = (GraphPersistentEntity) association.getAssociatedEntity();
-                                        String associationName = association.getName();
-                                        Collection<PendingInsert> pendingInserts = inserts.get(associatedEntity);
-                                        if(pendingInserts != null ) {
-                                            Collection<Map<String, Object>> childRows = new ArrayList<>();
-                                            for (PendingInsert pendingInsert : pendingInserts) {
-                                                Serializable childId = (Serializable) pendingInsert.getNativeKey();
-                                                if(childIds.contains(childId)) {
+                                        pendingRelationshipInserts.remove(updateKey);
+                                        Map<String, Object> rowData = new LinkedHashMap<>();
+                                        LinkedHashMap<String, Object> nodeProperties = new LinkedHashMap<>();
+                                        for (PersistentProperty pp : relEntity.getPersistentProperties()) {
+                                            if(pp instanceof Simple || pp instanceof Basic || pp instanceof TenantId) {
+                                                String propertyName = pp.getName();
+                                                if(RelationshipPersistentEntity.TYPE.equals(propertyName)) {
+                                                    continue;
+                                                }
 
-                                                    boolean wasExecutedBeforeHand = pendingInsert.wasExecuted();
-
-                                                    if(wasExecutedBeforeHand || isVetoedAfterPreOperations(pendingInsert)) {
-                                                        continue;
-                                                    }
-
-                                                    childIds.remove(childId);
-
-                                                    Map<String, Object> childProperties = readNodePropertiesForInsert(pendingInsert, associatedEntity, associatedEntity.getPersistentProperties(), pendingInsert.getEntityAccess());
-                                                    childRows.add(Collections.<String, Object> singletonMap(CypherBuilder.PROPS, childProperties));
-
-                                                    cascadingOperations.addAll(pendingInsert.getCascadeOperations());
+                                                Object v = reflector.getProperty(relationship, propertyName);
+                                                if(v != null) {
+                                                    nodeProperties.put(propertyName, mappingContext.convertToNative(v));
                                                 }
                                             }
+                                        }
 
-                                            if(!childRows.isEmpty()) {
-                                                String parentVariable = graphEntity.getVariableId();
-                                                associationMerges.put( associationName, associatedEntity.formatBatchCreate(parentVariable, association));
-                                                data.put(associationName, childRows);
+                                        nodeProperties.putAll( relationship.attributes() );
+
+                                        rowData.put(CypherBuilder.PROPS, nodeProperties);
+                                        rowData.put(RelationshipPersistentEntity.FROM, id);
+                                        rowData.put(RelationshipPersistentEntity.TO, childIds);
+                                        rows.add(rowData);
+
+                                    }
+                                }
+                            }
+                            else {
+                                // otherwise process individual inserts
+                                processPendingRelationshipUpdates(entity, entityAccess, (Serializable) entityInsert.getNativeKey(), cascadingOperations, false);
+                            }
+                        } else {
+                            Object parentId = entityAccess.getIdentifier();
+                            if (parentId != null) {
+                                Map<String, Object> nodeProperties = readNodePropertiesForInsert(entityInsert, entity, entity.getPersistentProperties(), entityAccess);
+                                Object obj = entityInsert.getObject();
+                                Map<String, List<Object>> dynamicRelProps = amendMapWithUndeclaredProperties(entity, nodeProperties, obj, getMappingContext());
+                                Map<String, Object> data = new LinkedHashMap<>();
+                                data.put(CypherBuilder.PROPS, nodeProperties);
+                                rows.add(data);
+
+
+                                for (Association association : entity.getAssociations()) {
+                                    if (association.isBasic()) continue;
+                                    boolean isTree = association.isCircular();
+                                    if (association.isOwningSide() || isTree) {
+                                        RelationshipUpdateKey key = new RelationshipUpdateKey((Serializable) parentId, association);
+                                        Collection<Serializable> childIds = pendingRelationshipInserts.get(key);
+                                        if (childIds != null) {
+                                            GraphPersistentEntity associatedEntity = (GraphPersistentEntity) association.getAssociatedEntity();
+                                            String associationName = association.getName();
+                                            Collection<PendingInsert> pendingInserts = inserts.get(associatedEntity);
+                                            if (pendingInserts != null) {
+                                                Collection<Map<String, Object>> childRows = new ArrayList<>();
+                                                for (PendingInsert pendingInsert : pendingInserts) {
+                                                    Serializable childId = (Serializable) pendingInsert.getNativeKey();
+                                                    if (childIds.contains(childId)) {
+
+                                                        boolean wasExecutedBeforeHand = pendingInsert.wasExecuted();
+
+                                                        if (wasExecutedBeforeHand || isVetoedAfterPreOperations(pendingInsert)) {
+                                                            continue;
+                                                        }
+
+                                                        childIds.remove(childId);
+
+                                                        Map<String, Object> childProperties = readNodePropertiesForInsert(pendingInsert, associatedEntity, associatedEntity.getPersistentProperties(), pendingInsert.getEntityAccess());
+                                                        childRows.add(Collections.<String, Object>singletonMap(CypherBuilder.PROPS, childProperties));
+
+                                                        cascadingOperations.addAll(pendingInsert.getCascadeOperations());
+                                                    }
+                                                }
+
+                                                if (!childRows.isEmpty()) {
+                                                    String parentVariable = entity.getVariableId();
+                                                    associationMerges.put(associationName, associatedEntity.formatBatchCreate(parentVariable, association));
+                                                    data.put(associationName, childRows);
+                                                }
                                             }
                                         }
                                     }
                                 }
+
+
+                                processDynamicAssociationsIfNecessary(entity, entityAccess, obj, entityInsert, cascadingOperations, params, dynamicRelProps);
                             }
 
 
-                            processDynamicAssociationsIfNecessary(graphEntity, entityAccess, obj, entityInsert, cascadingOperations, params, dynamicRelProps);
                             cascadingOperations.addAll(entityInsert.getCascadeOperations());
                         }
 
                     }
                 }
-                params.put(graphEntity.getBatchId(), rows);
-                if(!associationMerges.isEmpty()) {
+                params.put(entity.getBatchId(), rows);
+                if (!associationMerges.isEmpty()) {
                     for (String merge : associationMerges.keySet()) {
                         batchCypher.append(associationMerges.get(merge));
                     }
                 }
 
-                if(batchCypher.length() > 0 && !rows.isEmpty()) {
+                if (batchCypher.length() > 0 && !rows.isEmpty()) {
 
                     final String finalCypher = batchCypher.toString();
-                    if(log.isDebugEnabled()) {
+                    if (log.isDebugEnabled()) {
                         log.debug("CREATE Cypher [{}] for parameters [{}]", finalCypher, params);
                     }
                     neo4jTransaction.run(finalCypher, params);
@@ -544,7 +583,7 @@ public class Neo4jSession extends AbstractSession<Session> {
         }
 
         entityInsert.run();
-        ((PendingOperationAdapter)entityInsert).setExecuted(true);
+        ((PendingOperationAdapter) entityInsert).setExecuted(true);
         return entityInsert.isVetoed();
     }
 
@@ -552,8 +591,8 @@ public class Neo4jSession extends AbstractSession<Session> {
         // dynamic labels require individual create statements and are less efficient
         final Map<String, Object> createParams = new HashMap<>(entityInserts.size());
         final String finalCypher = buildCypherCreateStatement(entityInserts, graphEntity, cascadingOperations, createParams);
-        if(finalCypher.length() > 0) {
-            if(log.isDebugEnabled()) {
+        if (finalCypher.length() > 0) {
+            if (log.isDebugEnabled()) {
                 log.debug("CREATE Cypher [{}] for parameters [{}]", finalCypher, createParams);
             }
             getTransaction().getNativeTransaction().run(finalCypher, createParams);
@@ -566,28 +605,26 @@ public class Neo4jSession extends AbstractSession<Session> {
         int i = 0;
         boolean first = true;
         for (final PendingInsert entityInsert : entityInserts) {
-            if(entityInsert.wasExecuted() || graphEntity.isRelationshipEntity()) {
+            if (entityInsert.wasExecuted() || graphEntity.isRelationshipEntity()) {
                 processPendingRelationshipUpdates(graphEntity, entityInsert.getEntityAccess(), (Serializable) entityInsert.getNativeKey(), cascadingOperations, false);
                 cascadingOperations.addAll(entityInsert.getCascadeOperations());
-            }
-            else {
+            } else {
                 List<PendingOperation> preOperations = entityInsert.getPreOperations();
                 for (PendingOperation preOperation : preOperations) {
                     preOperation.run();
                 }
 
                 entityInsert.run();
-                ((PendingOperationAdapter)entityInsert).setExecuted(true);
-                if(entityInsert.isVetoed()) continue;
+                ((PendingOperationAdapter) entityInsert).setExecuted(true);
+                if (entityInsert.isVetoed()) continue;
 
                 cascadingOperations.addAll(entityInsert.getCascadeOperations());
 
                 i++;
-                if(!first) {
+                if (!first) {
                     createCypher.append(',');
                     createCypher.append('\n');
-                }
-                else {
+                } else {
                     createCypher.append(CypherBuilder.CYPHER_CREATE);
                     first = false;
                 }
@@ -615,7 +652,7 @@ public class Neo4jSession extends AbstractSession<Session> {
         Map<String, List<Object>> dynamicRelProps = amendMapWithUndeclaredProperties(graphEntity, simpleProps, obj, getMappingContext());
         final String labels = graphEntity.getLabelsWithInheritance(obj);
 
-        String cypher = String.format("(n"+ index +"%s {props"+ index +"})", labels);
+        String cypher = String.format("(n" + index + "%s {props" + index + "})", labels);
         createCypher.append(cypher);
         params.put("props" + index, simpleProps);
 
@@ -626,10 +663,10 @@ public class Neo4jSession extends AbstractSession<Session> {
         boolean hasDynamicAssociations = graphEntity.hasDynamicAssociations();
         Serializable parentId = (Serializable) entityInsert.getNativeKey();
         // in the case of native ids the parent id will be null, so these operations have to be handled later
-        if(parentId != null) {
+        if (parentId != null) {
             processPendingRelationshipUpdates(graphEntity, access, parentId, cascadingOperations, false);
         }
-        if(hasDynamicAssociations) {
+        if (hasDynamicAssociations) {
             getEntityPersister(obj).processDynamicAssociations(graphEntity, access, getMappingContext(), dynamicRelProps, cascadingOperations, false);
             params.put(Neo4jEntityPersister.DYNAMIC_ASSOCIATION_PARAM, dynamicRelProps);
         }
@@ -637,13 +674,12 @@ public class Neo4jSession extends AbstractSession<Session> {
 
     private Map<String, Object> readNodePropertiesForInsert(PendingInsert entityInsert, GraphPersistentEntity graphEntity, List<PersistentProperty> persistentProperties, EntityAccess access) {
         final Map<String, Object> simpleProps = new HashMap<>(persistentProperties.size());
-        final Serializable id = (Serializable)entityInsert.getNativeKey();
+        final Serializable id = (Serializable) entityInsert.getNativeKey();
 
-        if(!graphEntity.isNativeId()) {
-            if(graphEntity.getIdGeneratorType().equals(IdGenerator.Type.SNOWFLAKE)) {
+        if (!graphEntity.isNativeId()) {
+            if (graphEntity.getIdGeneratorType().equals(IdGenerator.Type.SNOWFLAKE)) {
                 simpleProps.put(CypherBuilder.IDENTIFIER, id);
-            }
-            else {
+            } else {
                 simpleProps.put(graphEntity.getIdentity().getName(), id);
             }
         }
@@ -651,14 +687,13 @@ public class Neo4jSession extends AbstractSession<Session> {
 
         // build a properties map for each CREATE statement
         for (PersistentProperty pp : persistentProperties) {
-            if ((pp instanceof Simple) || (pp instanceof TenantId) ||  (pp instanceof Basic)) {
+            if ((pp instanceof Simple) || (pp instanceof TenantId) || (pp instanceof Basic)) {
                 String name = pp.getName();
                 Object value = access.getProperty(name);
                 if (value != null) {
                     simpleProps.put(name, getMappingContext().convertToNative(value));
                 }
-            }
-            else if(pp instanceof Custom) {
+            } else if (pp instanceof Custom) {
                 applyCustomType(access, pp, simpleProps);
             }
         }
@@ -666,7 +701,7 @@ public class Neo4jSession extends AbstractSession<Session> {
     }
 
     private void applyCustomType(EntityAccess access, PersistentProperty property, Map<String, Object> simpleProps) {
-        Custom<Map<String,Object>> custom = (Custom<Map<String,Object>>) property;
+        Custom<Map<String, Object>> custom = (Custom<Map<String, Object>>) property;
         final CustomTypeMarshaller<Object, Map<String, Object>, Map<String, Object>> customTypeMarshaller = custom.getCustomTypeMarshaller();
         Object value = access.getProperty(property.getName());
         customTypeMarshaller.write(custom, value, simpleProps);
@@ -696,7 +731,7 @@ public class Neo4jSession extends AbstractSession<Session> {
 
                 delete.run();
 
-                if(delete.isVetoed()) continue;
+                if (delete.isVetoed()) continue;
 
                 final Object id = delete.getNativeKey();
                 ids.add(id);
@@ -704,7 +739,7 @@ public class Neo4jSession extends AbstractSession<Session> {
             }
 
             final Neo4jQuery deleteQuery = new Neo4jQuery(this, entity, getEntityPersister(entity.getJavaClass()));
-            deleteQuery.add(Restrictions.in(GormProperties.IDENTITY, ids) );
+            deleteQuery.add(Restrictions.in(GormProperties.IDENTITY, ids));
             final CypherBuilder cypherBuilder = deleteQuery.getBaseQuery();
             buildCascadingDeletes(entity, cypherBuilder);
 
@@ -723,34 +758,33 @@ public class Neo4jSession extends AbstractSession<Session> {
 
     protected Map<String, List<Object>> amendMapWithUndeclaredProperties(GraphPersistentEntity graphEntity, Map<String, Object> simpleProps, Object pojo, MappingContext mappingContext) {
         boolean hasDynamicAssociations = graphEntity.hasDynamicAssociations();
-        Map<String, List<Object>> dynRelProps =  hasDynamicAssociations ? new LinkedHashMap<String, List<Object>>() : Collections.<String, List<Object>>emptyMap();
-        if(pojo instanceof DynamicAttributes) {
-            Map<String,Object> map = ((DynamicAttributes)pojo).attributes();
-            if (map!=null) {
-                for (Map.Entry<String,Object> entry : map.entrySet()) {
+        Map<String, List<Object>> dynRelProps = hasDynamicAssociations ? new LinkedHashMap<String, List<Object>>() : Collections.<String, List<Object>>emptyMap();
+        if (pojo instanceof DynamicAttributes) {
+            Map<String, Object> map = ((DynamicAttributes) pojo).attributes();
+            if (map != null) {
+                for (Map.Entry<String, Object> entry : map.entrySet()) {
                     Object value = entry.getValue();
                     String key = entry.getKey();
-                    if(value == null) {
+                    if (value == null) {
                         simpleProps.put(key, value);
                         continue;
                     }
 
-                    if(hasDynamicAssociations) {
-                        if  (mappingContext.isPersistentEntity(value)) {
+                    if (hasDynamicAssociations) {
+                        if (mappingContext.isPersistentEntity(value)) {
                             List<Object> objects = getOrInit(dynRelProps, key);
                             objects.add(value);
                         } else if (isCollectionWithPersistentEntities(value, mappingContext)) {
                             List<Object> objects = getOrInit(dynRelProps, key);
                             objects.addAll((Collection) value);
                         } else {
-                            if (((DirtyCheckable)pojo).hasChanged(key)) {
+                            if (((DirtyCheckable) pojo).hasChanged(key)) {
                                 simpleProps.put(key, ((Neo4jMappingContext) mappingContext).convertToNative(value));
                             }
                         }
-                    }
-                    else {
-                        if (((DirtyCheckable)pojo).hasChanged(key)) {
-                            simpleProps.put(key, ((Neo4jMappingContext)mappingContext).convertToNative(value));
+                    } else {
+                        if (((DirtyCheckable) pojo).hasChanged(key)) {
+                            simpleProps.put(key, ((Neo4jMappingContext) mappingContext).convertToNative(value));
                         }
                     }
                 }
@@ -761,7 +795,7 @@ public class Neo4jSession extends AbstractSession<Session> {
 
     private List<Object> getOrInit(Map<String, List<Object>> dynRelProps, String key) {
         List<Object> objects = dynRelProps.get(key);
-        if(objects == null) {
+        if (objects == null) {
             objects = new ArrayList<>();
             dynRelProps.put(key, objects);
         }
@@ -772,11 +806,10 @@ public class Neo4jSession extends AbstractSession<Session> {
     public static boolean isCollectionWithPersistentEntities(Object o, MappingContext mappingContext) {
         if (!(o instanceof Collection)) {
             return false;
-        }
-        else {
-            Collection c = (Collection)o;
+        } else {
+            Collection c = (Collection) o;
             for (Object obj : c) {
-                if( mappingContext.isPersistentEntity(obj) ) return true;
+                if (mappingContext.isPersistentEntity(obj)) return true;
             }
         }
         return false;
@@ -785,17 +818,16 @@ public class Neo4jSession extends AbstractSession<Session> {
 
     @Override
     public void flush() {
-        if(wasTransactionTerminated()) return;
+        if (wasTransactionTerminated()) return;
 
         final Neo4jTransaction transaction = (Neo4jTransaction) this.transaction;
-        if(transaction != null) {
-            if( transaction.getTransactionDefinition().isReadOnly() ) {
+        if (transaction != null) {
+            if (transaction.getTransactionDefinition().isReadOnly()) {
                 return;
             }
             persistDirtyButUnsavedInstances();
             super.flush();
-        }
-        else {
+        } else {
             throw new NoTransactionException("Cannot flush write operations without an active transaction!");
         }
     }
@@ -812,25 +844,23 @@ public class Neo4jSession extends AbstractSession<Session> {
     @Override
     protected void postFlush(boolean hasUpdates) {
         super.postFlush(hasUpdates);
-        if (publisher!=null) {
+        if (publisher != null) {
             publisher.publishEvent(new SessionFlushedEvent(this));
         }
     }
 
     public Neo4jTransaction assertTransaction() {
-        if(transaction == null || (wasTransactionTerminated() && !TransactionSynchronizationManager.isSynchronizationActive())) {
+        if (transaction == null || (wasTransactionTerminated() && !TransactionSynchronizationManager.isSynchronizationActive())) {
             SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager.getResource(getDatastore());
-            if(sessionHolder != null && sessionHolder.getSession().equals(this)) {
+            if (sessionHolder != null && sessionHolder.getSession().equals(this)) {
                 Transaction<?> transaction = sessionHolder.getTransaction();
-                if(transaction instanceof Neo4jTransaction) {
+                if (transaction instanceof Neo4jTransaction) {
                     this.transaction = transaction;
                     return (Neo4jTransaction) transaction;
-                }
-                else {
+                } else {
                     startDefaultTransaction();
                 }
-            }
-            else {
+            } else {
                 startDefaultTransaction();
             }
 
@@ -861,9 +891,9 @@ public class Neo4jSession extends AbstractSession<Session> {
      */
     private void persistDirtyButUnsavedInstances() {
         for (Map<Serializable, Object> cache : firstLevelCache.values()) {
-            for (Object obj: cache.values()) {
+            for (Object obj : cache.values()) {
                 if (obj instanceof DirtyCheckable) {
-                    boolean isDirty = ((DirtyCheckable)obj).hasChanged();
+                    boolean isDirty = ((DirtyCheckable) obj).hasChanged();
                     if (isDirty && !isPendingAlready(obj)) {
                         persist(obj);
                     }
@@ -889,7 +919,7 @@ public class Neo4jSession extends AbstractSession<Session> {
 
         final String cypher = baseQuery.build();
         final Map<String, Object> params = baseQuery.getParams();
-        if(log.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             log.debug("DELETE Cypher [{}] for parameters [{}]", cypher, params);
         }
         Number count = (Number) query.singleResult();
@@ -898,17 +928,16 @@ public class Neo4jSession extends AbstractSession<Session> {
     }
 
     protected void buildCascadingDeletes(PersistentEntity entity, CypherBuilder baseQuery) {
-        if(entity instanceof RelationshipPersistentEntity) {
+        if (entity instanceof RelationshipPersistentEntity) {
             baseQuery.addDeleteColumn(CypherBuilder.REL_VAR);
-        }
-        else {
+        } else {
             int i = 1;
             for (Association association : entity.getAssociations()) {
-                if(association instanceof Basic) continue;
-                if(association.doesCascade(CascadeType.REMOVE)) {
+                if (association instanceof Basic) continue;
+                if (association.doesCascade(CascadeType.REMOVE)) {
 
                     String a = "a" + i++;
-                    baseQuery.addOptionalMatch("(n)"+ RelationshipUtils.matchForAssociation(association)+"("+ a +")");
+                    baseQuery.addOptionalMatch("(n)" + RelationshipUtils.matchForAssociation(association) + "(" + a + ")");
                     baseQuery.addDeleteColumn(a);
 
                 }
@@ -932,7 +961,7 @@ public class Neo4jSession extends AbstractSession<Session> {
 
         final String cypher = baseQuery.build();
         final Map<String, Object> params = baseQuery.getParams();
-        if(log.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             log.debug("UPDATE Cypher [{}] for parameters [{}]", cypher, params);
         }
 
