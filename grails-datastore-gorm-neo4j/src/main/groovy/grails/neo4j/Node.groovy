@@ -4,6 +4,7 @@ import groovy.transform.CompileStatic
 import org.grails.datastore.gorm.GormEnhancer
 import org.grails.datastore.gorm.GormEntity
 import org.grails.datastore.gorm.neo4j.api.Neo4jGormStaticApi
+import org.grails.datastore.gorm.schemaless.DynamicAttributes
 
 /**
  * A domain class that represents a Neo4j Node
@@ -12,7 +13,28 @@ import org.grails.datastore.gorm.neo4j.api.Neo4jGormStaticApi
  * @since 6.1
  */
 @CompileStatic
-trait Node<D> implements Neo4jEntity<D>, GormEntity<D> {
+trait Node<D> implements Neo4jEntity<D>, GormEntity<D>, DynamicAttributes {
+    /**
+     * Allows accessing to dynamic properties with the dot operator
+     *
+     * @param instance The instance
+     * @param name The property name
+     * @return The property value
+     */
+    def propertyMissing(String name) {
+        return getAt(name)
+    }
+
+    /**
+     * Allows setting a dynamic property via the dot operator
+     * @param instance The instance
+     * @param name The property name
+     * @param val The value
+     */
+    def propertyMissing(String name, val) {
+        DynamicAttributes.super.putAt(name, val)
+    }
+
     /**
      * Execute cypher that finds a path to the given entity
      *

@@ -152,13 +152,13 @@ subprojects { project ->
     else if(!isGrails2PluginProject) {
         apply plugin:"groovy"
         if(!isExample) {
-            apply plugin: 'com.bmuschko.nexus'       
+            apply plugin: 'com.bmuschko.nexus'
+            modifyPom {
+                delegate.project pomInfo
+            }
         }
-        
 
-        modifyPom {
-            delegate.project pomInfo
-        }                     
+
     }
 
     if(!isExample) {

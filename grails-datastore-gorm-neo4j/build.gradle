@@ -5,13 +5,16 @@ dependencies {
     compile "org.neo4j.driver:neo4j-java-driver:$neo4jDriverVersion"
 
     compile "org.grails:grails-datastore-gorm-validation:$gormVersion"
-    compile "org.grails:grails-datastore-gorm:$gormVersion",
-            "org.grails:grails-datastore-web:$gormVersion"
+    compile "org.grails:grails-datastore-gorm:$gormVersion"
 
-    compile("org.grails:grails-datastore-gorm-support:$gormVersion") {
+
+    // only needed for Neo4jDatastoreSpringInitializer
+    compileOnly("org.grails:grails-datastore-gorm-support:$gormVersion") {
         exclude group:'org.grails', module:'grails-datastore-gorm-hibernate-core'
     }
 
+    // only needed for web dependencies
+    compileOnly "org.grails:grails-datastore-web:$gormVersion"
     compileOnly "org.neo4j.test:neo4j-harness:$neo4jVersion"
 
     testRuntime "ch.qos.logback:logback-classic:1.1.7"

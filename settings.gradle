@@ -13,6 +13,7 @@ include 'docs'
 include 'examples/grails25-neo4j-hibernate'
 include 'examples/grails3-neo4j'
 include 'examples/grails3-neo4j-hibernate'
+include 'examples/neo4j-standalone'
 
 findProject(':boot-plugin').name = 'gorm-neo4j-spring-boot'
 
