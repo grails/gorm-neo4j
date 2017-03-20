@@ -55,9 +55,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  */
 public class Neo4jSession extends AbstractSession<Session> {
 
-    private static final String COUNT_RETURN = "count(n) as total";
-    private static final String TOTAL_COUNT = "total";
-
     private static Logger log = LoggerFactory.getLogger(Neo4jSession.class);
     private static final EvictionListener<RelationshipUpdateKey, Collection<Serializable>> EXCEPTION_THROWING_INSERT_LISTENER =
             new EvictionListener<RelationshipUpdateKey, Collection<Serializable>>() {
