@@ -9,15 +9,19 @@ import groovy.transform.NotYetImplemented
  */
 class MapPropertySpec extends GormDatastoreSpec {
 
+    @NotYetImplemented
     void "Test persist map property"() {
         when:"a object with a map property is persisted"
 
         new Animal(name: 'Dog', attributes: [legs:4]).save(flush:true)
+                                                     .discard()
         Animal a = Animal.first()
+
         then:
         a.name == "Dog"
         a.attributes.size() == 1
     }
+
     @Override
     List getDomainClasses() {
         [Animal]
