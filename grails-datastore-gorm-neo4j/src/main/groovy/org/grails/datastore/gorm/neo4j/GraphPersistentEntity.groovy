@@ -16,9 +16,8 @@ import org.neo4j.driver.v1.types.Entity
 import org.springframework.util.ClassUtils
 
 import java.beans.Introspector
+import static org.grails.datastore.gorm.neo4j.RelationshipPersistentEntity.*
 
-import static org.grails.datastore.gorm.neo4j.engine.RelationshipPendingInsert.FROM
-import static org.grails.datastore.gorm.neo4j.engine.RelationshipPendingInsert.TO
 
 /**
  * Represents an entity mapped to the Neo4j graph, adding support for dynamic labelling
@@ -294,14 +293,14 @@ class GraphPersistentEntity extends AbstractPersistentEntity<NodeConfig> {
     String formatMatchAndUpdate(String variable, Map<String, Object> props) {
         StringBuilder builder = new StringBuilder( formatMatchId(variable) )
         if(isVersioned() && hasProperty(GormProperties.VERSION, Long)) {
-            builder.append(" AND n.version={version}")
+            builder.append(" AND ${variable}.version={version}")
         }
         builder.append(" SET ").append(variable).append(" +={props}")
         Set keysToRemove = []
         for(key in props.keySet()) {
             Object v = props.get(key)
             if(v == null) {
-                builder.append(", n.").append(key).append(" = NULL")
+                builder.append(", ${variable}.").append(key).append(" = NULL")
             }
         }
         for(key in keysToRemove) {
@@ -350,6 +349,69 @@ ${formatAssociationMerge(association, parentVariable, variableId)})"""
     }
 
     /**
+     * Formats an association match
+     *
+     * @param association The association
+     * @param var The variable name to use for the relationship. Defaults to 'r"
+     * @param start The start variable name
+     * @param end The relationship variable name
+     * @return The match
+     */
+    String formatAssociationMatch(Association association, String var = CypherBuilder.REL_VAR, String start = FROM, String end = TO) {
+        GraphPersistentEntity parent = (GraphPersistentEntity)association.owner
+        GraphPersistentEntity child = (GraphPersistentEntity)association.associatedEntity
+
+        String associationMatch = calculateAssociationMatch(parent, association, var)
+        return "MATCH ${parent.formatNode(start)}${associationMatch}${child.formatNode(end)}"
+    }
+
+    /**
+     * Formats an association match from an existing matched node
+     *
+     * @param association The association
+     * @param var The variable name to use for the relationship. Defaults to 'r"
+     * @param start The start variable name
+     * @param end The relationship variable name
+     * @return The match
+     */
+    String formatAssociationMatchFromExisting(Association association, String var = CypherBuilder.REL_VAR, String start = FROM, String end = TO) {
+        return "MATCH ${formatAssociationMatchFromExisting(association, var, start, end)}"
+    }
+
+    /**
+     * Formats an association match from an existing matched node
+     *
+     * @param association The association
+     * @param var The variable name to use for the relationship. Defaults to 'r"
+     * @param start The start variable name
+     * @param end The relationship variable name
+     * @return The match
+     */
+    String formatAssociationPatternFromExisting(Association association, String var = CypherBuilder.REL_VAR, String start = FROM, String end = TO) {
+        GraphPersistentEntity parent = (GraphPersistentEntity)association.owner
+        GraphPersistentEntity child = (GraphPersistentEntity)association.associatedEntity
+
+        String associationMatch = calculateAssociationMatch(parent, association, var)
+        return "(${start})${associationMatch}${child.formatNode(end)}"
+    }
+
+    protected String calculateAssociationMatch(GraphPersistentEntity parent, Association association, String var) {
+        String associationMatch
+        if (parent.isRelationshipEntity()) {
+            if (association.name == FROM || association.name == TO) {
+                RelationshipPersistentEntity relEntity = (RelationshipPersistentEntity) parent
+                associationMatch = RelationshipUtils.matchForRelationshipEntity(association, relEntity)
+            } else {
+                return new IllegalStateException("Relationship entities cannot have associations")
+            }
+
+        } else {
+            associationMatch = RelationshipUtils.matchForAssociation(association, var)
+        }
+        return associationMatch
+    }
+
+    /**
      * Formats an association merge
      * @param association The association
      * @param start The start variable
@@ -378,13 +440,13 @@ ${formatAssociationMerge(association, parentVariable, variableId)})"""
         }
 
         if(RelationshipUtils.useReversedMappingFor(association)) {
-            return """MATCH (from$parent.labelsAsString)${ associationMatch}(to$child.labelsAsString)
-WHERE ${parent.formatId(RelationshipPersistentEntity.FROM)} = {${GormProperties.IDENTITY}}
+            return """MATCH ${parent.formatNode(FROM)}${associationMatch}${child.formatNode(TO)}
+WHERE ${parent.formatId(FROM)} = {${GormProperties.IDENTITY}}
 DELETE r"""
         }
         else {
-            return """MATCH (from$parent.labelsAsString)${associationMatch}(to$child.labelsAsString)
-WHERE ${parent.formatId(RelationshipPersistentEntity.FROM)} = {${CypherBuilder.START}} AND ${parent.formatId(RelationshipPersistentEntity.TO)} IN {${CypherBuilder.END}}
+            return """MATCH ${parent.formatNode(FROM)}${associationMatch}${child.formatNode(TO)}
+WHERE ${parent.formatId(FROM)} = {${CypherBuilder.START}} AND ${parent.formatId(TO)} IN {${CypherBuilder.END}}
 DELETE r"""
         }
     }

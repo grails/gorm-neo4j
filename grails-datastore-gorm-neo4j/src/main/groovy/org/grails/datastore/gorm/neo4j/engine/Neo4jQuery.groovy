@@ -169,7 +169,7 @@ class Neo4jQuery extends Query {
             (Query.Conjunction): new CriterionHandler<Query.Conjunction>() {
                 @Override
                 @CompileStatic
-                CypherExpression handle(PersistentEntity entity, Query.Conjunction criterion, CypherBuilder builder, String prefix) {
+                CypherExpression handle(GraphPersistentEntity entity, Query.Conjunction criterion, CypherBuilder builder, String prefix) {
                     def inner = ((Query.Junction)criterion).criteria
                             .collect { Query.Criterion it ->
                                 def handler = CRITERION_HANDLERS.get(it.getClass())
@@ -185,7 +185,7 @@ class Neo4jQuery extends Query {
             (Query.Disjunction): new CriterionHandler<Query.Disjunction>() {
                 @Override
                 @CompileStatic
-                CypherExpression handle(PersistentEntity entity, Query.Disjunction criterion, CypherBuilder builder, String prefix) {
+                CypherExpression handle(GraphPersistentEntity entity, Query.Disjunction criterion, CypherBuilder builder, String prefix) {
                     def inner = ((Query.Junction)criterion).criteria
                             .collect { Query.Criterion it ->
                         def handler = CRITERION_HANDLERS.get(it.getClass())
@@ -201,7 +201,7 @@ class Neo4jQuery extends Query {
             (Query.Negation): new CriterionHandler<Query.Negation>() {
                 @Override
                 @CompileStatic
-                CypherExpression handle(PersistentEntity entity, Query.Negation criterion, CypherBuilder builder, String prefix) {
+                CypherExpression handle(GraphPersistentEntity entity, Query.Negation criterion, CypherBuilder builder, String prefix) {
                     List<Query.Criterion> criteria = criterion.criteria
                     def disjunction = new Query.Disjunction(criteria)
                     CriterionHandler<Query.Disjunction> handler = { ->
@@ -213,11 +213,10 @@ class Neo4jQuery extends Query {
             (Query.Equals): new CriterionHandler<Query.Equals>() {
                 @Override
                 @CompileStatic
-                CypherExpression handle(PersistentEntity entity, Query.Equals criterion, CypherBuilder builder, String prefix) {
-                    Neo4jMappingContext mappingContext = (Neo4jMappingContext)entity.mappingContext
+                CypherExpression handle(GraphPersistentEntity graphEntity, Query.Equals criterion, CypherBuilder builder, String prefix) {
+                    Neo4jMappingContext mappingContext = (Neo4jMappingContext)graphEntity.mappingContext
                     int paramNumber = builder.addParam( mappingContext.convertToNative(criterion.value) )
-                    PersistentProperty association = entity.getPropertyByName(criterion.property)
-                    GraphPersistentEntity graphEntity = (GraphPersistentEntity)entity
+                    PersistentProperty association = graphEntity.getPropertyByName(criterion.property)
                     boolean isRelationshipEntity = graphEntity.isRelationshipEntity()
 
                     String lhs
@@ -228,7 +227,9 @@ class Neo4jQuery extends Query {
                         }
                         else {
                             String targetNodeName = "m_${builder.getNextMatchNumber()}"
-                            builder.addMatch("(${prefix})${RelationshipUtils.matchForAssociation((Association)association)}(${targetNodeName})")
+                            builder.addMatch(
+                                    graphEntity.formatAssociationPatternFromExisting((Association)association, "", prefix, targetNodeName)
+                            )
                             lhs = graphEntity.formatId(targetNodeName)
                         }
 
@@ -249,31 +250,27 @@ class Neo4jQuery extends Query {
             (Query.IdEquals): new CriterionHandler<Query.IdEquals>() {
                 @Override
                 @CompileStatic
-                CypherExpression handle(PersistentEntity entity, Query.IdEquals criterion, CypherBuilder builder, String prefix) {
+                CypherExpression handle(GraphPersistentEntity entity, Query.IdEquals criterion, CypherBuilder builder, String prefix) {
                     int paramNumber = addBuildParameterForCriterion(builder, entity, criterion)
-                    GraphPersistentEntity graphPersistentEntity = (GraphPersistentEntity)entity
-                    return new CypherExpression(graphPersistentEntity.formatId(prefix), "{$paramNumber}", CriterionHandler.OPERATOR_EQUALS)
+                    return new CypherExpression(entity.formatId(prefix), "{$paramNumber}", CriterionHandler.OPERATOR_EQUALS)
                 }
             },
             (Query.Like): new CriterionHandler<Query.Like>() {
                 @Override
                 @CompileStatic
-                CypherExpression handle(PersistentEntity entity, Query.Like criterion, CypherBuilder builder, String prefix) {
+                CypherExpression handle(GraphPersistentEntity entity, Query.Like criterion, CypherBuilder builder, String prefix) {
                     int paramNumber = addBuildParameterForCriterion(builder, entity, criterion)
                     String operator = handleLike(criterion, builder, paramNumber, false)
-                    GraphPersistentEntity graphPersistentEntity = (GraphPersistentEntity)entity
-                    return new CypherExpression(graphPersistentEntity.formatProperty(prefix, criterion.property), "{$paramNumber}", operator)
+                    return new CypherExpression(entity.formatProperty(prefix, criterion.property), "{$paramNumber}", operator)
                 }
             },
             (Query.ILike): new CriterionHandler<Query.ILike>() {
                 @Override
                 @CompileStatic
-                CypherExpression handle(PersistentEntity entity, Query.ILike criterion, CypherBuilder builder, String prefix) {
+                CypherExpression handle(GraphPersistentEntity entity, Query.ILike criterion, CypherBuilder builder, String prefix) {
                     int paramNumber = addBuildParameterForCriterion(builder, entity, criterion)
                     String operator = handleLike(criterion, builder, paramNumber, true)
-
-                    GraphPersistentEntity graphPersistentEntity = (GraphPersistentEntity)entity
-                    String propertyRef = graphPersistentEntity.formatProperty(prefix, criterion.property)
+                    String propertyRef = entity.formatProperty(prefix, criterion.property)
                     String parameterRef = "{$paramNumber}"
                     if(operator != CriterionHandler.OPERATOR_LIKE) {
                         propertyRef = "lower($propertyRef)"
@@ -285,16 +282,15 @@ class Neo4jQuery extends Query {
             (Query.RLike): new CriterionHandler<Query.RLike>() {
                 @Override
                 @CompileStatic
-                CypherExpression handle(PersistentEntity entity, Query.RLike criterion, CypherBuilder builder, String prefix) {
+                CypherExpression handle(GraphPersistentEntity entity, Query.RLike criterion, CypherBuilder builder, String prefix) {
                     int paramNumber = addBuildParameterForCriterion(builder, entity, criterion)
-                    GraphPersistentEntity graphPersistentEntity = (GraphPersistentEntity)entity
-                    return new CypherExpression(graphPersistentEntity.formatProperty(prefix, criterion.property), "{$paramNumber}", CriterionHandler.OPERATOR_LIKE)
+                    return new CypherExpression(entity.formatProperty(prefix, criterion.property), "{$paramNumber}", CriterionHandler.OPERATOR_LIKE)
                 }
             },
             (Query.In): new CriterionHandler<Query.In>() {
                 @Override
                 @CompileStatic
-                CypherExpression handle(PersistentEntity entity, Query.In criterion, CypherBuilder builder, String prefix) {
+                CypherExpression handle(GraphPersistentEntity entity, Query.In criterion, CypherBuilder builder, String prefix) {
                     int paramNumber = addBuildParameterForCriterion(builder, entity, criterion)
                     GraphPersistentEntity graphPersistentEntity = (GraphPersistentEntity)entity
                     String lhs
@@ -323,33 +319,29 @@ class Neo4jQuery extends Query {
             (Query.IsNull): new CriterionHandler<Query.IsNull>() {
                 @Override
                 @CompileStatic
-                CypherExpression handle(PersistentEntity entity, Query.IsNull criterion, CypherBuilder builder, String prefix) {
-                    GraphPersistentEntity graphPersistentEntity = (GraphPersistentEntity)entity
-                    return new CypherExpression("${graphPersistentEntity.formatProperty(prefix, criterion.property)} IS NULL")
+                CypherExpression handle(GraphPersistentEntity entity, Query.IsNull criterion, CypherBuilder builder, String prefix) {
+                    return new CypherExpression("${entity.formatProperty(prefix, criterion.property)} IS NULL")
                 }
             },
             (Query.IsEmpty): new CriterionHandler<Query.IsEmpty>() {
                 @Override
                 @CompileStatic
-                CypherExpression handle(PersistentEntity entity, Query.IsEmpty criterion, CypherBuilder builder, String prefix) {
-                    GraphPersistentEntity graphPersistentEntity = (GraphPersistentEntity)entity
-                    return new CypherExpression("length(${graphPersistentEntity.formatProperty(prefix, criterion.property)}) = 0")
+                CypherExpression handle(GraphPersistentEntity entity, Query.IsEmpty criterion, CypherBuilder builder, String prefix) {
+                    return new CypherExpression("length(${entity.formatProperty(prefix, criterion.property)}) = 0")
                 }
             },
             (Query.IsNotEmpty): new CriterionHandler<Query.IsNotEmpty>() {
                 @Override
                 @CompileStatic
-                CypherExpression handle(PersistentEntity entity, Query.IsNotEmpty criterion, CypherBuilder builder, String prefix) {
-                    GraphPersistentEntity graphPersistentEntity = (GraphPersistentEntity)entity
-                    return new CypherExpression("length(${graphPersistentEntity.formatProperty(prefix, criterion.property)}) > 0")
+                CypherExpression handle(GraphPersistentEntity entity, Query.IsNotEmpty criterion, CypherBuilder builder, String prefix) {
+                    return new CypherExpression("length(${entity.formatProperty(prefix, criterion.property)}) > 0")
                 }
             },
             (Query.IsNotNull): new CriterionHandler<Query.IsNotNull>() {
                 @Override
                 @CompileStatic
-                CypherExpression handle(PersistentEntity entity, Query.IsNotNull criterion, CypherBuilder builder, String prefix) {
-                    GraphPersistentEntity graphPersistentEntity = (GraphPersistentEntity)entity
-                    return new CypherExpression("${graphPersistentEntity.formatProperty(prefix, criterion.property)} IS NOT NULL")
+                CypherExpression handle(GraphPersistentEntity entity, Query.IsNotNull criterion, CypherBuilder builder, String prefix) {
+                    return new CypherExpression("${entity.formatProperty(prefix, criterion.property)} IS NOT NULL")
                 }
             },
             (AssociationQuery): new AssociationQueryHandler(),
@@ -369,7 +361,7 @@ class Neo4jQuery extends Query {
             (Query.Between): new CriterionHandler<Query.Between>() {
                 @Override
                 @CompileStatic
-                CypherExpression handle(PersistentEntity entity, Query.Between criterion, CypherBuilder builder, String prefix) {
+                CypherExpression handle(GraphPersistentEntity entity, Query.Between criterion, CypherBuilder builder, String prefix) {
                     int paramNumber = addBuildParameterForCriterion(builder, entity, criterion)
                     Neo4jMappingContext mappingContext = (Neo4jMappingContext)entity.mappingContext
                     int paramNumberFrom = builder.addParam( mappingContext.convertToNative(criterion.from) )
@@ -604,7 +596,7 @@ class Neo4jQuery extends Query {
     String buildConditions(Query.Criterion criterion, CypherBuilder builder, String prefix) {
         def handler = CRITERION_HANDLERS.get(criterion.getClass())
         if(handler != null) {
-            return handler.handle(entity, criterion, builder, prefix).toString()
+            return handler.handle((GraphPersistentEntity)entity, criterion, builder, prefix).toString()
         }
         else {
             throw new UnsupportedOperationException("Criterion of type ${criterion.class.name} are not supported by GORM for Neo4j")
@@ -704,7 +696,7 @@ class Neo4jQuery extends Query {
         String OPERATOR_GREATER_THAN_EQUALS = ">="
         String OPERATOR_LESS_THAN_EQUALS = "<="
 
-        CypherExpression handle(PersistentEntity entity, T criterion, CypherBuilder builder, String prefix)
+        CypherExpression handle(GraphPersistentEntity entity, T criterion, CypherBuilder builder, String prefix)
     }
 
     /**
@@ -713,17 +705,18 @@ class Neo4jQuery extends Query {
     @CompileStatic
     static class AssociationQueryHandler implements CriterionHandler<AssociationQuery> {
         @Override
-        CypherExpression handle(PersistentEntity entity, AssociationQuery criterion, CypherBuilder builder, String prefix) {
+        CypherExpression handle(GraphPersistentEntity entity, AssociationQuery criterion, CypherBuilder builder, String prefix) {
             AssociationQuery aq = (AssociationQuery)criterion
-            def isRelationshipEntity = entity instanceof RelationshipPersistentEntity
-            if(isRelationshipEntity) {
+            if(entity.isRelationshipEntity()) {
                 def s = CRITERION_HANDLERS.get(aq.criteria.getClass()).handle(entity, aq.criteria, builder, aq.association.name)
                 return new CypherExpression(s)
             }
             else {
-                def targetNodeName = "m_${builder.getNextMatchNumber()}"
-                builder.addMatch("(n)${RelationshipUtils.matchForAssociation((Association)aq.association)}(${targetNodeName})")
-
+                String targetNodeName = "m_${builder.getNextMatchNumber()}"
+                Association association = (Association)aq.association
+                builder.addMatch(
+                    entity.formatAssociationPatternFromExisting(association, "", prefix, targetNodeName)
+                )
                 def s = CRITERION_HANDLERS.get(aq.criteria.getClass()).handle(entity, aq.criteria, builder, targetNodeName)
                 return new CypherExpression(s)
             }
@@ -752,11 +745,10 @@ class Neo4jQuery extends Query {
         }
 
         @Override
-        CypherExpression handle(PersistentEntity entity, T criterion, CypherBuilder builder, String prefix) {
-            int paramNumber = addBuildParameterForCriterion(builder, entity, criterion)
+        CypherExpression handle(GraphPersistentEntity graphEntity, T criterion, CypherBuilder builder, String prefix) {
+            int paramNumber = addBuildParameterForCriterion(builder, graphEntity, criterion)
             String lhs
-            PersistentProperty association = entity.getPropertyByName(criterion.property)
-            GraphPersistentEntity graphEntity = (GraphPersistentEntity)entity
+            PersistentProperty association = graphEntity.getPropertyByName(criterion.property)
             if (association instanceof Association && !(association instanceof Basic)) {
                 GraphPersistentEntity associatedGraphEntity = (GraphPersistentEntity) ((Association) association).associatedEntity
                 if(graphEntity.isRelationshipEntity() && RelationshipPersistentEntity.isRelationshipAssociation((Association)association)) {
@@ -764,14 +756,16 @@ class Neo4jQuery extends Query {
                 }
                 else {
                     String targetNodeName = "m_${builder.getNextMatchNumber()}"
-                    builder.addMatch("(${prefix})${RelationshipUtils.matchForAssociation((Association)association)}(${targetNodeName})")
+                    builder.addMatch(
+                            graphEntity.formatAssociationPatternFromExisting((Association)association, "", prefix, targetNodeName)
+                    )
 
                     lhs = graphEntity.formatId(targetNodeName)
                 }
             }
             else {
                 if(graphEntity.isRelationshipEntity() && criterion.property == RelationshipPersistentEntity.TYPE) {
-                    builder.replaceFirstRelationshipMatch( ((RelationshipPersistentEntity)entity).buildRelationshipMatchTo(null, CypherBuilder.REL_VAR))
+                    builder.replaceFirstRelationshipMatch( ((RelationshipPersistentEntity)graphEntity).buildRelationshipMatchTo(null, CypherBuilder.REL_VAR))
                     lhs = "TYPE(r)"
                 }
                 else {
@@ -805,7 +799,7 @@ class Neo4jQuery extends Query {
         }
 
         @Override
-        CypherExpression handle(PersistentEntity entity, T criterion, CypherBuilder builder, String prefix) {
+        CypherExpression handle(GraphPersistentEntity entity, T criterion, CypherBuilder builder, String prefix) {
             def operator = COMPARISON_OPERATORS.get(criterion.getClass())
             if(operator == null) {
                 throw new UnsupportedOperationException("Unsupported Neo4j property comparison: ${criterion}")
@@ -835,7 +829,7 @@ class Neo4jQuery extends Query {
         }
 
         @Override
-        CypherExpression handle(PersistentEntity entity, T criterion, CypherBuilder builder, String prefix) {
+        CypherExpression handle(GraphPersistentEntity entity, T criterion, CypherBuilder builder, String prefix) {
             int paramNumber = addBuildParameterForCriterion(builder, entity, criterion)
             Association association = entity.getPropertyByName(criterion.property) as Association
             builder.addMatch("(${prefix})${RelationshipUtils.matchForAssociation(association)}() WITH ${prefix},count(*) as count")

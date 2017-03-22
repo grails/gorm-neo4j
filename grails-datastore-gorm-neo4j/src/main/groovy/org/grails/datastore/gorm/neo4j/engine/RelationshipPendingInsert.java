@@ -43,11 +43,11 @@ public class RelationshipPendingInsert extends PendingInsertAdapter<Object, Seri
     /**
      * The name of the from property
      */
-    public static final String FROM = "from";
+    public static final String FROM = RelationshipPersistentEntity.FROM;
     /**
      * The name of the to property
      */
-    public static final String TO = "to";
+    public static final String TO = RelationshipPersistentEntity.TO;
     public static final String SOURCE_TYPE = "sourceType";
     public static final String TARGET_TYPE = "targetType";
 
