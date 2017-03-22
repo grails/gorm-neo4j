@@ -1,6 +1,7 @@
 package org.grails.datastore.gorm.neo4j
 
 import grails.neo4j.Direction
+import grails.neo4j.Relationship
 import groovy.transform.CompileStatic
 import org.grails.datastore.gorm.neo4j.mapping.config.NodeConfig
 import org.grails.datastore.gorm.neo4j.mapping.config.RelationshipConfig
@@ -80,6 +81,27 @@ MATCH ${fromEntity.formatNode(FROM)} WHERE ${fromEntity.formatId(FROM)} = row.fr
 MATCH ${toEntity.formatNode(TO)} WHERE ${toEntity.formatId(TO)} IN row.to
 MERGE ($FROM)${buildRelationshipMatch(type)}($TO) 
 ON CREATE SET r = row.props"""
+    }
+
+    /**
+     * Formats an association match from an existing matched node
+     *
+     * @param association The association
+     * @param var The variable name to use for the relationship. Defaults to 'r"
+     * @param start The start variable name
+     * @param end The relationship variable name
+     * @return The match
+     */
+    @Override
+    String formatAssociationPatternFromExisting(Association association, String var = CypherBuilder.REL_VAR, String start = FROM, String end = TO) {
+        String associationMatch
+        if(association.name == FROM || association.name == TO) {
+            associationMatch = RelationshipUtils.matchForRelationshipEntity(association, this,var)
+            return "(${start})${associationMatch}${toEntity.formatNode(end)}"
+        }
+        else {
+            throw new IllegalStateException("Relationship entities cannot have associations")
+        }
     }
 
     @Override

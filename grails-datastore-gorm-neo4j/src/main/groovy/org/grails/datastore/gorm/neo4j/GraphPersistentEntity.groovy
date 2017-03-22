@@ -361,7 +361,7 @@ ${formatAssociationMerge(association, parentVariable, variableId)})"""
         GraphPersistentEntity parent = (GraphPersistentEntity)association.owner
         GraphPersistentEntity child = (GraphPersistentEntity)association.associatedEntity
 
-        String associationMatch = calculateAssociationMatch(parent, association, var)
+        String associationMatch = calculateAssociationMatch(parent, child, association, var)
         return "MATCH ${parent.formatNode(start)}${associationMatch}${child.formatNode(end)}"
     }
 
@@ -390,22 +390,30 @@ ${formatAssociationMerge(association, parentVariable, variableId)})"""
     String formatAssociationPatternFromExisting(Association association, String var = CypherBuilder.REL_VAR, String start = FROM, String end = TO) {
         GraphPersistentEntity parent = (GraphPersistentEntity)association.owner
         GraphPersistentEntity child = (GraphPersistentEntity)association.associatedEntity
-
-        String associationMatch = calculateAssociationMatch(parent, association, var)
+        String associationMatch = calculateAssociationMatch(parent,child, association, var)
+        if(child.isRelationshipEntity()) {
+            RelationshipPersistentEntity relEntity = (RelationshipPersistentEntity)child
+            child = (GraphPersistentEntity) (relEntity.from.associatedEntity == parent ? relEntity.to.associatedEntity : relEntity.from.associatedEntity)
+        }
         return "(${start})${associationMatch}${child.formatNode(end)}"
     }
 
-    protected String calculateAssociationMatch(GraphPersistentEntity parent, Association association, String var) {
+    protected String calculateAssociationMatch(GraphPersistentEntity parent, GraphPersistentEntity child,Association association, String var) {
         String associationMatch
         if (parent.isRelationshipEntity()) {
             if (association.name == FROM || association.name == TO) {
                 RelationshipPersistentEntity relEntity = (RelationshipPersistentEntity) parent
                 associationMatch = RelationshipUtils.matchForRelationshipEntity(association, relEntity)
             } else {
-                return new IllegalStateException("Relationship entities cannot have associations")
+                throw new IllegalStateException("Relationship entities cannot have associations")
             }
 
-        } else {
+        }
+        else if(child.isRelationshipEntity()) {
+            RelationshipPersistentEntity relEntity = (RelationshipPersistentEntity) child
+            associationMatch = RelationshipUtils.matchForRelationshipEntity(association, relEntity, var)
+        }
+        else {
             associationMatch = RelationshipUtils.matchForAssociation(association, var)
         }
         return associationMatch
