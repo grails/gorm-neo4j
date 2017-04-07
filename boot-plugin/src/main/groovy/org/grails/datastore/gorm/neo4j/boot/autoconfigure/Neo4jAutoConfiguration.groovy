@@ -19,6 +19,7 @@ import groovy.transform.CompileStatic
 import org.grails.datastore.gorm.events.ConfigurableApplicationContextEventPublisher
 import org.grails.datastore.gorm.neo4j.Neo4jDatastore
 import org.grails.datastore.gorm.neo4j.Neo4jDatastoreTransactionManager
+import org.grails.datastore.mapping.services.Service
 import org.springframework.beans.BeansException
 import org.springframework.beans.factory.BeanFactory
 import org.springframework.beans.factory.BeanFactoryAware
@@ -32,6 +33,8 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.env.Environment
 import org.springframework.core.io.ResourceLoader
+
+import java.beans.Introspector
 
 /**
  * Auto configuration for GORM for Hibernate
@@ -61,11 +64,28 @@ class Neo4jAutoConfiguration implements BeanFactoryAware, ResourceLoaderAware, A
             }
         }
 
-        new Neo4jDatastore(
-                applicationContext.getEnvironment(),
-                new ConfigurableApplicationContextEventPublisher(applicationContext),
+        ConfigurableApplicationContext context = applicationContext
+        Neo4jDatastore datastore = new Neo4jDatastore(
+                context.getEnvironment(),
+                new ConfigurableApplicationContextEventPublisher(context),
                 packages as Package[]
         )
+
+        for(Service service in datastore.getServices()) {
+            Class serviceClass = service.getClass()
+            grails.gorm.services.Service ann = serviceClass.getAnnotation(grails.gorm.services.Service)
+            String serviceName = ann?.name()
+            if(serviceName == null) {
+                serviceName = Introspector.decapitalize(serviceClass.simpleName)
+            }
+            if(!context.containsBean(serviceName)) {
+                context.beanFactory.registerSingleton(
+                        serviceName,
+                        service
+                )
+            }
+        }
+        return datastore
     }
 
     @Bean
