@@ -500,7 +500,8 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
             final GraphPersistentEntity graphPersistentEntity = (GraphPersistentEntity) persistentEntity;
             for (String label: graphPersistentEntity.getLabels()) {
                 StringBuilder sb = new StringBuilder();
-                if(graphPersistentEntity.getIdGenerator() != null && graphPersistentEntity.getIdGeneratorType().equals(IdGenerator.Type.SNOWFLAKE)) {
+                IdGenerator.Type idGeneratorType = graphPersistentEntity.getIdGeneratorType();
+                if(graphPersistentEntity.getIdGenerator() != null && idGeneratorType.equals(IdGenerator.Type.SNOWFLAKE)) {
                     sb.append("CREATE CONSTRAINT ON (n:").append(label).append(") ASSERT n.").append(CypherBuilder.IDENTIFIER).append(" IS UNIQUE");
                     schemaStrings.add(sb.toString());
                 }

@@ -115,7 +115,7 @@ class GraphPersistentEntity extends AbstractPersistentEntity<NodeConfig> {
                     getIdentity().getMapping().getMappedForm().setUnique(true)
                     return null
                 case IdGenerator.Type.SNOWFLAKE:
-                    return ((Neo4jMappingContext)mappingContext).getIdGenerator()
+                    return ((Neo4jMappingContext)mappingContext).getSnowflakeIdGenerator()
                 default:
                     def generator = ((Neo4jMappingContext) mappingContext).getIdGenerator()
                     if(generator == null) {
@@ -127,6 +127,7 @@ class GraphPersistentEntity extends AbstractPersistentEntity<NodeConfig> {
             try {
                 def generatorClass = ClassUtils.forName(generatorType)
                 if(IdGenerator.isAssignableFrom(generatorClass)) {
+                    idGeneratorType = IdGenerator.Type.CUSTOM
                     return (IdGenerator)generatorClass.newInstance()
                 }
                 else {

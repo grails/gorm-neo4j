@@ -79,16 +79,20 @@ public class Neo4jMappingContext extends AbstractMappingContext  {
     // default id generator strategy is native
     protected IdGenerator idGenerator = null;
 
+    protected SnowflakeIdGenerator snowflakeIdGenerator = null;
+
     public Neo4jMappingContext() {
         super();
     }
 
+    @Deprecated
     public Neo4jMappingContext(Closure defaultMapping) {
         super();
         setProxyFactory(new HashcodeEqualsAwareProxyFactory());
         mappingFactory.setDefaultMapping(defaultMapping);
     }
 
+    @Deprecated
     public Neo4jMappingContext(Closure defaultMapping, Class...classes) {
         super();
         mappingFactory.setDefaultMapping(defaultMapping);
@@ -106,6 +110,13 @@ public class Neo4jMappingContext extends AbstractMappingContext  {
 
     public IdGenerator getIdGenerator() {
         return idGenerator;
+    }
+
+    public SnowflakeIdGenerator getSnowflakeIdGenerator() {
+        if(snowflakeIdGenerator == null) {
+            snowflakeIdGenerator = new SnowflakeIdGenerator();
+        }
+        return snowflakeIdGenerator;
     }
 
     @Override
