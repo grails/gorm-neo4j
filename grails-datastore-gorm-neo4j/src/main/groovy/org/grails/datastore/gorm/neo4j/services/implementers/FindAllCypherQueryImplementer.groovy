@@ -7,6 +7,7 @@ import org.codehaus.groovy.ast.MethodNode
 import org.codehaus.groovy.ast.VariableScope
 import org.codehaus.groovy.control.SourceUnit
 import org.grails.datastore.gorm.neo4j.services.transform.CypherQueryStringTransformer
+import org.grails.datastore.gorm.services.implementers.AnnotatedServiceImplementer
 import org.grails.datastore.gorm.services.implementers.FindAllStringQueryImplementer
 import org.grails.datastore.gorm.services.transform.QueryStringTransformer
 
@@ -19,7 +20,7 @@ import java.lang.annotation.Annotation
  * @since 6.1
  */
 @CompileStatic
-class FindAllCypherQueryImplementer extends FindAllStringQueryImplementer{
+class FindAllCypherQueryImplementer extends FindAllStringQueryImplementer implements AnnotatedServiceImplementer<Cypher> {
 
     @Override
     protected Class<? extends Annotation> getAnnotationType() {

@@ -5,6 +5,7 @@ import groovy.transform.CompileStatic
 import org.codehaus.groovy.ast.VariableScope
 import org.codehaus.groovy.control.SourceUnit
 import org.grails.datastore.gorm.neo4j.services.transform.CypherQueryStringTransformer
+import org.grails.datastore.gorm.services.implementers.AnnotatedServiceImplementer
 import org.grails.datastore.gorm.services.implementers.FindOneStringQueryImplementer
 import org.grails.datastore.gorm.services.transform.QueryStringTransformer
 
@@ -17,7 +18,7 @@ import java.lang.annotation.Annotation
  * @since 6.1
  */
 @CompileStatic
-class FindOneCypherQueryImplementer extends FindOneStringQueryImplementer {
+class FindOneCypherQueryImplementer extends FindOneStringQueryImplementer  implements AnnotatedServiceImplementer<Cypher> {
 
 
     @Override

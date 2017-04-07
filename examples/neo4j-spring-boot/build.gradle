@@ -1,0 +1,18 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:$springBootVersion")
+    }
+}
+
+apply plugin:"groovy"
+apply plugin: 'org.springframework.boot'
+
+dependencies {
+    compile("org.springframework.boot:spring-boot-starter-web")
+    compile project(":gorm-neo4j-spring-boot")
+    testCompile('org.springframework.boot:spring-boot-starter-test')
+    runtime "org.neo4j.test:neo4j-harness:$neo4jVersion"
+}

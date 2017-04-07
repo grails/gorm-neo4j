@@ -1,19 +1,17 @@
 dependencies {
-    compile "org.springframework.boot:spring-boot-cli:$springBootVersion", {
+    compileOnly "org.springframework.boot:spring-boot-cli:$springBootVersion", {
         exclude group:'org.codehaus.groovy', module:'groovy'
     }
 
     compile "org.springframework.boot:spring-boot-autoconfigure:$springBootVersion"
 
     compile "org.codehaus.groovy:groovy:$groovyVersion"
-    compile "org.grails:grails-datastore-gorm-support:$gormVersion", {
-        exclude group:'org.grails', module:'grails-datastore-gorm-plugin-support'
-    }
-    compile project(":grails-datastore-gorm-neo4j"), {
-        exclude group:'org.grails', module:'grails-datastore-gorm-plugin-support'
-    }
+    compile project(":grails-datastore-gorm-neo4j")
     compile "org.springframework:spring-tx:$springVersion"
 
     testRuntime 'org.neo4j.test:neo4j-harness:3.0.2'
     testCompile "org.spockframework:spock-core:1.0-groovy-2.4"
+    testCompile "org.springframework.boot:spring-boot-cli:$springBootVersion", {
+        exclude group:'org.codehaus.groovy', module:'groovy'
+    }
 }

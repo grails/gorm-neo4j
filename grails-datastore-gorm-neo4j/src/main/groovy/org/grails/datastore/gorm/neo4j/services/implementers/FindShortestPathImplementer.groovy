@@ -8,7 +8,8 @@ import org.codehaus.groovy.ast.Parameter
 import org.codehaus.groovy.ast.expr.Expression
 import org.codehaus.groovy.ast.stmt.BlockStatement
 import org.grails.datastore.gorm.services.implementers.AbstractReadOperationImplementer
-import org.grails.datastore.gorm.services.implementers.FindByImplementer
+import org.grails.datastore.gorm.services.implementers.FindOneByImplementer
+import org.grails.datastore.gorm.services.implementers.SingleResultServiceImplementer
 import org.grails.datastore.mapping.reflect.AstUtils
 
 import static org.codehaus.groovy.ast.tools.GeneralUtils.*
@@ -20,10 +21,10 @@ import static org.codehaus.groovy.ast.tools.GeneralUtils.*
  * @since 6.1
  */
 @CompileStatic
-class FindShortestPathImplementer extends AbstractReadOperationImplementer {
+class FindShortestPathImplementer extends AbstractReadOperationImplementer implements SingleResultServiceImplementer<Path> {
     @Override
     int getOrder() {
-        return FindByImplementer.POSITION - 100
+        return FindOneByImplementer.POSITION - 100
     }
 
     @Override
@@ -64,7 +65,7 @@ class FindShortestPathImplementer extends AbstractReadOperationImplementer {
     }
 
     @Override
-    protected Iterable<String> getHandledPrefixes() {
+    Iterable<String> getHandledPrefixes() {
         return [] // all
     }
 }

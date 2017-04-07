@@ -15,22 +15,23 @@
 
 package org.grails.datastore.gorm.neo4j.boot.autoconfigure
 
-import grails.neo4j.bootstrap.Neo4jDataStoreSpringInitializer
 import groovy.transform.CompileStatic
+import org.grails.datastore.gorm.events.ConfigurableApplicationContextEventPublisher
 import org.grails.datastore.gorm.neo4j.Neo4jDatastore
+import org.springframework.beans.BeansException
 import org.springframework.beans.factory.BeanFactory
 import org.springframework.beans.factory.BeanFactoryAware
-import org.springframework.beans.factory.config.ConfigurableBeanFactory
-import org.springframework.beans.factory.support.BeanDefinitionRegistry
 import org.springframework.boot.autoconfigure.AutoConfigurationPackages
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
-import org.springframework.context.EnvironmentAware
+import org.springframework.context.ApplicationContext
+import org.springframework.context.ApplicationContextAware
+import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.context.ResourceLoaderAware
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.ImportBeanDefinitionRegistrar
 import org.springframework.core.env.Environment
 import org.springframework.core.io.ResourceLoader
-import org.springframework.core.type.AnnotationMetadata
+
 /**
  * Auto configuration for GORM for Hibernate
  *
@@ -40,29 +41,37 @@ import org.springframework.core.type.AnnotationMetadata
 @CompileStatic
 @Configuration
 @ConditionalOnMissingBean(Neo4jDatastore)
-class Neo4jAutoConfiguration implements BeanFactoryAware, ResourceLoaderAware, ImportBeanDefinitionRegistrar, EnvironmentAware{
+class Neo4jAutoConfiguration implements BeanFactoryAware, ResourceLoaderAware, ApplicationContextAware {
 
     BeanFactory beanFactory
 
     ResourceLoader resourceLoader
 
-    Environment environment
+    ConfigurableApplicationContext applicationContext
 
-    @Override
-    void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
-        def packages = AutoConfigurationPackages.get(beanFactory)
-        def classLoader = ((ConfigurableBeanFactory)beanFactory).getBeanClassLoader()
+    @Bean
+    Neo4jDatastore neo4jDatastore() {
+        List<String> packageNames = AutoConfigurationPackages.get(beanFactory)
+        List<Package> packages = []
+        for(name in packageNames) {
+            Package pkg = Package.getPackage(name)
+            if(pkg != null) {
+                packages.add(pkg)
+            }
+        }
 
-        def initializer = new Neo4jDataStoreSpringInitializer(classLoader, packages as String[])
-        initializer.resourceLoader = resourceLoader
-        initializer.setConfiguration(environment)
-        initializer.configureForBeanDefinitionRegistry(registry)
+        new Neo4jDatastore(
+                applicationContext.getEnvironment(),
+                new ConfigurableApplicationContextEventPublisher(applicationContext),
+                packages as Package[]
+        )
     }
 
-
     @Override
-    void setEnvironment(Environment environment) {
-        this.environment = environment;
+    void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        if(!(applicationContext instanceof ConfigurableApplicationContext)) {
+            throw new IllegalArgumentException("Neo4jAutoConfiguration requires an instance of ConfigurableApplicationContext")
+        }
+        this.applicationContext = (ConfigurableApplicationContext)applicationContext
     }
-
 }
