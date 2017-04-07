@@ -18,6 +18,7 @@ package org.grails.datastore.gorm.neo4j.boot.autoconfigure
 import groovy.transform.CompileStatic
 import org.grails.datastore.gorm.events.ConfigurableApplicationContextEventPublisher
 import org.grails.datastore.gorm.neo4j.Neo4jDatastore
+import org.grails.datastore.gorm.neo4j.Neo4jDatastoreTransactionManager
 import org.springframework.beans.BeansException
 import org.springframework.beans.factory.BeanFactory
 import org.springframework.beans.factory.BeanFactoryAware
@@ -65,6 +66,11 @@ class Neo4jAutoConfiguration implements BeanFactoryAware, ResourceLoaderAware, A
                 new ConfigurableApplicationContextEventPublisher(applicationContext),
                 packages as Package[]
         )
+    }
+
+    @Bean
+    Neo4jDatastoreTransactionManager neo4jDatastoreTransactionManager() {
+        return neo4jDatastore().getTransactionManager()
     }
 
     @Override
