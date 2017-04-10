@@ -247,8 +247,6 @@ public class Neo4jEntityPersister extends EntityPersister {
     }
     public Object unmarshallOrFromCache(PersistentEntity defaultPersistentEntity, Node data, Map<String, Object> resultData, Map<Association, Object> initializedAssociations, LockModeType lockModeType) {
         final Neo4jSession session = getSession();
-        session.assertTransaction();
-
         if (LockModeType.PESSIMISTIC_WRITE.equals(lockModeType)) {
             if(log.isDebugEnabled()) {
                 log.debug("Locking entity [{}] node [{}] for pessimistic write", defaultPersistentEntity.getName(), data.id());

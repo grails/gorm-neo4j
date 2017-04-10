@@ -24,14 +24,16 @@ import org.springframework.beans.BeansException
 import org.springframework.beans.factory.BeanFactory
 import org.springframework.beans.factory.BeanFactoryAware
 import org.springframework.boot.autoconfigure.AutoConfigurationPackages
+import org.springframework.boot.autoconfigure.AutoConfigureBefore
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+import org.springframework.boot.autoconfigure.web.DispatcherServletAutoConfiguration
+import org.springframework.boot.autoconfigure.web.WebMvcAutoConfiguration
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
 import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.context.ResourceLoaderAware
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.core.env.Environment
 import org.springframework.core.io.ResourceLoader
 
 import java.beans.Introspector
@@ -45,6 +47,7 @@ import java.beans.Introspector
 @CompileStatic
 @Configuration
 @ConditionalOnMissingBean(Neo4jDatastore)
+@AutoConfigureBefore(DispatcherServletAutoConfiguration)
 class Neo4jAutoConfiguration implements BeanFactoryAware, ResourceLoaderAware, ApplicationContextAware {
 
     BeanFactory beanFactory
