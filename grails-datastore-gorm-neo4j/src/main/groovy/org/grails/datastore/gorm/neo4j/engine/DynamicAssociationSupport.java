@@ -106,7 +106,7 @@ public class DynamicAssociationSupport {
                                 DynamicToManyAssociation dynamicAssociation = new DynamicToManyAssociation(graphPersistentEntity, graphPersistentEntity.getMappingContext(), key.getType(), associatedEntity);
                                 value = new Neo4jList(entityAccess, dynamicAssociation, values, session);
                             }
-                            object.attributes().put(key.getType(), value)
+                            object.attributes().put(key.getType(), value);
                         }
 
                     }
