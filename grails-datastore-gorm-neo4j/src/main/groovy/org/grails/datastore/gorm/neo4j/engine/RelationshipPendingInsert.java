@@ -161,7 +161,7 @@ public class RelationshipPendingInsert extends PendingInsertAdapter<Object, Seri
                 cypher.append(graphChild.formatId(TO));
                 deleteParams = Collections.<String, Object>singletonMap(CypherBuilder.START, targetIdentifiers);
             }
-            cypher.append(" IN {start} DELETE r");
+            cypher.append(" = {start} DELETE r");
             if(log.isDebugEnabled()) {
                 log.debug("DELETE Cypher [{}] for parameters [{}]", cypher, deleteParams);
             }
