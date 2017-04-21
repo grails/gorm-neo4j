@@ -88,7 +88,7 @@ public class DynamicAssociationSupport {
                                     associatedEntity = mappingContext.findPersistentEntityForLabels(Collections.singletonList(targetType));
                                 }
                                 if(associatedEntity == null) {
-                                    throw new NonPersistentTypeException(labels.toString());
+                                    continue;
                                 }
                                 Object proxy = mappingContext.getProxyFactory().createProxy(
                                         session,
