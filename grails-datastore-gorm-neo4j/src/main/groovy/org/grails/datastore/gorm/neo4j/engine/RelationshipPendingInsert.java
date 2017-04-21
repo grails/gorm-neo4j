@@ -155,13 +155,13 @@ public class RelationshipPendingInsert extends PendingInsertAdapter<Object, Seri
             Map<String, Object> deleteParams;
             if(association instanceof DynamicToOneAssociation) {
                 cypher.append(graphChild.formatId(FROM));
-                deleteParams = Collections.singletonMap(CypherBuilder.START, parentId);
+                deleteParams = Collections.singletonMap(CypherBuilder.START, Collections.singletonList(parentId));
             }
             else {
                 cypher.append(graphChild.formatId(TO));
                 deleteParams = Collections.<String, Object>singletonMap(CypherBuilder.START, targetIdentifiers);
             }
-            cypher.append(" = {start} DELETE r");
+            cypher.append(" IN {start} DELETE r");
             if(log.isDebugEnabled()) {
                 log.debug("DELETE Cypher [{}] for parameters [{}]", cypher, deleteParams);
             }
