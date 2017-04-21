@@ -54,12 +54,12 @@ public class DynamicAssociationSupport {
                 Boolean outGoing = row.get("out").asBoolean();
                 Map<String, Object> values = row.get("values").asMap();
                 TypeDirectionPair key = new TypeDirectionPair(relType, outGoing);
-                if(row.containsKey(RelationshipPendingInsert.TARGET_TYPE)) {
+                if(row.containsKey(RelationshipPendingInsert.TARGET_TYPE) && !row.get(RelationshipPendingInsert.TARGET_TYPE).isNull()) {
                     key.setTargetType(
                             row.get(RelationshipPendingInsert.TARGET_TYPE).asString()
                     );
+                    relationshipsMap.put(key, values);
                 }
-                relationshipsMap.put(key, values);
             }
             // if the relationship map is not empty as this point there are dynamic relationships that need to be loaded as undeclared
             if (!relationshipsMap.isEmpty()) {
