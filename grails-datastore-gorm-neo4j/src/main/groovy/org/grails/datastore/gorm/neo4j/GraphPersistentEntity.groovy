@@ -213,7 +213,7 @@ class GraphPersistentEntity extends AbstractPersistentEntity<NodeConfig> {
      * @return The query which accepts an {id} argument
      */
     String formatDynamicAssociationQuery(String variable = CypherBuilder.NODE_VAR) {
-        """${formatMatch(variable)}-[r]-(o) WHERE ${formatId(variable)} = {${GormProperties.IDENTITY}} RETURN type(r) as relType, startNode(r) = $variable as out, r.sourceType as sourceType, r.targetType as targetType, {ids: collect(ID(o)), labels: collect(labels(o))} as values"""
+        """${formatMatch(variable)}-[r]-(o) WHERE ${formatId(variable)} = {${GormProperties.IDENTITY}} RETURN type(r) as relType, startNode(r) = $variable as out, r.sourceType as sourceType, r.targetType as targetType, {ids: collect(${formatId("o")}), labels: collect(labels(o))} as values"""
     }
 
     /**
