@@ -46,7 +46,7 @@ if [[ $TRAVIS_REPO_SLUG == "grails/gorm-neo4j" && $TRAVIS_PULL_REQUEST == 'false
         version="$TRAVIS_TAG"
         version=${version:1}
 
-        if [[ $TRAVIS_TAG =~ [M\d|RC\d] ]]; then            
+        if [[ $TRAVIS_TAG =~ [M\d|RC\d] ]]; then
            echo "Publishing Milestone Release"  
         else 
             mkdir -p latest/neo4j
