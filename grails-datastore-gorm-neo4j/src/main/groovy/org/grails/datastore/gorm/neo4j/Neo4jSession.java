@@ -543,6 +543,7 @@ public class Neo4jSession extends AbstractSession<Session> {
 
 
                                 processDynamicAssociationsIfNecessary(entity, entityAccess, obj, entityInsert, cascadingOperations, params, dynamicRelProps);
+                                params.remove(Neo4jEntityPersister.DYNAMIC_ASSOCIATION_PARAM);
                             }
 
 
@@ -588,6 +589,9 @@ public class Neo4jSession extends AbstractSession<Session> {
         // dynamic labels require individual create statements and are less efficient
         final Map<String, Object> createParams = new HashMap<>(entityInserts.size());
         final String finalCypher = buildCypherCreateStatement(entityInserts, graphEntity, cascadingOperations, createParams);
+        if(graphEntity.hasDynamicAssociations()) {
+            createParams.remove(Neo4jEntityPersister.DYNAMIC_ASSOCIATION_PARAM);
+        }
         if (finalCypher.length() > 0) {
             if (log.isDebugEnabled()) {
                 log.debug("CREATE Cypher [{}] for parameters [{}]", finalCypher, createParams);
