@@ -100,6 +100,7 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
     protected final Map<String, Neo4jDatastore> datastoresByConnectionSource = new LinkedHashMap<>();
     protected final TenantResolver tenantResolver;
     protected final MultiTenancySettings.MultiTenancyMode multiTenancyMode;
+    protected final AutoTimestampEventListener autoTimestampEventListener;
 
     /**
      * Configures a new {@link Neo4jDatastore} for the given arguments
@@ -120,6 +121,7 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
         this.skipIndexSetup = !settings.isBuildIndex();
         this.multiTenancyMode = multiTenancySettings.getMode();
         this.tenantResolver = multiTenancySettings.getTenantResolver();
+        this.autoTimestampEventListener = new AutoTimestampEventListener(this);
 
         if(!skipIndexSetup) {
             setupIndexing();
@@ -418,7 +420,7 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
 
     protected void registerEventListeners(ConfigurableApplicationEventPublisher eventPublisher) {
         eventPublisher.addApplicationListener(new DomainEventListener(this));
-        eventPublisher.addApplicationListener(new AutoTimestampEventListener(this));
+        eventPublisher.addApplicationListener(autoTimestampEventListener);
         if(multiTenancyMode == MultiTenancySettings.MultiTenancyMode.DISCRIMINATOR) {
             eventPublisher.addApplicationListener(new MultiTenantEventListener(this));
         }
@@ -625,13 +627,18 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
         }
     }
 
+
     @Override
     public void setMessageSource(MessageSource messageSource) {
-        if(messageSource != null) {
+        if (messageSource != null) {
             Neo4jMappingContext mappingContext = (Neo4jMappingContext) getMappingContext();
             ValidatorRegistry validatorRegistry = createValidatorRegistry(connectionSources.getDefaultConnectionSource().getSettings(), mappingContext, messageSource);
             configureValidatorRegistry(mappingContext, messageSource, validatorRegistry);
             mappingContext.setValidatorRegistry(validatorRegistry);
         }
+    }
+
+    public AutoTimestampEventListener getAutoTimestampEventListener() {
+        return this.autoTimestampEventListener;
     }
 }
