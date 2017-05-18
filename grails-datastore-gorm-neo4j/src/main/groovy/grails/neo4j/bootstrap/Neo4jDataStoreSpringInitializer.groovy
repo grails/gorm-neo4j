@@ -79,6 +79,7 @@ class Neo4jDataStoreSpringInitializer extends AbstractDatastoreInitializer {
                 validatorRegistry = new BeanFactoryValidatorRegistry((BeanFactory)beanDefinitionRegistry)
             }
             neo4jTransactionManager(neo4jDatastore:"getTransactionManager")
+            neo4jAutoTimestampEventListener(neo4jDatastore:"getAutoTimestampEventListener")
             neo4jDriver(neo4jDatastore:"getBoltDriver")
             neo4jPersistenceInterceptor(getPersistenceInterceptorClass(), ref("neo4jDatastore"))
             neo4jPersistenceContextInterceptorAggregator(PersistenceContextInterceptorAggregator)
