@@ -8,12 +8,16 @@ import org.neo4j.driver.v1.exceptions.ClientException
 import org.neo4j.driver.v1.exceptions.ServiceUnavailableException
 import org.springframework.util.SocketUtils
 import spock.lang.AutoCleanup
+import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
 
 /**
  * Created by graemerocher on 05/07/2016.
  */
+@Ignore
+// as if Neo4j bolt driver 1.4 it is no longer possible to create the driver
+// when the Neo4j server is down so this test is no longer possible
 class MultipleConnectionsSpec extends Specification {
 
     @Shared int port1 = SocketUtils.findAvailableTcpPort(7700)
