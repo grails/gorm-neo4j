@@ -15,7 +15,7 @@ buildscript {
 }
 
 group "org.grails"
-version "6.1.3.BUILD-SNAPSHOT"
+version "6.1.3.RELEASE"
 println "GORM VERSION = ${project.gormVersion}"
 
 
