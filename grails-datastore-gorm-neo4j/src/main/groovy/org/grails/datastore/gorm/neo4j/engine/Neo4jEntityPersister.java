@@ -100,6 +100,7 @@ public class Neo4jEntityPersister extends EntityPersister {
             final Map<Integer, Integer> indexMap = new HashMap<>();
             int insertIndex = 0;
             final Iterator iterator = objs.iterator();
+            boolean previous = false;
             while (iterator.hasNext()) {
                 Object obj = iterator.next();
                 listIndex++;
@@ -165,9 +166,12 @@ public class Neo4jEntityPersister extends EntityPersister {
 
                     indexMap.put(insertIndex++, listIndex - 1);
                     entityAccesses.add(entityAccess);
+                    if(previous) {
+                        createCypher.append(CypherBuilder.COMMAND_SEPARATOR);
+                    }
                     session.buildEntityCreateOperation(createCypher, String.valueOf(insertIndex), pe, pendingInsert, params, cascadingOperations);
                     if(iterator.hasNext()) {
-                        createCypher.append(CypherBuilder.COMMAND_SEPARATOR);
+                        previous = true;
                     }
 
                 }
@@ -181,6 +185,11 @@ public class Neo4jEntityPersister extends EntityPersister {
                 if(log.isDebugEnabled()) {
                     log.debug("CREATE Cypher [{}] for parameters [{}]", finalCypher, params);
                 }
+
+                if(graphPersistentEntity.hasDynamicAssociations()) {
+                    params.remove(DYNAMIC_ASSOCIATION_PARAM);
+                }
+
                 final StatementResult result = statementRunner.run(finalCypher, params);
 
                 if(!result.hasNext()) {
