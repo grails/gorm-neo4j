@@ -200,6 +200,17 @@ class SchemalessSpec extends GormDatastoreSpec {
         and: "using plural named properties returns an array"
         Pet.findByName("Cosima").buddies*.name == ["Lara"]
 
+        when:"The dynamic association is set to null"
+        pet.buddy = null
+        pet.buddies = null
+        pet.save(flush:true)
+        session.clear()
+        pet = Pet.findByName("Cosima")
+
+        then:"the association is cleared"
+        pet.buddy == null
+        pet.buddies == null
+
     }
 
     @Issue('https://github.com/grails/gorm-neo4j/issues/18')

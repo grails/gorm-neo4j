@@ -373,6 +373,7 @@ public class Neo4jSession extends AbstractSession<Session> {
                         if(association.getOwner().equals(entity)) {
                             if(relationshipUpdate.id.equals(id)) {
                                 cascadingOperations.add(new RelationshipPendingInsert(access, association, pendingRelationshipInserts.get(relationshipUpdate), getTransaction().getTransaction(), isUpdate));
+                                pendingRelationshipInserts.remove(relationshipUpdate);
                             }
                         }
                     }
