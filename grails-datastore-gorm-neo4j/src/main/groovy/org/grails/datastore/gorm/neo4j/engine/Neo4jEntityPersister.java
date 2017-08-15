@@ -6,6 +6,7 @@ import org.grails.datastore.gorm.GormEntity;
 import org.grails.datastore.gorm.neo4j.*;
 import org.grails.datastore.gorm.neo4j.collection.*;
 import org.grails.datastore.gorm.neo4j.mapping.config.DynamicToOneAssociation;
+import org.grails.datastore.gorm.neo4j.mapping.reflect.Neo4jNameUtils;
 import org.grails.datastore.gorm.neo4j.util.IteratorUtil;
 import org.grails.datastore.gorm.schemaless.DynamicAttributes;
 import org.grails.datastore.mapping.collection.PersistentCollection;
@@ -855,9 +856,23 @@ public class Neo4jEntityPersister extends EntityPersister {
         if(graphEntity.hasDynamicAssociations()) {
             MappingContext mappingContext = graphEntity.getMappingContext();
             DynamicAttributes dynamicAttributes = (DynamicAttributes) obj;
-            Collection<Object> values = dynamicAttributes.attributes().values();
-            for (Object value : values) {
-                if(mappingContext.isPersistentEntity(value)) {
+            Map<String, Object> attributes = dynamicAttributes.attributes();
+            for (Map.Entry<String, Object> entry : attributes.entrySet()) {
+                Object value = entry.getValue();
+                if(value == null) {
+                    String associationName = entry.getKey();
+                    Object originalValue = ((DirtyCheckable) obj).getOriginalValue(associationName);
+                    if(originalValue != null && mappingContext.isPersistentEntity(originalValue)) {
+                        processDynamicAssociationRemoval(graphEntity, entityAccess, neo4jSession, mappingContext, associationName, originalValue);
+                    }
+                    else if(originalValue instanceof Iterable) {
+                        Iterable i = (Iterable) originalValue;
+                        for (Object o : i) {
+                            processDynamicAssociationRemoval(graphEntity, entityAccess, neo4jSession, mappingContext, associationName, o);
+                        }
+                    }
+                }
+                else if(mappingContext.isPersistentEntity(value)) {
                     if( ((DirtyCheckable)value).hasChanged() ) {
                         neo4jSession.persist(value);
                     }
@@ -875,7 +890,6 @@ public class Neo4jEntityPersister extends EntityPersister {
                         neo4jSession.persist((Iterable)value);
                     }
                 }
-
             }
         }
 
@@ -1007,6 +1021,18 @@ public class Neo4jEntityPersister extends EntityPersister {
             }
 
 
+        }
+    }
+
+    private void processDynamicAssociationRemoval(GraphPersistentEntity graphEntity, EntityAccess entityAccess, Neo4jSession neo4jSession, MappingContext mappingContext, String associationName, Object originalValue) {
+        final GraphPersistentEntity associated = (GraphPersistentEntity) mappingContext.getPersistentEntity(originalValue.getClass().getName());
+        if (associated != null) {
+
+            Object childId = getSession().getEntityPersister(originalValue).getObjectIdentifier(originalValue);
+            if(childId != null) {
+                Serializable parentId = (Serializable) entityAccess.getIdentifier();
+                neo4jSession.addPendingRelationshipDelete(parentId,new DynamicToOneAssociation(graphEntity, mappingContext, associationName, associated), (Serializable)childId );
+            }
         }
     }
 

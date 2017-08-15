@@ -77,12 +77,14 @@ trait Neo4jEntity<D> implements GormEntity<D>, DynamicAttributes {
         if(val == null) {
             GormStaticApi staticApi = GormEnhancer.findStaticApi(getClass())
             GraphPersistentEntity entity = (GraphPersistentEntity) staticApi.gormPersistentEntity
-            def id = ident()
-            if(id != null && entity.hasDynamicAssociations()) {
-                staticApi.withSession { Neo4jSession session ->
-                    DynamicAssociationSupport.loadDynamicAssociations(session, entity, this, id)
+            if(entity.hasDynamicAssociations()) {
+                def id = ident()
+                if(id != null) {
+                    staticApi.withSession { Neo4jSession session ->
+                        DynamicAssociationSupport.loadDynamicAssociations(session, entity, this, id)
+                    }
+                    return DynamicAttributes.super.getAt(name)
                 }
-                return DynamicAttributes.super.getAt(name)
             }
         }
         return val
