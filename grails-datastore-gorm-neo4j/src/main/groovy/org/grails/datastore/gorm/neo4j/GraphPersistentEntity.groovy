@@ -303,10 +303,23 @@ class GraphPersistentEntity extends AbstractPersistentEntity<NodeConfig> {
             if(v == null) {
                 builder.append(", ${variable}.").append(key).append(" = NULL")
             }
+            else if(v instanceof Collection && ((Collection)v).isEmpty()) {
+                keysToRemove.add(key)
+            }
         }
-        for(key in keysToRemove) {
-            props.remove(key)
+        if(!keysToRemove.isEmpty()) {
+            builder.append(" REMOVE ")
+            def i = keysToRemove.iterator()
+            while(i.hasNext()) {
+                String key = i.next()
+                builder.append(variable).append(".").append(key)
+                props.remove(key)
+                if(i.hasNext()) {
+                    builder.append(", ")
+                }
+            }
         }
+
         builder.append(CypherBuilder.RETURN).append(formatId(variable))
     }
     /**

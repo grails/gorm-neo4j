@@ -232,8 +232,21 @@ class SchemalessSpec extends GormDatastoreSpec {
         result = session.transaction.nativeTransaction.execute("MATCH (n:Pet)-[:buddies]->(l) WHERE ID(n) = {1} return l", [cosima.id])
 
         then:"The relationship is empty"
-        Pet.findByName("Cosima").buddies == []
+        Pet.findByName("Cosima").buddies == null
         IteratorUtil.count(result) == 0
+
+
+        when:"The cleared relationship is updated"
+        session.clear()
+        pet = Pet.findByName("Cosima")
+        pet.buddies = [lara]
+        pet.save(flush:true)
+        session.clear()
+
+        result = session.transaction.nativeTransaction.execute("MATCH (n:Pet)-[:buddies]->(l) WHERE ID(n) = {1} return l", [cosima.id])
+
+        then:
+        IteratorUtil.count(result) == 1
 
     }
 

@@ -76,7 +76,7 @@ public class Neo4jEntityPersister extends EntityPersister {
 
     @Override
     protected List<Object> retrieveAllEntities(PersistentEntity pe, Iterable<Serializable> keys) {
-        List<Criterion> criterions = new ArrayList<Criterion>(1);
+        List<Criterion> criterions = new ArrayList<>(1);
         criterions.add(new In(GormProperties.IDENTITY, DefaultGroovyMethods.toList(keys)));
         Junction junction = new Conjunction(criterions);
         return new Neo4jQuery(getSession(), pe, this).executeQuery(pe, junction);
@@ -88,7 +88,16 @@ public class Neo4jEntityPersister extends EntityPersister {
         GraphPersistentEntity graphPersistentEntity = (GraphPersistentEntity) pe;
 
         List<Serializable> idList = new ArrayList<>();
-        if(graphPersistentEntity.isNativeId() && !graphPersistentEntity.isRelationshipEntity()) {
+        if(graphPersistentEntity.hasDynamicAssociations()) {
+            // dynamic association entities cannot be batch inserted
+            for (Object obj : objs) {
+                Serializable id = persistEntity(pe, obj);
+                if(id != null) {
+                    idList.add(id);
+                }
+            }
+        }
+        else if(graphPersistentEntity.isNativeId() && !graphPersistentEntity.isRelationshipEntity()) {
             List<EntityAccess> entityAccesses = new ArrayList<>();
             // optimize batch inserts for multiple entities with native id
             final Neo4jSession session = getSession();
