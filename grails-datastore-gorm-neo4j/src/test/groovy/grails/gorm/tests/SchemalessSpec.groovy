@@ -138,7 +138,7 @@ class SchemalessSpec extends GormDatastoreSpec {
         club.name == 'club1'  // declared properties are also available via map semantics
         club.someIntArray == [1,2,3]
         club.someStringArray == ['a', 'b', 'c']
-        club.emptyArray == []
+        club.emptyArray == null
 //        person.someDoubleArray == [0.9, 1.0, 1.1]
     }
 
