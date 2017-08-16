@@ -17,6 +17,8 @@ package org.grails.datastore.gorm.neo4j.collection
 
 import groovy.transform.CompileStatic
 import groovy.transform.PackageScope
+import org.grails.datastore.gorm.GormEnhancer
+import org.grails.datastore.gorm.GormEntity
 import org.grails.datastore.gorm.neo4j.Neo4jSession
 import org.grails.datastore.gorm.neo4j.RelationshipUtils
 import org.grails.datastore.mapping.engine.EntityAccess
@@ -67,9 +69,13 @@ class GraphAdapter {
         else {
             id = (Serializable) childAccess.getIdentifier(o)
         }
-        if (!reversed && id != null) {
+        if(association.isOrphanRemoval()) {
+            session.delete(o)
+        }
+        else if (!reversed && id != null) {
             session.addPendingRelationshipDelete((Serializable)parentAccess.getIdentifier(), association, id)
         }
+
     }
 
     void adaptGraphUponAdd(Object t, boolean currentlyInitializing = false) {
