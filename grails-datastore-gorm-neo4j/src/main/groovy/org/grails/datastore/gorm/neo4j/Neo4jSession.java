@@ -312,11 +312,14 @@ public class Neo4jSession extends AbstractSession<Session> {
                         simpleProps.put(GormProperties.VERSION, newVersion);
                         access.setProperty(GormProperties.VERSION, newVersion);
                     }
-                    cypherStringBuilder.append(" SET n+={props}");
+                    cypherStringBuilder.append(" SET n+={props} ");
                     if(!nulls.isEmpty()) {
+                        cypherStringBuilder.append(" REMOVE ");
                         for (String aNull : nulls) {
-                            cypherStringBuilder.append(",n.").append(aNull).append(" = NULL");
+                            cypherStringBuilder.append("n.").append(aNull).append(",");
                         }
+                        cypherStringBuilder.setLength(cypherStringBuilder.length()-1);
+                        cypherStringBuilder.append(" ");
                     }
                     cypherStringBuilder.append(Neo4jEntityPersister.RETURN_NODE_ID);
                     String cypher = String.format(cypherStringBuilder.toString(), labels);
@@ -582,10 +585,7 @@ public class Neo4jSession extends AbstractSession<Session> {
                 for (Map.Entry<String,Object> entry : map.entrySet()) {
                     Object value = entry.getValue();
                     String key = entry.getKey();
-                    if(value == null) {
-                        nulls.add(key);
-                        continue;
-                    }
+
 
                     if(hasDynamicAssociations) {
                         if  (mappingContext.isPersistentEntity(value)) {
@@ -595,14 +595,23 @@ public class Neo4jSession extends AbstractSession<Session> {
                             List<Object> objects = getOrInit(dynRelProps, key);
                             objects.addAll((Collection) value);
                         } else {
-                            if (((DirtyCheckable)pojo).hasChanged(key)) {
+                            if(value == null || (value instanceof Collection && ((Collection) value).size() == 0)) {
+                                nulls.add(key);
+                                getOrInit(dynRelProps, key);
+                            }
+                            else if (((DirtyCheckable)pojo).hasChanged(key)) {
                                 simpleProps.put(key, ((Neo4jMappingContext) mappingContext).convertToNative(value));
                             }
                         }
                     }
                     else {
                         if (((DirtyCheckable)pojo).hasChanged(key)) {
-                            simpleProps.put(key, ((Neo4jMappingContext)mappingContext).convertToNative(value));
+                            if(value == null) {
+                                nulls.add(key);
+                            }
+                            else {
+                                simpleProps.put(key, ((Neo4jMappingContext)mappingContext).convertToNative(value));
+                            }
                         }                        
                     }
                 }

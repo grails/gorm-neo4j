@@ -229,8 +229,40 @@ class SchemalessSpec extends GormDatastoreSpec {
         result = session.transaction.nativeTransaction.execute("MATCH (n:Pet {__id__:{1}})-[:buddies]->(l) return l", [cosima.id])
 
         then:"The relationship is empty"
-        Pet.findByName("Cosima").buddies == []
+        Pet.findByName("Cosima").buddies == [] || Pet.findByName("Cosima").buddies == null
         IteratorUtil.count(result) == 0
+
+    }
+
+    def "test clear and set again dynamic collection association"() {
+        setup:
+        def cosima = new Pet(name: 'Cosima')
+        def lara = new Pet(name: 'Lara')
+        def fred = new Pet(name: 'Fred')
+        cosima.buddies = [lara, fred]
+
+
+        when:
+        cosima.save()
+        session.flush()
+        session.clear()
+        def pet = Pet.findByName("Cosima")
+        pet.buddies.clear()
+        pet.save(flush:true)
+        session.clear()
+        pet = Pet.findByName("Cosima")
+        lara = Pet.findByName('Lara')
+        pet.buddies = [lara]
+        pet.save(flush:true)
+        session.clear()
+        pet = Pet.findByName("Cosima")
+        def result = session.transaction.nativeTransaction.execute("MATCH (n:Pet {__id__:{1}})-[:buddies]->(l) return l", [cosima.id])
+
+        then:"The relationship is empty"
+        IteratorUtil.count(result) == 1
+        pet.buddies instanceof Collection
+        pet.buddies.size() == 1
+        pet.buddies.first().name == 'Lara'
 
     }
 
