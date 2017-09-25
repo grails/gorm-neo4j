@@ -16,7 +16,6 @@ import org.grails.datastore.mapping.dirty.checking.DirtyCheckable;
 import org.grails.datastore.mapping.dirty.checking.DirtyCheckableCollection;
 import org.grails.datastore.mapping.engine.EntityAccess;
 import org.grails.datastore.mapping.engine.EntityPersister;
-import org.grails.datastore.mapping.engine.ModificationTrackingEntityAccess;
 import org.grails.datastore.mapping.model.MappingContext;
 import org.grails.datastore.mapping.model.PersistentEntity;
 import org.grails.datastore.mapping.model.PersistentProperty;

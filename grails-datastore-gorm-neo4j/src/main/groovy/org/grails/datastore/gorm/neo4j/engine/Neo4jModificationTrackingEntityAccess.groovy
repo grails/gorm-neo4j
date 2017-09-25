@@ -4,6 +4,13 @@ import groovy.transform.CompileStatic
 import org.grails.datastore.mapping.engine.EntityAccess
 import org.grails.datastore.mapping.engine.ModificationTrackingEntityAccess
 
+/**
+ * An extension of {@link ModificationTrackingEntityAccess} that stores
+ * the old value instead of the new.
+ *
+ * @author James Kleeh
+ * @since 6.1.5
+ */
 @CompileStatic
 class Neo4jModificationTrackingEntityAccess extends ModificationTrackingEntityAccess {
 
