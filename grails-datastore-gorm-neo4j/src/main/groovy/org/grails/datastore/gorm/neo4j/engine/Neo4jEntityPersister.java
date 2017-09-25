@@ -6,7 +6,6 @@ import org.grails.datastore.gorm.GormEntity;
 import org.grails.datastore.gorm.neo4j.*;
 import org.grails.datastore.gorm.neo4j.collection.*;
 import org.grails.datastore.gorm.neo4j.mapping.config.DynamicToOneAssociation;
-import org.grails.datastore.gorm.neo4j.mapping.reflect.Neo4jNameUtils;
 import org.grails.datastore.gorm.neo4j.util.IteratorUtil;
 import org.grails.datastore.gorm.schemaless.DynamicAttributes;
 import org.grails.datastore.mapping.collection.PersistentCollection;
@@ -17,6 +16,7 @@ import org.grails.datastore.mapping.dirty.checking.DirtyCheckable;
 import org.grails.datastore.mapping.dirty.checking.DirtyCheckableCollection;
 import org.grails.datastore.mapping.engine.EntityAccess;
 import org.grails.datastore.mapping.engine.EntityPersister;
+import org.grails.datastore.mapping.engine.ModificationTrackingEntityAccess;
 import org.grails.datastore.mapping.model.MappingContext;
 import org.grails.datastore.mapping.model.PersistentEntity;
 import org.grails.datastore.mapping.model.PersistentProperty;
@@ -795,24 +795,34 @@ public class Neo4jEntityPersister extends EntityPersister {
     }
 
 
-    private void registerPendingUpdate(Neo4jSession session, final PersistentEntity pe, final EntityAccess entityAccess, final Object obj, final Serializable identifier) {
-        final PendingUpdateAdapter<Object, Serializable> pendingUpdate = new PendingUpdateAdapter<Object, Serializable>(pe, identifier, obj, entityAccess) {
+    private void registerPendingUpdate(Neo4jSession session, final PersistentEntity pe, final EntityAccess ea, final Object obj, final Serializable identifier) {
+        final Neo4jModificationTrackingEntityAccess entityAccess = new Neo4jModificationTrackingEntityAccess(ea);
+        final Object notEqualMarker = new Object();
+        final PendingUpdateAdapter<Object, Serializable> pendingUpdate = new PendingUpdateAdapter<Object, Serializable>(pe, identifier, obj, ea) {
             @Override
             public void run() {
                 if (cancelUpdate(pe, entityAccess)) {
                     setVetoed(true);
+                } else {
+                    Object entity = entityAccess.getEntity();
+                    if (entity instanceof DirtyCheckable) {
+                        DirtyCheckable dirtyCheckable = (DirtyCheckable) entity;
+                        for (Map.Entry<String, Object> entry: entityAccess.getModifiedProperties().entrySet()) {
+                            dirtyCheckable.markDirty(entry.getKey(), notEqualMarker, entry.getValue());
+                        }
+                    }
                 }
             }
         };
         pendingUpdate.addCascadeOperation(new PendingOperationAdapter<Object, Serializable>(pe, identifier, obj) {
             @Override
             public void run() {
-                firePostUpdateEvent(pe, entityAccess);
+                firePostUpdateEvent(pe, ea);
             }
         });
         session.addPendingUpdate(pendingUpdate);
 
-        persistAssociationsOfEntity((GraphPersistentEntity) pe, entityAccess, true);
+        persistAssociationsOfEntity((GraphPersistentEntity) pe, ea, true);
     }
 
     private boolean shouldIgnore(Neo4jSession session, Object obj) {
