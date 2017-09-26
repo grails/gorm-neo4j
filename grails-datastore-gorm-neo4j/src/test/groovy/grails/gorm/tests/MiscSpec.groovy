@@ -22,7 +22,7 @@ class MiscSpec extends GormDatastoreSpec {
 
     @Override
     List getDomainClasses() {
-        [ Club, Team, Tournament, User, Role, Pet, TestEntity, Plant, PlantCategory, Task, TestEntity, CommonTypes ]
+        [ Club, Team, Tournament, User, Role, Pet, TestEntity, Plant, PlantCategory, Task, TestEntity, CommonTypes, Timestamped ]
     }
 
     def "test object identity, see if cache is being used"() {
@@ -441,6 +441,31 @@ class MiscSpec extends GormDatastoreSpec {
         Team.findByName('Germany').players.size()==1
         Team.findByName('Argentina').players.size()==0
     }
+
+    def "lastUpdated is updated"() {
+        setup:
+        new Timestamped(name: "test").save()
+        session.flush()
+        session.clear()
+
+        when:
+        def ts = Timestamped.findByName("test")
+
+        then:
+        ts.dateCreated != null
+        ts.lastUpdated != null
+        ts.dateCreated == ts.lastUpdated
+
+        when:
+        ts.name = "test changed"
+        ts.save()
+        session.flush()
+        session.clear()
+        def newTs = Timestamped.findByName("test changed")
+
+        then:
+        newTs.lastUpdated > newTs.dateCreated
+    }
 }
 
 @Entity
@@ -520,4 +545,14 @@ class Player implements Neo4jEntity<Player> {
     void setTeam(Team team) {
         this.team = team
     }
+}
+
+
+@Entity
+class Timestamped implements Neo4jEntity<Timestamped> {
+
+    String name
+
+    Date dateCreated
+    Date lastUpdated
 }
