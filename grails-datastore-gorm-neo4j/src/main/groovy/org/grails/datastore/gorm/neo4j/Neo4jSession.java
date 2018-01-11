@@ -84,6 +84,7 @@ public class Neo4jSession extends AbstractSession<Session> {
 
     /** map node id to hashmap of relationship types showing startNode id and endNode id */
     protected final Session boltSession;
+    protected final Driver boltDriver;
 
 
     public Neo4jSession(Datastore datastore, MappingContext mappingContext, ApplicationEventPublisher publisher, boolean stateless, Driver boltDriver) {
@@ -91,6 +92,7 @@ public class Neo4jSession extends AbstractSession<Session> {
         if(log.isDebugEnabled()) {
             log.debug("Session created");
         }
+        this.boltDriver = boltDriver;
         this.boltSession = boltDriver.session();
     }
 
@@ -180,7 +182,7 @@ public class Neo4jSession extends AbstractSession<Session> {
                 if(transactionDefinition.getName() == null) {
                     transactionDefinition = createDefaultTransactionDefinition(transactionDefinition);
                 }
-                tx = new Neo4jTransaction(boltSession, transactionDefinition, sessionCreated);
+                tx = new Neo4jTransaction(boltDriver, transactionDefinition, sessionCreated);
             }
             this.transaction = tx;
             return transaction;
@@ -706,7 +708,7 @@ public class Neo4jSession extends AbstractSession<Session> {
     private void startDefaultTransaction() {
         // start a new transaction upon termination
         final DefaultTransactionDefinition transactionDefinition = createDefaultTransactionDefinition(null);
-        transaction = new Neo4jTransaction(boltSession, transactionDefinition, true);
+        transaction = new Neo4jTransaction(boltDriver, transactionDefinition, true);
     }
 
     protected DefaultTransactionDefinition createDefaultTransactionDefinition(TransactionDefinition other) {
