@@ -16,8 +16,6 @@ package org.grails.datastore.gorm.neo4j
 
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
-import org.neo4j.driver.v1.AccessMode
-import org.neo4j.driver.v1.Driver
 import org.neo4j.driver.v1.Session
 import org.grails.datastore.mapping.transactions.Transaction
 import org.springframework.transaction.TransactionDefinition
@@ -43,11 +41,11 @@ class Neo4jTransaction implements Transaction<org.neo4j.driver.v1.Transaction>, 
     org.neo4j.driver.v1.Transaction transaction
     TransactionDefinition transactionDefinition
 
-    Neo4jTransaction(Driver boltDriver, TransactionDefinition transactionDefinition = new DefaultTransactionDefinition(), boolean sessionCreated = false) {
+    Neo4jTransaction(Session boltSession, TransactionDefinition transactionDefinition = new DefaultTransactionDefinition(), boolean sessionCreated = false) {
 
         log.debug("TX START: Neo4J beginTx()")
-        this.boltSession = boltDriver.session(transactionDefinition.readOnly ? AccessMode.READ : AccessMode.WRITE)
         transaction = boltSession.beginTransaction()
+        this.boltSession = boltSession;
         this.transactionDefinition = transactionDefinition
         this.sessionCreated = sessionCreated
     }
@@ -83,7 +81,6 @@ class Neo4jTransaction implements Transaction<org.neo4j.driver.v1.Transaction>, 
         if(active) {
             log.debug("TX CLOSE: Neo4j tx.close()");
             transaction.close()
-            boltSession.close()
             active = false
         }
     }
