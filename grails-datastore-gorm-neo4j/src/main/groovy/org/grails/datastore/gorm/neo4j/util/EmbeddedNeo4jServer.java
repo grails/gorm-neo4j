@@ -4,7 +4,6 @@ import org.grails.datastore.mapping.reflect.ClassUtils;
 import org.neo4j.harness.ServerControls;
 import org.neo4j.harness.TestServerBuilder;
 import org.neo4j.harness.TestServerBuilders;
-import org.neo4j.harness.internal.Ports;
 import org.neo4j.server.ServerStartupException;
 
 import java.io.File;
@@ -180,9 +179,8 @@ public class EmbeddedNeo4jServer {
     private static ServerControls attemptStartServer(int retryCount, File dataLocation, Map<String, Object> options) throws IOException {
 
         try {
-            InetSocketAddress inetAddr = Ports.findFreePort("localhost", new int[]{7687, 64 * 1024 - 1});
-
-            ServerControls serverControls = start(inetAddr, dataLocation, options);
+            //In the new driver 0 implicitly means a random port
+            ServerControls serverControls = start("localhost", 0, dataLocation, options);
             return serverControls;
         } catch (ServerStartupException sse) {
             if(retryCount < 4) {
