@@ -1,6 +1,7 @@
 package org.grails.datastore.gorm.neo4j.util;
 
 import org.grails.datastore.mapping.reflect.ClassUtils;
+import org.neo4j.graphdb.factory.GraphDatabaseSettings;
 import org.neo4j.harness.ServerControls;
 import org.neo4j.harness.TestServerBuilder;
 import org.neo4j.harness.TestServerBuilders;
@@ -160,6 +161,7 @@ public class EmbeddedNeo4jServer {
 
         TestServerBuilder serverBuilder = TestServerBuilders.newInProcessBuilder()
                 .withConfig(boltConnector("0").enabled, "true")
+                .withConfig(boltConnector("0").type, GraphDatabaseSettings.Connector.ConnectorType.BOLT.name())
                 .withConfig(boltConnector("0").encryption_level, DISABLED.name())
                 .withConfig(boltConnector("0").address, myBoltAddress);
         if(dataLocation != null) {
