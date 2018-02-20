@@ -15,7 +15,7 @@ buildscript {
 }
 
 group "org.grails"
-version "6.0.14.BUILD-SNAPSHOT"
+version "6.0.14.BRINQA-SNAPSHOT"
 //version "6.0.13.RELEASE"
 println "GORM VERSION = ${project.gormVersion}"
 
@@ -31,7 +31,7 @@ ext {
     hibernatePluginVersion = project.gormVersion - '.RELEASE'
     
     isCiBuild = project.hasProperty("isCiBuild")
-    isBuildSnapshot = version.endsWith("BUILD-SNAPSHOT")
+    isBuildSnapshot = version.endsWith("BRINQA-SNAPSHOT")
 
     servletApiVersion = "3.0.1"
 
