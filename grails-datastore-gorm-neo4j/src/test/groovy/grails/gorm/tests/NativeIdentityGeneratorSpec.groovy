@@ -49,11 +49,11 @@ class NativeIdentityGeneratorSpec extends GormDatastoreSpec {
         session.clear()
 
         then:"The id is generated from the native datastore"
-        c1.id == 2L
-        c2.id == 3L
+        c1.id != null
+        c2.id != null
         results == [c1.id, c2.id]
-        Competition.get(c1.id).id == 2L
-        Competition.get(c2.id).id == 3L
+        Competition.get(c1.id).id == c1.id
+        Competition.get(c2.id).id == c2.id
     }
 
     @Override
