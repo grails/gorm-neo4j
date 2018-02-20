@@ -5,6 +5,7 @@ import org.neo4j.graphdb.factory.GraphDatabaseSettings;
 import org.neo4j.harness.ServerControls;
 import org.neo4j.harness.TestServerBuilder;
 import org.neo4j.harness.TestServerBuilders;
+import org.neo4j.kernel.configuration.BoltConnector;
 import org.neo4j.server.ServerStartupException;
 
 import java.io.File;
@@ -15,7 +16,6 @@ import java.util.Collections;
 import java.util.Map;
 
 import static org.neo4j.graphdb.factory.GraphDatabaseSettings.BoltConnector.EncryptionLevel.DISABLED;
-import static org.neo4j.graphdb.factory.GraphDatabaseSettings.boltConnector;
 import static org.neo4j.dbms.DatabaseManagementSystemSettings.data_directory;
 
 /**
@@ -160,10 +160,10 @@ public class EmbeddedNeo4jServer {
         String myBoltAddress = String.format("%s:%d", host, port);
 
         TestServerBuilder serverBuilder = TestServerBuilders.newInProcessBuilder()
-                .withConfig(boltConnector("0").enabled, "true")
-                .withConfig(boltConnector("0").type, GraphDatabaseSettings.Connector.ConnectorType.BOLT.name())
-                .withConfig(boltConnector("0").encryption_level, DISABLED.name())
-                .withConfig(boltConnector("0").address, myBoltAddress);
+                .withConfig(new BoltConnector("0").enabled, "true")
+                .withConfig(new BoltConnector("0").type, GraphDatabaseSettings.Connector.ConnectorType.BOLT.name())
+                .withConfig(new BoltConnector("0").encryption_level, DISABLED.name())
+                .withConfig(new BoltConnector("0").listen_address, myBoltAddress);
         if(dataLocation != null) {
             serverBuilder = serverBuilder.withConfig(data_directory,  dataLocation.getPath());
         }
@@ -171,19 +171,16 @@ public class EmbeddedNeo4jServer {
         for (String name : options.keySet()) {
             serverBuilder.withConfig(name, options.get(name).toString());
         }
-        
-        ServerControls serverControls = serverBuilder
-                .newServer();
 
-        return serverControls;
+        return serverBuilder
+                .newServer();
     }
 
     private static ServerControls attemptStartServer(int retryCount, File dataLocation, Map<String, Object> options) throws IOException {
 
         try {
             //In the new driver 0 implicitly means a random port
-            ServerControls serverControls = start("localhost", 0, dataLocation, options);
-            return serverControls;
+            return start("localhost", 0, dataLocation, options);
         } catch (ServerStartupException sse) {
             if(retryCount < 4) {
                 return attemptStartServer(++retryCount, dataLocation, options);

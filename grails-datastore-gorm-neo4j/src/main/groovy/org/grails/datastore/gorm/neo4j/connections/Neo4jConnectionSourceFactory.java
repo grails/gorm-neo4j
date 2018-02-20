@@ -73,7 +73,7 @@ public class Neo4jConnectionSourceFactory extends AbstractConnectionSourceFactor
                 ServerControls serverControls;
                 try {
                     serverControls = url != null ? EmbeddedNeo4jServer.start(url, dataDir, options) : EmbeddedNeo4jServer.start(dataDir, options);
-                    Config config = Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig();
+                    Config config = Config.build().withoutEncryption().toConfig();
                     URI boltURI = serverControls.boltURI();
                     Driver driver =  GraphDatabase.driver(boltURI, config);
                     return new Neo4jEmbeddedConnectionSource(name, driver, settings, serverControls);
