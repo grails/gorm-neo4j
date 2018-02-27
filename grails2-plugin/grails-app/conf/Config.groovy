@@ -3,6 +3,7 @@
 grails {
     neo4j {
         type = "embedded"
+        embedded.ephemeral = true
     }
 }
 log4j = {

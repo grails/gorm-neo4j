@@ -56,7 +56,7 @@ dependencies {
         exclude group:'org.grails',module:'grails-async'
     }
 
-    provided 'org.neo4j.test:neo4j-harness:3.0.2'
+    provided "org.neo4j.test:neo4j-harness:$neo4jVersion"
     test "org.spockframework:spock-core:1.0-groovy-2.4"
     provided 'javax.servlet:javax.servlet-api:3.1.0'
 }
@@ -69,6 +69,8 @@ project.tasks.withType(PublishToMavenRepository) { task ->
 }
 
 //test.jvmOptions.jvmArgs "-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005", "-Xdebug"
+
+test.args = '-stacktrace'
 
 class GrailsPluginComponent implements SoftwareComponentInternal {
 
