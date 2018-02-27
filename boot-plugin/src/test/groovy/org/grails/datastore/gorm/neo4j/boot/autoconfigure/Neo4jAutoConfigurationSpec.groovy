@@ -24,6 +24,7 @@ class Neo4jDbGormAutoConfigurationSpec extends Specification{
     void setup() {
 
         System.setProperty(Settings.SETTING_NEO4J_TYPE, Settings.DATABASE_TYPE_EMBEDDED)
+        System.setProperty(Settings.SETTING_NEO4J_EMBEDDED_EPHEMERAL, "true")
         AutoConfigurationPackages.register(context, Neo4jDbGormAutoConfigurationSpec.package.name)
         this.context.register( TestConfiguration, PropertyPlaceholderAutoConfiguration.class, );
 
