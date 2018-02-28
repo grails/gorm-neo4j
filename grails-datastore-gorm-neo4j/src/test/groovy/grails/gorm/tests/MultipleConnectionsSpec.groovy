@@ -5,12 +5,16 @@ import grails.neo4j.Neo4jEntity
 import org.grails.datastore.gorm.neo4j.Neo4jDatastore
 import org.grails.datastore.gorm.neo4j.config.Settings
 import org.neo4j.driver.v1.exceptions.ClientException
+import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
 
 /**
  * Created by graemerocher on 05/07/2016.
  */
+@Ignore
+// as if Neo4j bolt driver 1.4 it is no longer possible to create the driver
+// when the Neo4j server is down so this test is no longer possible
 class MultipleConnectionsSpec extends Specification {
 
     @Shared Neo4jDatastore datastore
