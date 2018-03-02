@@ -221,7 +221,7 @@ public class Neo4jSession extends AbstractSession<Session> {
 
     @Override
     public Session getNativeInterface() {
-        return boltSession;
+        return hasTransaction() ? getTransaction().getBoltSession() : boltSession;
     }
 
     @Override
