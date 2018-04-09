@@ -194,11 +194,26 @@ class SchemalessSpec extends GormDatastoreSpec {
         then:
         IteratorUtil.count(result) == 1
 
-        and: "reading dynamic rels works"
-        Pet.findByName("Cosima").buddy.name == "Lara"
+        when:
+        Pet pet = Pet.findByName("Cosima")
+
+        then: "reading dynamic rels works"
+        pet.buddy.name == "Lara"
+        !pet.hasChanged()
 
         and: "using plural named properties returns an array"
         Pet.findByName("Cosima").buddies*.name == ["Lara"]
+
+        when:"The dynamic association is set to null"
+        pet.buddy = null
+        pet.buddies = null
+        pet.save(flush:true)
+        session.clear()
+        pet = Pet.findByName("Cosima")
+
+        then:"the association is cleared"
+        pet.buddy == null
+        pet.buddies == null
 
     }
 

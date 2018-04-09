@@ -21,6 +21,8 @@ import grails.gorm.multitenancy.Tenants
 import groovy.transform.CompileStatic
 import org.grails.datastore.gorm.GormEnhancer
 import org.grails.datastore.gorm.GormEntity
+import org.grails.datastore.gorm.GormStaticApi
+import org.grails.datastore.gorm.neo4j.GraphPersistentEntity
 import org.grails.datastore.gorm.neo4j.Neo4jDatastore
 import org.grails.datastore.gorm.neo4j.Neo4jSession
 import org.grails.datastore.gorm.neo4j.collection.Neo4jResultList
@@ -73,8 +75,6 @@ trait Neo4jEntity<D> implements GormEntity<D>, DynamicAttributes {
     StatementResult cypher(String queryString, Map params ) {
         Neo4jSession session = (Neo4jSession)AbstractDatastore.retrieveSession(Neo4jDatastore)
         StatementRunner boltSession = getStatementRunner(session)
-
-
         params['this'] = session.getObjectIdentifier(this)
         includeTenantIdIfNecessary(session, queryString, params)
         boltSession.run(queryString, (Map<String,Object>)params)
