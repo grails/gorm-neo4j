@@ -194,8 +194,12 @@ class SchemalessSpec extends GormDatastoreSpec {
         then:
         IteratorUtil.count(result) == 1
 
-        and: "reading dynamic rels works"
-        Pet.findByName("Cosima").buddy.name == "Lara"
+        when:
+        Pet pet = Pet.findByName("Cosima")
+
+        then: "reading dynamic rels works"
+        pet.buddy.name == "Lara"
+        !pet.hasChanged()
 
         and: "using plural named properties returns an array"
         Pet.findByName("Cosima").buddies*.name == ["Lara"]
