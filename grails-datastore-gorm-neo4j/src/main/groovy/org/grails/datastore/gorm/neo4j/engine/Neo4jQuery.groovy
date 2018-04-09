@@ -412,79 +412,89 @@ class Neo4jQuery extends Query {
              if(isRelationshipEntity) {
                  cypherBuilder.addReturnColumn(CypherBuilder.DEFAULT_REL_RETURN_STATEMENT)
              }
-             else if(persistentEntity.associations.size() > 0) {
-                 int i = 0
-                 List previousAssociations = []
-                 cypherBuilder.addReturnColumn(CypherBuilder.DEFAULT_RETURN_TYPES)
+             else {
+                 List<Association> associations = new ArrayList<>(persistentEntity.associations)
+                  Collection<PersistentEntity> childEntities = persistentEntity.mappingContext.getChildEntities(persistentEntity)
+                  if (!childEntities.empty) {
+                      for (PersistentEntity childEntity : childEntities) {
+                          associations.addAll(childEntity.associations)
+                      }
+                  }
 
-                 for(Association association in persistentEntity.associations) {
-                     if(association.isBasic()) continue
+                 if(associations.size() > 0) {
+                     int i = 0
+                     List previousAssociations = []
+                     cypherBuilder.addReturnColumn(CypherBuilder.DEFAULT_RETURN_TYPES)
 
-                     FetchType fetchType = fetchStrategy(association.name)
-                     boolean isEager = fetchType.is(fetchType.EAGER)
+                     for(Association association in associations) {
+                         if(association.isBasic()) continue
 
-                     String r = "r${i++}"
+                         FetchType fetchType = fetchStrategy(association.name)
+                         boolean isEager = fetchType.is(fetchType.EAGER)
 
-                     String associationName = association.name
-                     GraphPersistentEntity associatedGraphEntity = (GraphPersistentEntity)association.associatedEntity
-                     boolean isAssociationRelationshipEntity = associatedGraphEntity.isRelationshipEntity()
-                     boolean isToMany = association instanceof ToMany
-                     boolean isToOne = association instanceof ToOne
+                         String r = "r${i++}"
 
-                     boolean lazy  = false
-                     boolean isNullable = false
-                     if(isToOne && !isEager) {
-                         Property propertyMapping = association.mapping.mappedForm
-                         Boolean isLazy = propertyMapping.getLazy()
-                         isNullable = propertyMapping.isNullable()
-                         lazy = (isLazy != null ? isLazy : (association instanceof ManyToOne ? !association.isCircular() : true))
+                         String associationName = association.name
+                         GraphPersistentEntity associatedGraphEntity = (GraphPersistentEntity)association.associatedEntity
+                         boolean isAssociationRelationshipEntity = associatedGraphEntity.isRelationshipEntity()
+                         boolean isToMany = association instanceof ToMany
+                         boolean isToOne = association instanceof ToOne
 
-                     }
-                     else if(isToMany) {
-                         lazy = ((ToMany)association).lazy
-                     }
+                         boolean lazy  = false
+                         boolean isNullable = false
+                         if(isToOne && !isEager) {
+                             Property propertyMapping = association.mapping.mappedForm
+                             Boolean isLazy = propertyMapping.getLazy()
+                             isNullable = propertyMapping.isNullable()
+                             lazy = (isLazy != null ? isLazy : (association instanceof ManyToOne ? !association.isCircular() : true))
 
-                     // if there are associations, add a join to get them
-                     String withMatch = "WITH n, ${previousAssociations.size() > 0 ? previousAssociations.join(", ") + ", " : ""}"
-                     String associationIdsRef = "${associationName}Ids"
-                     String associationNodeRef = "${associationName}Node"
-                     String associationNodesRef = "${associationName}Nodes"
-
-                     boolean addOptionalMatch = false
-                     // If it is a one-to-many and lazy=true
-                     // Or it is a one-to-one where the association is nullable or not lazy
-                     // then just collect the identifiers and not the nodes
-                     if((isToMany && lazy) || (isToOne && !isEager && (isNullable || !lazy ) )) {
-                         withMatch += "collect(DISTINCT ${associatedGraphEntity.formatId(associationNodeRef)}) as ${associationIdsRef}"
-                         cypherBuilder.addReturnColumn(associationIdsRef)
-                         previousAssociations << associationIdsRef
-                         addOptionalMatch = true
-                     }
-                     else if(isEager) {
-                         withMatch += "collect(DISTINCT $associationNodeRef) as $associationNodesRef"
-                         cypherBuilder.addReturnColumn(associationNodesRef)
-                         if(isAssociationRelationshipEntity) {
-                             withMatch += ", collect($r) as ${associationName}Rels"
-                             cypherBuilder.addReturnColumn("${associationName}Rels")
                          }
-                         previousAssociations << associationNodesRef
-                         addOptionalMatch = true
+                         else if(isToMany) {
+                             lazy = ((ToMany)association).lazy
+                         }
+
+                         // if there are associations, add a join to get them
+                         String withMatch = "WITH n, ${previousAssociations.size() > 0 ? previousAssociations.join(", ") + ", " : ""}"
+                         String associationIdsRef = "${associationName}Ids"
+                         String associationNodeRef = "${associationName}Node"
+                         String associationNodesRef = "${associationName}Nodes"
+
+                         boolean addOptionalMatch = false
+                         // If it is a one-to-many and lazy=true
+                         // Or it is a one-to-one where the association is nullable or not lazy
+                         // then just collect the identifiers and not the nodes
+                         if((isToMany && lazy) || (isToOne && !isEager && (isNullable || !lazy ) )) {
+                             withMatch += "collect(DISTINCT ${associatedGraphEntity.formatId(associationNodeRef)}) as ${associationIdsRef}"
+                             cypherBuilder.addReturnColumn(associationIdsRef)
+                             previousAssociations << associationIdsRef
+                             addOptionalMatch = true
+                         }
+                         else if(isEager) {
+                             withMatch += "collect(DISTINCT $associationNodeRef) as $associationNodesRef"
+                             cypherBuilder.addReturnColumn(associationNodesRef)
+                             if(isAssociationRelationshipEntity) {
+                                 withMatch += ", collect($r) as ${associationName}Rels"
+                                 cypherBuilder.addReturnColumn("${associationName}Rels")
+                             }
+                             previousAssociations << associationNodesRef
+                             addOptionalMatch = true
+                         }
+
+                         if(addOptionalMatch) {
+
+                             String relationshipPattern = graphEntity
+                                     .formatAssociationPatternFromExisting(
+                                     association,
+                                     r,
+                                     CypherBuilder.NODE_VAR,
+                                     associationNodeRef
+                             )
+                             cypherBuilder.addOptionalMatch(
+                                     "$relationshipPattern $withMatch"
+                             )
+                         }
+
                      }
-
-                     if(addOptionalMatch) {
-
-                         String relationshipPattern = graphEntity
-                                                            .formatAssociationPatternFromExisting(
-                                 association,
-                                 r,
-                                 CypherBuilder.NODE_VAR,
-                                 associationNodeRef
-                         )
-                         cypherBuilder.addOptionalMatch(
-                                 "$relationshipPattern $withMatch"
-                         )
-                     }
-
                  }
              }
         }

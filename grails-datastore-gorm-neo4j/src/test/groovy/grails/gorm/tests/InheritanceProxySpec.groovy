@@ -1,0 +1,39 @@
+package grails.gorm.tests
+
+import grails.neo4j.Neo4jEntity
+import grails.persistence.Entity
+
+class InheritanceProxySpec extends GormDatastoreSpec {
+
+    @Override
+    List getDomainClasses() {
+        [Child, ChessClub, PrivateChessClub]
+    }
+
+    void "test a proxy is not created"() {
+        given:
+        new PrivateChessClub(name: "x").save()
+        session.flush()
+        session.clear()
+
+        when:
+        PrivateChessClub club = (PrivateChessClub) ChessClub.findByName("x")
+
+        then:
+        club.child == null
+    }
+}
+
+@Entity
+class ChessClub implements Neo4jEntity<ChessClub> {
+    String name
+}
+
+@Entity
+class PrivateChessClub extends ChessClub implements Neo4jEntity<PrivateChessClub> {
+    Child child
+
+    static constraints = {
+        child nullable: true
+    }
+}
