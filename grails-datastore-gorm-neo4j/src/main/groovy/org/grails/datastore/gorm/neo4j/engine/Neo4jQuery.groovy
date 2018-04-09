@@ -365,14 +365,22 @@ class Neo4jQuery extends Query {
         def projectionList = projections.projectionList
 
         if(projectionList.isEmpty()) {
-             if(persistentEntity.associations.size() > 0) {
+            List<Association> associations = new ArrayList<>(persistentEntity.associations)
+            Collection<PersistentEntity> childEntities = persistentEntity.mappingContext.getChildEntities(persistentEntity)
+            if (!childEntities.empty) {
+                for (PersistentEntity childEntity : childEntities) {
+                    associations.addAll(childEntity.associations)
+                }
+            }
+
+            if (associations.size() > 0) {
                  int i = 0;
                  List<String> rs = []
                  List<String> os = []
                  List previousAssociations = []
                  cypherBuilder.addReturnColumn(CypherBuilder.DEFAULT_RETURN_TYPES)
 
-                 for(Association a in persistentEntity.associations) {
+                 for(Association a in associations) {
                      def associationMatch = matchForAssociation(a)
                      def fetchType = fetchStrategy(a.name)
                      String r = "r${i++}";
