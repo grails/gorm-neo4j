@@ -413,13 +413,14 @@ class Neo4jQuery extends Query {
                  cypherBuilder.addReturnColumn(CypherBuilder.DEFAULT_REL_RETURN_STATEMENT)
              }
              else {
-                 List<Association> associations = new ArrayList<>(persistentEntity.associations)
-                  Collection<PersistentEntity> childEntities = persistentEntity.mappingContext.getChildEntities(persistentEntity)
-                  if (!childEntities.empty) {
-                      for (PersistentEntity childEntity : childEntities) {
-                          associations.addAll(childEntity.associations)
-                      }
-                  }
+                 Set<Association> associations = new TreeSet<Association>((Comparator<Association>){ Association a1, Association a2 -> a1.name <=> a2.name })
+                 Collection<PersistentEntity> childEntities = persistentEntity.mappingContext.getChildEntities(persistentEntity)
+                 if (!childEntities.empty) {
+                     for (PersistentEntity childEntity : childEntities) {
+                         associations.addAll(childEntity.associations)
+                     }
+                 }
+                 associations.addAll(persistentEntity.associations)
 
                  if(associations.size() > 0) {
                      int i = 0
