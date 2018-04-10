@@ -21,12 +21,18 @@ class InheritanceProxySpec extends GormDatastoreSpec {
 
         then:
         club.child == null
+        club.baseChild == null
     }
 }
 
 @Entity
 class ChessClub implements Neo4jEntity<ChessClub> {
     String name
+    Child baseChild
+
+    static constraints = {
+        baseChild nullable: true
+    }
 }
 
 @Entity
