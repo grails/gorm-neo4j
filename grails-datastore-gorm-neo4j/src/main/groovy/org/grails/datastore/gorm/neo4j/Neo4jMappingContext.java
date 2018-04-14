@@ -20,17 +20,13 @@ import org.grails.datastore.gorm.neo4j.connections.Neo4jConnectionSourceSettings
 import org.grails.datastore.gorm.neo4j.identity.SnowflakeIdGenerator;
 import org.grails.datastore.gorm.neo4j.proxy.HashcodeEqualsAwareProxyFactory;
 import org.grails.datastore.gorm.neo4j.proxy.Neo4jProxyFactory;
-import org.grails.datastore.mapping.engine.NonPersistentTypeException;
 import org.grails.datastore.mapping.model.AbstractMappingContext;
 import org.grails.datastore.mapping.model.MappingConfigurationStrategy;
 import org.grails.datastore.mapping.model.MappingFactory;
 import org.grails.datastore.mapping.model.PersistentEntity;
 import org.grails.datastore.mapping.model.config.GormMappingConfigurationStrategy;
-import org.grails.datastore.mapping.proxy.JavassistProxyFactory;
 import org.grails.datastore.mapping.proxy.ProxyFactory;
-import org.springframework.beans.BeanUtils;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.util.ClassUtils;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -45,7 +41,6 @@ import java.util.*;
  */
 public class Neo4jMappingContext extends AbstractMappingContext  {
 
-    private static final String NEO4J_PROXY_FACTORY = "org.grails.datastore.gorm.neo4j.proxy.Neo4jProxyFactory";
     private static final Class<Long> LONG_TYPE = long.class;
     private static final Class<Double> DOUBLE_TYPE = double.class;
     private static final Class<String> STRING_TYPE = String.class;
