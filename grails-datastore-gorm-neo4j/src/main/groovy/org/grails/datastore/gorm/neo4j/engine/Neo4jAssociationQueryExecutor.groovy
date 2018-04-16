@@ -23,16 +23,20 @@ import org.grails.datastore.gorm.neo4j.Neo4jSession
 import org.grails.datastore.gorm.neo4j.RelationshipPersistentEntity
 import org.grails.datastore.gorm.neo4j.RelationshipUtils
 import org.grails.datastore.gorm.neo4j.collection.Neo4jResultList
+import org.grails.datastore.mapping.config.Property
 import org.grails.datastore.mapping.engine.AssociationQueryExecutor
 import org.grails.datastore.mapping.model.PersistentEntity
 import org.grails.datastore.mapping.model.config.GormProperties
 import org.grails.datastore.mapping.model.types.Association
 import org.grails.datastore.mapping.model.types.Basic
+import org.grails.datastore.mapping.model.types.ManyToOne
 import org.grails.datastore.mapping.model.types.ToMany
 import org.grails.datastore.mapping.model.types.ToOne
 import org.neo4j.driver.v1.Session
 import org.neo4j.driver.v1.StatementResult
 import org.neo4j.driver.v1.StatementRunner
+
+import javax.persistence.FetchType
 
 
 /**
@@ -105,20 +109,113 @@ class Neo4jAssociationQueryExecutor implements AssociationQueryExecutor<Serializ
         String relationship = CypherBuilder.buildRelationship(parent.labelsAsString, relType, related.labelsAsString)
 
         StringBuilder cypher = new StringBuilder(CypherBuilder.buildRelationshipMatch(parent.labelsAsString, relType, related.labelsAsString))
-        cypher.append(parent.formatId(RelationshipPersistentEntity.FROM))
-              .append(" = {id} RETURN ")
+        cypher.append('( ')
+              .append(parent.formatId(RelationshipPersistentEntity.FROM))
+              .append(" = {id} )")
 
         boolean isLazyToMany = lazy && !isRelationship && association instanceof ToMany
         if(isLazyToMany) {
             cypher.append(related.formatId(RelationshipPersistentEntity.TO))
-                  .append(" as id")
+                  .append("RETURN as id")
         }
         else {
             if(!isRelationship) {
-                cypher.append('to as data')
+
+                StringBuilder returnString = new StringBuilder("\nRETURN to as data")
+
+                Set<Association> associations = new TreeSet<Association>((Comparator<Association>){ Association a1, Association a2 -> a1.name <=> a2.name })
+                PersistentEntity entity = association.associatedEntity
+                if (entity) {
+                    Collection<PersistentEntity> childEntities = entity.mappingContext.getChildEntities(entity)
+                    if (!childEntities.empty) {
+                        for (PersistentEntity childEntity : childEntities) {
+                            associations.addAll(childEntity.associations)
+                        }
+                    }
+                    associations.addAll(entity.associations)
+
+                    if(associations.size() > 0) {
+                        int i = 0
+                        List previousAssociations = []
+
+                        for(Association association in associations) {
+                            if(association.isBasic()) continue
+
+                            boolean isEager = association.mapping.mappedForm.isLazy()
+
+                            String r = "r${i++}"
+
+                            String associationName = association.name
+                            GraphPersistentEntity associatedGraphEntity = (GraphPersistentEntity)association.associatedEntity
+                            boolean isAssociationRelationshipEntity = associatedGraphEntity.isRelationshipEntity()
+                            boolean isToMany = association instanceof ToMany
+                            boolean isToOne = association instanceof ToOne
+
+                            boolean lazy  = false
+                            boolean isNullable = false
+                            if(isToOne && !isEager) {
+                                Property propertyMapping = association.mapping.mappedForm
+                                Boolean isLazy = propertyMapping.getLazy()
+                                isNullable = propertyMapping.isNullable()
+                                lazy = (isLazy != null ? isLazy : (association instanceof ManyToOne ? !association.isCircular() : true))
+
+                            }
+                            else if(isToMany) {
+                                lazy = ((ToMany)association).lazy
+                            }
+
+                            // if there are associations, add a join to get them
+                            String withMatch = "WITH to, ${previousAssociations.size() > 0 ? previousAssociations.join(", ") + ", " : ""}"
+                            String associationIdsRef = "${associationName}Ids"
+                            String associationNodeRef = "${associationName}Node"
+                            String associationNodesRef = "${associationName}Nodes"
+
+                            boolean addOptionalMatch = false
+                            // If it is a one-to-many and lazy=true
+                            // Or it is a one-to-one where the association is nullable or not lazy
+                            // then just collect the identifiers and not the nodes
+                            if((isToMany && lazy) || (isToOne && !isEager && (isNullable || !lazy ) )) {
+                                withMatch += "collect(DISTINCT ${associatedGraphEntity.formatId(associationNodeRef)}) as ${associationIdsRef}"
+                                returnString.append(", ").append(associationIdsRef)
+                                previousAssociations << associationIdsRef
+                                addOptionalMatch = true
+                            }
+                            else if(isEager) {
+                                withMatch += "collect(DISTINCT $associationNodeRef) as $associationNodesRef"
+                                returnString.append(", ").append(associationNodesRef)
+                                if(isAssociationRelationshipEntity) {
+                                    withMatch += ", collect($r) as ${associationName}Rels"
+                                    returnString.append(", ").append("${associationName}Rels")
+                                }
+                                previousAssociations << associationNodesRef
+                                addOptionalMatch = true
+                            }
+
+                            if(addOptionalMatch) {
+
+                                String relationshipPattern = related
+                                        .formatAssociationPatternFromExisting(
+                                        association,
+                                        r,
+                                        "to",
+                                        associationNodeRef
+                                )
+
+                                cypher.append(CypherBuilder.NEW_LINE)
+                                        .append(CypherBuilder.OPTIONAL_MATCH)
+                                        .append(relationshipPattern)
+                                        .append(" ")
+                                        .append(withMatch)
+                            }
+
+                        }
+                    }
+                }
+
+                cypher.append(returnString.toString())
             }
             else {
-                cypher.append('rel as rel')
+                cypher.append('RETURN rel as rel')
             }
         }
         cypher.append(singleResult ? 'LIMIT 1' : '')
