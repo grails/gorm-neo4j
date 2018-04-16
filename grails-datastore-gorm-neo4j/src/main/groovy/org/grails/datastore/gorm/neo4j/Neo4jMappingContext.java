@@ -19,12 +19,13 @@ import groovy.lang.Closure;
 import org.grails.datastore.gorm.neo4j.connections.Neo4jConnectionSourceSettings;
 import org.grails.datastore.gorm.neo4j.identity.SnowflakeIdGenerator;
 import org.grails.datastore.gorm.neo4j.proxy.HashcodeEqualsAwareProxyFactory;
-import org.grails.datastore.mapping.engine.NonPersistentTypeException;
+import org.grails.datastore.gorm.neo4j.proxy.Neo4jProxyFactory;
 import org.grails.datastore.mapping.model.AbstractMappingContext;
 import org.grails.datastore.mapping.model.MappingConfigurationStrategy;
 import org.grails.datastore.mapping.model.MappingFactory;
 import org.grails.datastore.mapping.model.PersistentEntity;
 import org.grails.datastore.mapping.model.config.GormMappingConfigurationStrategy;
+import org.grails.datastore.mapping.proxy.ProxyFactory;
 import org.springframework.core.convert.ConversionService;
 
 import java.math.BigDecimal;
@@ -212,4 +213,13 @@ public class Neo4jMappingContext extends AbstractMappingContext  {
             return value;
         }
     }
+
+    @Override
+    public ProxyFactory getProxyFactory() {
+        if (!(this.proxyFactory instanceof Neo4jProxyFactory)){
+            this.proxyFactory = new Neo4jProxyFactory();
+        }
+        return proxyFactory;
+    }
+
 }
