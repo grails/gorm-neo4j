@@ -4,7 +4,6 @@ import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.grails.datastore.gorm.GormEntity;
 import org.grails.datastore.gorm.neo4j.*;
 import org.grails.datastore.gorm.neo4j.collection.*;
-import org.grails.datastore.gorm.neo4j.mapping.config.DynamicToManyAssociation;
 import org.grails.datastore.gorm.neo4j.mapping.config.DynamicToOneAssociation;
 import org.grails.datastore.gorm.neo4j.mapping.reflect.Neo4jNameUtils;
 import org.grails.datastore.gorm.neo4j.util.IteratorUtil;
@@ -17,7 +16,6 @@ import org.grails.datastore.mapping.dirty.checking.DirtyCheckable;
 import org.grails.datastore.mapping.dirty.checking.DirtyCheckableCollection;
 import org.grails.datastore.mapping.engine.EntityAccess;
 import org.grails.datastore.mapping.engine.EntityPersister;
-import org.grails.datastore.mapping.engine.NonPersistentTypeException;
 import org.grails.datastore.mapping.model.MappingContext;
 import org.grails.datastore.mapping.model.PersistentEntity;
 import org.grails.datastore.mapping.model.PersistentProperty;
@@ -50,10 +48,6 @@ import static org.grails.datastore.mapping.query.Query.*;
  * @since 1.0
  */
 public class Neo4jEntityPersister extends EntityPersister {
-
-    public static final String DYNAMIC_ASSOCIATIONS_QUERY = "MATCH (m%s {"+ CypherBuilder.IDENTIFIER+":{id}})-[r]-(o) RETURN type(r) as relType, startNode(r)" +
-                                                                "=m as out, r.sourceType as sourceType, r.targetType as targetType, {ids: collect(o."+CypherBuilder.IDENTIFIER+"), labels: collect" +
-                                                                "(labels(o))} as values";
 
     public static final String RETURN_NODE_ID = " RETURN ID(n) as id";
 
@@ -341,42 +335,12 @@ public class Neo4jEntityPersister extends EntityPersister {
             log.debug( "unmarshalling entity [{}] with id [{}], props {}, {}", persistentEntity.getName(), id, node);
         }
         final Neo4jSession session = getSession();
-        GraphPersistentEntity graphPersistentEntity = (GraphPersistentEntity) persistentEntity;
         EntityAccess entityAccess = session.createEntityAccess(persistentEntity, persistentEntity.newInstance());
         entityAccess.setIdentifierNoConversion(id);
         final Object entity = entityAccess.getEntity();
         session.cacheInstance(persistentEntity.getJavaClass(), id, entity);
 
-        Map<TypeDirectionPair, Map<String, Object>> relationshipsMap = new HashMap<TypeDirectionPair, Map<String, Object>>();
-        final boolean hasDynamicAssociations = graphPersistentEntity.hasDynamicAssociations();
-        if(hasDynamicAssociations) {
-
-            final String cypher = String.format(DYNAMIC_ASSOCIATIONS_QUERY, ((GraphPersistentEntity) persistentEntity).getLabelsAsString());
-            final Map<String, Object> isMap = Collections.<String, Object>singletonMap(GormProperties.IDENTITY, id);
-
-            final StatementRunner boltSession = session.hasTransaction() ? session.getTransaction().getNativeTransaction() : session.getNativeInterface();
-
-            if(log.isDebugEnabled()) {
-                log.debug("QUERY Cypher [{}] for parameters [{}]", cypher, isMap);
-            }
-
-            final StatementResult relationships = boltSession.run(cypher, isMap);
-            while(relationships.hasNext()) {
-                final Record row = relationships.next();
-                String relType = row.get("relType").asString();
-                Boolean outGoing = row.get("out").asBoolean();
-                Map<String, Object> values = row.get("values").asMap();
-                TypeDirectionPair key = new TypeDirectionPair(relType, outGoing);
-                if(row.containsKey(RelationshipPendingInsert.TARGET_TYPE)) {
-                    key.setTargetType(
-                            row.get(RelationshipPendingInsert.TARGET_TYPE).asString()
-                    );
-                }
-                relationshipsMap.put(key, values);
-            }
-        }
-
-
+        Map<TypeDirectionPair, Map<String, Object>> relationshipsMap = new HashMap<>();
         final List<String> nodeProperties = DefaultGroovyMethods.toList(node.keys());
 
         for (PersistentProperty property: entityAccess.getPersistentEntity().getPersistentProperties()) {
@@ -402,9 +366,6 @@ public class Neo4jEntityPersister extends EntityPersister {
                     continue;
                 }
 
-                if(hasDynamicAssociations) {
-                    removeFromRelationshipMap(association, relationshipsMap);
-                }
                 final String associationNodesKey = associationName + "Nodes";
                 final String associationIdsKey = associationName + "Ids";
 
@@ -538,58 +499,6 @@ public class Neo4jEntityPersister extends EntityPersister {
         }
 
         Map<String,Object> undeclared = new LinkedHashMap<String, Object>();
-
-        // if the relationship map is not empty as this point there are dynamic relationships that need to be loaded as undeclared
-        if (!relationshipsMap.isEmpty()) {
-            for (Map.Entry<TypeDirectionPair, Map<String,Object>> entry: relationshipsMap.entrySet()) {
-
-                TypeDirectionPair key = entry.getKey();
-                if (key.isOutgoing()) {
-                    Map<String, Object> relationshipData = entry.getValue();
-                    Object idsObject = relationshipData.get("ids");
-                    Object labelsObject = relationshipData.get("labels");
-                    if((idsObject instanceof Iterable) && (labelsObject instanceof Iterable)) {
-
-                        Iterator<Serializable> idIter = ((Iterable<Serializable>) idsObject).iterator();
-                        String targetType = key.getTargetType();
-                        Iterator<Collection<String>> labelIter = ((Iterable<Collection<String>>) labelsObject).iterator();
-
-                        List values = new ArrayList();
-                        GraphPersistentEntity associatedEntity = null;
-                        while (idIter.hasNext() && labelIter.hasNext()) {
-                            Serializable targetId = idIter.next();
-                            Collection<String> nextLabels = labelIter.next();
-                            Collection<String> labels = nextLabels.isEmpty() ? Collections.singletonList(targetType) : nextLabels;
-                            Neo4jMappingContext mappingContext = (Neo4jMappingContext) getMappingContext();
-                            associatedEntity = mappingContext.findPersistentEntityForLabels(labels);
-                            if(associatedEntity == null) {
-                                associatedEntity = mappingContext.findPersistentEntityForLabels(Collections.singletonList(targetType));
-                            }
-                            if(associatedEntity == null) {
-                                throw new NonPersistentTypeException(labels.toString());
-                            }
-                            Object proxy = getMappingContext().getProxyFactory().createProxy(
-                                    this.session,
-                                    associatedEntity.getJavaClass(),
-                                    targetId
-                            );
-                            values.add(proxy);
-                        }
-                        // for single instances and singular property name do not use an array
-                        Object value;
-                        if(values.size() == 1 && isSingular(key.getType())) {
-                            value = IteratorUtil.singleOrNull(values);
-                        }
-                        else {
-                            DynamicToManyAssociation dynamicAssociation = new DynamicToManyAssociation(persistentEntity, persistentEntity.getMappingContext(), key.getType(), associatedEntity);
-                            value = new Neo4jList(entityAccess, dynamicAssociation, values, session);
-                        }
-                        undeclared.put(key.getType(), value);
-                    }
-
-                }
-            }
-        }
 
         if (!nodeProperties.isEmpty()) {
             for (String nodeProperty : nodeProperties) {

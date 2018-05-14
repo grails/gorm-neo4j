@@ -21,8 +21,6 @@ import grails.gorm.multitenancy.Tenants
 import groovy.transform.CompileStatic
 import org.grails.datastore.gorm.GormEnhancer
 import org.grails.datastore.gorm.GormEntity
-import org.grails.datastore.gorm.GormStaticApi
-import org.grails.datastore.gorm.neo4j.GraphPersistentEntity
 import org.grails.datastore.gorm.neo4j.Neo4jDatastore
 import org.grails.datastore.gorm.neo4j.Neo4jSession
 import org.grails.datastore.gorm.neo4j.collection.Neo4jResultList
@@ -35,6 +33,9 @@ import org.grails.datastore.mapping.multitenancy.MultiTenancySettings
 import org.grails.datastore.mapping.multitenancy.exceptions.TenantNotFoundException
 import org.neo4j.driver.v1.StatementResult
 import org.neo4j.driver.v1.StatementRunner
+
+import static org.grails.datastore.gorm.neo4j.engine.DynamicAssociationSupport.loadDynamicAssociations
+
 /**
  * Extends the default {@org.grails.datastore.gorm.GormEntity} trait, adding new methods specific to Neo4j
  *
@@ -52,7 +53,7 @@ trait Neo4jEntity<D> implements GormEntity<D>, DynamicAttributes {
      * @return The property value
      */
     def propertyMissing(String name) {
-        DynamicAttributes.super.getAt(name)
+        return getAttr(name)
     }
 
 
@@ -64,6 +65,26 @@ trait Neo4jEntity<D> implements GormEntity<D>, DynamicAttributes {
      */
     def propertyMissing(String name, val) {
         DynamicAttributes.super.putAt(name, val)
+    }
+
+    /**
+     * Obtains a dynamic attribute
+     *
+     * @param name The name of the attribute
+     * @return The value of the attribute
+     */
+    @Override
+    def getAt(String name) {
+        return getAttr(name)
+    }
+
+    def getAttr(String name) {
+        def val = DynamicAttributes.super.getAt(name)
+        if (val == null) {
+            loadDynamicAssociations(this)
+            val = DynamicAttributes.super.getAt(name)
+        }
+        return val
     }
 
     /**
