@@ -47,13 +47,13 @@ class DynamicAssociationSupport {
             def id = neo4jEntity.ident()
             if (id != null) {
                 staticApi.withSession { Neo4jSession session ->
-                    Object alreadyLoaded = session.getAttribute(entity, DYNAMIC_ASSOCIATION_PARAM)
+                    Object alreadyLoaded = session.getAttribute(neo4jEntity, DYNAMIC_ASSOCIATION_PARAM)
                     if (alreadyLoaded == null) {
                         Map<String, Object> dynamicAssociations = getDynamicAssociations(session, entity, id)
                         if (dynamicAssociations != null) {
                             neo4jEntity.attributes(dynamicAssociations)
                         }
-                        session.setAttribute(entity, DYNAMIC_ASSOCIATION_PARAM, Boolean.TRUE)
+                        session.setAttribute(neo4jEntity, DYNAMIC_ASSOCIATION_PARAM, Boolean.TRUE)
                     }
                 }
             }
