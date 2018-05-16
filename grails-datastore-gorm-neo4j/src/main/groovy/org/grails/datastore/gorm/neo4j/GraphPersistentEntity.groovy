@@ -1,6 +1,8 @@
 package org.grails.datastore.gorm.neo4j
 
 import groovy.transform.CompileStatic
+
+import org.grails.datastore.gorm.neo4j.engine.Neo4jEntityPersister
 import org.grails.datastore.gorm.neo4j.mapping.config.Node
 import org.grails.datastore.mapping.model.AbstractPersistentEntity
 import org.grails.datastore.mapping.model.ClassMapping
@@ -20,6 +22,10 @@ import org.springframework.util.ClassUtils
  */
 @CompileStatic
 public class GraphPersistentEntity extends AbstractPersistentEntity<Node> {
+
+    public static final String DYNAMIC_ASSOCIATIONS_QUERY = "MATCH (m%s {"+ CypherBuilder.IDENTIFIER+":{id}})-[r]->(o) RETURN type(r) as relType, startNode(r)" +
+                                                                "=m as out, r.sourceType as sourceType, r.targetType as targetType, {ids: collect(o."+CypherBuilder.IDENTIFIER+"), labels: collect" +
+                                                                "(labels(o))} as values";
 
     public static final String LABEL_SEPARATOR = ':'
     protected final Node mappedForm;
@@ -96,6 +102,14 @@ public class GraphPersistentEntity extends AbstractPersistentEntity<Node> {
      */
     IdGenerator getIdGenerator() {
         return idGenerator
+    }
+
+    /**
+     * Formats a dynamic association query
+     * @return The query which accepts an {id} argument
+     */
+    String formatDynamicAssociationQuery() {
+        return String.format(DYNAMIC_ASSOCIATIONS_QUERY, ((GraphPersistentEntity) this).getLabelsAsString())
     }
 
     /**

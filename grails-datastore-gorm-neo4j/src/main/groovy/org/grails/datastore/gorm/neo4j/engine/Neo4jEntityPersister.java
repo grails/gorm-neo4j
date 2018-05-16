@@ -51,6 +51,8 @@ public class Neo4jEntityPersister extends EntityPersister {
 
     public static final String RETURN_NODE_ID = " RETURN ID(n) as id";
 
+    public static final String DYNAMIC_ASSOCIATION_PARAM = "org.grails.neo4j.DYNAMIC_ASSOCIATIONS";
+
     private static Logger log = LoggerFactory.getLogger(Neo4jEntityPersister.class);
 
 
