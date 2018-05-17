@@ -302,6 +302,67 @@ class SchemalessSpec extends GormDatastoreSpec {
         Pet.findByName("Cosima").buddies*.name.sort() == ["Lara", "Samira"]
     }
 
+    def "same dynamic association on multiple objects"() {
+        setup:
+        def victor = new Pet(name: 'Victor')
+        def fritz = new Pet(name: 'Fritz')
+        def franz = new Pet(name: 'Franz')
+        def heinrich = new Pet(name: 'Heinrich')
+        victor.buddies = [fritz, franz, heinrich]
+        fritz.buddies = [victor, franz, heinrich]
+        franz.buddies = [victor, fritz, heinrich]
+        heinrich.buddies = [victor, fritz, franz]
+
+        victor.save()
+        session.flush()
+        session.clear()
+
+        when:
+        def victor_result = session.transaction.nativeTransaction.execute("MATCH (n:Pet {__id__:{1}})-[:buddies]->(l) return l", [victor.id])
+        def fritz_result = session.transaction.nativeTransaction.execute("MATCH (n:Pet {__id__:{1}})-[:buddies]->(l) return l", [fritz.id])
+        def franz_result = session.transaction.nativeTransaction.execute("MATCH (n:Pet {__id__:{1}})-[:buddies]->(l) return l", [franz.id])
+        def heinrich_result = session.transaction.nativeTransaction.execute("MATCH (n:Pet {__id__:{1}})-[:buddies]->(l) return l", [heinrich.id])
+
+        then:
+        IteratorUtil.count(victor_result) == 3
+        IteratorUtil.count(fritz_result) == 3
+        IteratorUtil.count(franz_result) == 3
+        IteratorUtil.count(heinrich_result) == 3
+
+        and: "reading dynamic rels works"
+        Pet.findByName("Victor").buddies*.name.sort() == ["Franz", "Fritz", "Heinrich"]
+        Pet.findByName("Fritz").buddies*.name.sort() == ["Franz", "Heinrich", "Victor"]
+        Pet.findByName("Franz").buddies*.name.sort() == ["Fritz", "Heinrich", "Victor"]
+        Pet.findByName("Heinrich").buddies*.name.sort() == ["Franz", "Fritz", "Victor"]
+    }
+
+    def "nested associated objects "() {
+        setup:
+        def victor = new Pet(name: 'Victor')
+        def fritz = new Pet(name: 'Fritz')
+        def franz = new Pet(name: 'Franz')
+
+        def heinrich = new Pet(name: 'Heinrich')
+        def otto = new Pet(name: 'Otto')
+        victor.buddies = [fritz, franz]
+        fritz.cousins = [heinrich, otto]
+
+        victor.save()
+        session.flush()
+        session.clear()
+
+        when:
+        def victor_buddies = session.transaction.nativeTransaction.execute("MATCH (n:Pet {__id__:{1}})-[:buddies]->(l) return l", [victor.id])
+        def fritz_cousins = session.transaction.nativeTransaction.execute("MATCH (n:Pet {__id__:{1}})-[:cousins]->(l) return l", [fritz.id])
+
+        then:
+        IteratorUtil.count(victor_buddies) == 2
+        IteratorUtil.count(fritz_cousins) == 2
+
+        and: "reading dynamic rels works"
+        Pet.findByName("Victor").buddies.find({it.name == "Fritz"}).cousins.name.sort() == ["Heinrich", "Otto"]
+    }
+
     def "Test update dynamic single-ended relationships"() {
         setup:
         def cosima = new Pet(name: 'Cosima')
