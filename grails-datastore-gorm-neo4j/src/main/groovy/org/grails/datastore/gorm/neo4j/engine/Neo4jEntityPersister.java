@@ -178,7 +178,7 @@ public class Neo4jEntityPersister extends EntityPersister {
                     if(previous) {
                         createCypher.append(CypherBuilder.COMMAND_SEPARATOR);
                     }
-                    session.buildEntityCreateOperation(createCypher, String.valueOf(insertIndex), pe, pendingInsert, params, cascadingOperations);
+                    session.buildEntityCreateOperation(createCypher, String.valueOf(insertIndex), entityAccess.getPersistentEntity(), pendingInsert, params, cascadingOperations);
                     if(iterator.hasNext()) {
                         previous = true;
                     }
