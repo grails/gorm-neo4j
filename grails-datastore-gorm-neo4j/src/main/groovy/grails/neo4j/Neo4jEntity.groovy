@@ -26,6 +26,7 @@ import org.grails.datastore.gorm.neo4j.GraphPersistentEntity
 import org.grails.datastore.gorm.neo4j.Neo4jDatastore
 import org.grails.datastore.gorm.neo4j.Neo4jSession
 import org.grails.datastore.gorm.neo4j.collection.Neo4jResultList
+import org.grails.datastore.gorm.neo4j.engine.DynamicAssociationSupport
 import org.grails.datastore.gorm.neo4j.engine.Neo4jEntityPersister
 import org.grails.datastore.gorm.neo4j.extensions.Neo4jExtensions
 import org.grails.datastore.gorm.schemaless.DynamicAttributes
@@ -52,7 +53,7 @@ trait Neo4jEntity<D> implements GormEntity<D>, DynamicAttributes {
      * @return The property value
      */
     def propertyMissing(String name) {
-        DynamicAttributes.super.getAt(name)
+        return getAtt(name)
     }
 
 
@@ -64,6 +65,36 @@ trait Neo4jEntity<D> implements GormEntity<D>, DynamicAttributes {
      */
     def propertyMissing(String name, val) {
         DynamicAttributes.super.putAt(name, val)
+    }
+
+
+    /**
+     * Obtains a dynamic attribute
+     *
+     * @param name The name of the attribute
+     * @return The value of the attribute
+     */
+    @Override
+    def getAt(String name) {
+        return getAtt(name)
+    }
+
+    def getAtt(String name) {
+        def val = DynamicAttributes.super.getAt(name)
+        if(val == null) {
+            GormStaticApi staticApi = GormEnhancer.findStaticApi(getClass())
+            GraphPersistentEntity entity = (GraphPersistentEntity) staticApi.gormPersistentEntity
+            if(entity.hasDynamicAssociations()) {
+                def id = ident()
+                if(id != null) {
+                    staticApi.withSession { Neo4jSession session ->
+                        DynamicAssociationSupport.loadDynamicAssociations(session, entity, this, id)
+                    }
+                    return DynamicAttributes.super.getAt(name)
+                }
+            }
+        }
+        return val
     }
 
     /**
