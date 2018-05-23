@@ -64,6 +64,7 @@ trait Neo4jEntity<D> implements GormEntity<D>, DynamicAttributes {
      * @param val The value
      */
     def propertyMissing(String name, val) {
+        loadDynamicAssociations()
         DynamicAttributes.super.putAt(name, val)
     }
 
@@ -81,20 +82,26 @@ trait Neo4jEntity<D> implements GormEntity<D>, DynamicAttributes {
 
     def getAtt(String name) {
         def val = DynamicAttributes.super.getAt(name)
-        if(val == null) {
-            GormStaticApi staticApi = GormEnhancer.findStaticApi(getClass())
-            GraphPersistentEntity entity = (GraphPersistentEntity) staticApi.gormPersistentEntity
-            if(entity.hasDynamicAssociations()) {
-                def id = ident()
-                if(id != null) {
+        if (val == null) {
+            loadDynamicAssociations()
+            return DynamicAttributes.super.getAt(name)
+        }
+        return val
+    }
+
+    def private loadDynamicAssociations() {
+        GormStaticApi staticApi = GormEnhancer.findStaticApi(getClass())
+        if (staticApi.gormPersistentEntity instanceof GraphPersistentEntity) {
+            if (staticApi.gormPersistentEntity instanceof GraphPersistentEntity) {
+                GraphPersistentEntity entity = (GraphPersistentEntity) staticApi.gormPersistentEntity
+                if (entity.hasDynamicAssociations()) {
+                    def id = ident()
                     staticApi.withSession { Neo4jSession session ->
                         DynamicAssociationSupport.loadDynamicAssociations(session, entity, this, id)
                     }
-                    return DynamicAttributes.super.getAt(name)
                 }
             }
         }
-        return val
     }
 
     /**
