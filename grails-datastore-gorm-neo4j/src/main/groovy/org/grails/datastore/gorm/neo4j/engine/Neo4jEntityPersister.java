@@ -19,6 +19,7 @@ import org.grails.datastore.mapping.engine.EntityPersister;
 import org.grails.datastore.mapping.model.MappingContext;
 import org.grails.datastore.mapping.model.PersistentEntity;
 import org.grails.datastore.mapping.model.PersistentProperty;
+import org.grails.datastore.mapping.model.config.GormMappingConfigurationStrategy;
 import org.grails.datastore.mapping.model.config.GormProperties;
 import org.grails.datastore.mapping.model.types.*;
 import org.grails.datastore.mapping.proxy.EntityProxy;
@@ -120,6 +121,7 @@ public class Neo4jEntityPersister extends EntityPersister {
                 }
 
                 final EntityAccess entityAccess = createEntityAccess(pe, obj);
+                GraphPersistentEntity persistentEntity = (GraphPersistentEntity) entityAccess.getPersistentEntity();
                 if (getMappingContext().getProxyFactory().isProxy(obj)) {
                     idList.add(((EntityProxy) obj).getProxyKey());
                     continue;
@@ -131,11 +133,11 @@ public class Neo4jEntityPersister extends EntityPersister {
                 boolean isUpdate = identifier != null;
                 if (isUpdate) {
 
-                    registerPendingUpdate(session, pe, entityAccess, obj, identifier);
+                    registerPendingUpdate(session, persistentEntity, entityAccess, obj, identifier);
                     idList.add(identifier);
                 }
                 else {
-                    final PendingInsertAdapter<Object, Serializable> pendingInsert = new PendingInsertAdapter<Object, Serializable>(pe, identifier, obj, entityAccess) {
+                    final PendingInsertAdapter<Object, Serializable> pendingInsert = new PendingInsertAdapter<Object, Serializable>(persistentEntity, identifier, obj, entityAccess) {
                         @Override
                         public void run() {
                             if (cancelInsert(pe, entityAccess)) {
@@ -148,7 +150,7 @@ public class Neo4jEntityPersister extends EntityPersister {
                             return (Serializable) entityAccess.getIdentifier();
                         }
                     };
-                    pendingInsert.addCascadeOperation(new PendingOperationAdapter<Object, Serializable>(pe, identifier, obj) {
+                    pendingInsert.addCascadeOperation(new PendingOperationAdapter<Object, Serializable>(persistentEntity, identifier, obj) {
                         @Override
                         public void run() {
                             firePostInsertEvent(pe, entityAccess);
@@ -178,7 +180,7 @@ public class Neo4jEntityPersister extends EntityPersister {
                     if(previous) {
                         createCypher.append(CypherBuilder.COMMAND_SEPARATOR);
                     }
-                    session.buildEntityCreateOperation(createCypher, String.valueOf(insertIndex), entityAccess.getPersistentEntity(), pendingInsert, params, cascadingOperations);
+                    session.buildEntityCreateOperation(createCypher, String.valueOf(insertIndex), persistentEntity, pendingInsert, params, cascadingOperations);
                     if(iterator.hasNext()) {
                         previous = true;
                     }
@@ -224,8 +226,10 @@ public class Neo4jEntityPersister extends EntityPersister {
             }
         }
         else {
+
             for (Object obj : objs) {
-                Serializable id = persistEntity(pe, obj);
+                final EntityAccess entityAccess = createEntityAccess(pe, obj);
+                Serializable id = persistEntity(entityAccess.getPersistentEntity(), obj);
                 if(id != null) {
                     idList.add(id);
                 }
@@ -684,7 +688,7 @@ public class Neo4jEntityPersister extends EntityPersister {
 
         // cancel operation if vetoed
         boolean isUpdate = identifier != null && !isInsert;
-        GraphPersistentEntity graphPersistentEntity = (GraphPersistentEntity)entity;
+        GraphPersistentEntity graphPersistentEntity = (GraphPersistentEntity) entity;
         boolean assignedId = graphPersistentEntity.isAssignedId();
         if(assignedId && !session.contains(obj)) {
             isUpdate = false;
@@ -726,7 +730,8 @@ public class Neo4jEntityPersister extends EntityPersister {
                 }
             });
 
-            if(isNativeId && !graphPersistentEntity.isRelationshipEntity()) {
+            PersistentEntity parentEntity = entity.getParentEntity();
+            if((isNativeId || (parentEntity != null && !GormMappingConfigurationStrategy.isAbstract(parentEntity))) && !graphPersistentEntity.isRelationshipEntity()) {
                 // if we have a native identifier then we have to perform an insert to obtain the id
                 final List<PendingOperation<Object, Serializable>> preOperations = pendingInsert.getPreOperations();
                 for (PendingOperation preOperation : preOperations) {
