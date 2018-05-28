@@ -26,7 +26,6 @@ import org.grails.datastore.gorm.neo4j.GraphPersistentEntity
 import org.grails.datastore.gorm.neo4j.Neo4jDatastore
 import org.grails.datastore.gorm.neo4j.Neo4jSession
 import org.grails.datastore.gorm.neo4j.collection.Neo4jResultList
-import org.grails.datastore.gorm.neo4j.engine.DynamicAssociationSupport
 import org.grails.datastore.gorm.neo4j.engine.Neo4jEntityPersister
 import org.grails.datastore.gorm.neo4j.extensions.Neo4jExtensions
 import org.grails.datastore.gorm.schemaless.DynamicAttributes
@@ -36,6 +35,10 @@ import org.grails.datastore.mapping.multitenancy.MultiTenancySettings
 import org.grails.datastore.mapping.multitenancy.exceptions.TenantNotFoundException
 import org.neo4j.driver.v1.StatementResult
 import org.neo4j.driver.v1.StatementRunner
+
+import static org.grails.datastore.gorm.neo4j.engine.DynamicAssociationSupport.areDynamicAssociationsLoaded
+import static org.grails.datastore.gorm.neo4j.engine.DynamicAssociationSupport.loadDynamicAssociations
+
 /**
  * Extends the default {@org.grails.datastore.gorm.GormEntity} trait, adding new methods specific to Neo4j
  *
@@ -64,10 +67,19 @@ trait Neo4jEntity<D> implements GormEntity<D>, DynamicAttributes {
      * @param val The value
      */
     def propertyMissing(String name, val) {
-        loadDynamicAssociations()
+        GormStaticApi staticApi = GormEnhancer.findStaticApi(getClass())
+        if (staticApi.gormPersistentEntity instanceof GraphPersistentEntity) {
+            GraphPersistentEntity entity = (GraphPersistentEntity) staticApi.gormPersistentEntity
+            if (entity.hasDynamicAssociations()) {
+                staticApi.withSession { Neo4jSession session ->
+                    if ( !areDynamicAssociationsLoaded(session, this) ) {
+                        loadDynamicAssociations(session, entity, this, ident())
+                    }
+                }
+            }
+        }
         DynamicAttributes.super.putAt(name, val)
     }
-
 
     /**
      * Obtains a dynamic attribute
@@ -83,25 +95,20 @@ trait Neo4jEntity<D> implements GormEntity<D>, DynamicAttributes {
     def getAtt(String name) {
         def val = DynamicAttributes.super.getAt(name)
         if (val == null) {
-            loadDynamicAssociations()
-            return DynamicAttributes.super.getAt(name)
-        }
-        return val
-    }
-
-    def private loadDynamicAssociations() {
-        GormStaticApi staticApi = GormEnhancer.findStaticApi(getClass())
-        if (staticApi.gormPersistentEntity instanceof GraphPersistentEntity) {
+            GormStaticApi staticApi = GormEnhancer.findStaticApi(getClass())
             if (staticApi.gormPersistentEntity instanceof GraphPersistentEntity) {
                 GraphPersistentEntity entity = (GraphPersistentEntity) staticApi.gormPersistentEntity
                 if (entity.hasDynamicAssociations()) {
-                    def id = ident()
                     staticApi.withSession { Neo4jSession session ->
-                        DynamicAssociationSupport.loadDynamicAssociations(session, entity, this, id)
+                        if ( !areDynamicAssociationsLoaded(session, this) ) {
+                            loadDynamicAssociations(session, entity, this, ident())
+                        }
                     }
                 }
             }
+            return DynamicAttributes.super.getAt(name)
         }
+        return val
     }
 
     /**

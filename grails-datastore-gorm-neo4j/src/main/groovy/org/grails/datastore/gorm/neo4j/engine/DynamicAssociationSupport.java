@@ -37,6 +37,10 @@ public class DynamicAssociationSupport {
 
     private static final Logger log = LoggerFactory.getLogger(DynamicAssociationSupport.class);
 
+    public static boolean areDynamicAssociationsLoaded(Neo4jSession session, DynamicAttributes object) {
+        return session.getAttribute(object, Neo4jEntityPersister.DYNAMIC_ASSOCIATION_PARAM) != null;
+    }
+
     public static Map<TypeDirectionPair, Map<String, Object>> loadDynamicAssociations(Neo4jSession session, GraphPersistentEntity graphPersistentEntity, DynamicAttributes object,  Serializable id) {
         Map<TypeDirectionPair, Map<String, Object>> relationshipsMap = new HashMap<>();
 
@@ -46,6 +50,7 @@ public class DynamicAssociationSupport {
             session.setAttribute(object, Neo4jEntityPersister.DYNAMIC_ASSOCIATION_PARAM, Boolean.TRUE);
 
             if (id == null) {
+                // at this point we have the object flagged as having dynamic associations loaded but as we don't have anything to load we just exit
                 return relationshipsMap;
             }
             final String cypher = graphPersistentEntity.formatDynamicAssociationQuery();
