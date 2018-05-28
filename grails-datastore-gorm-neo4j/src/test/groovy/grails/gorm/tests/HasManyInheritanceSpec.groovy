@@ -78,6 +78,7 @@ class HasManyInheritanceSpec extends Specification {
 
         then: "the television class is correct"
         television.class == SmartTelevision
+        ShoppingCentre.findByName("Reliance World").televisions.size() == 3
     }
 
 }
