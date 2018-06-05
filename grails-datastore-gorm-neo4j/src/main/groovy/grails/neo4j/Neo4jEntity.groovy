@@ -36,7 +36,6 @@ import org.grails.datastore.mapping.multitenancy.exceptions.TenantNotFoundExcept
 import org.neo4j.driver.v1.StatementResult
 import org.neo4j.driver.v1.StatementRunner
 
-import static org.grails.datastore.gorm.neo4j.engine.DynamicAssociationSupport.areDynamicAssociationsLoaded
 import static org.grails.datastore.gorm.neo4j.engine.DynamicAssociationSupport.loadDynamicAssociations
 
 /**
@@ -72,9 +71,7 @@ trait Neo4jEntity<D> implements GormEntity<D>, DynamicAttributes {
             GraphPersistentEntity entity = (GraphPersistentEntity) staticApi.gormPersistentEntity
             if (entity.hasDynamicAssociations()) {
                 staticApi.withSession { Neo4jSession session ->
-                    if ( !areDynamicAssociationsLoaded(session, this) ) {
-                        loadDynamicAssociations(session, entity, this, ident())
-                    }
+                    loadDynamicAssociations(session, entity, this, ident())
                 }
             }
         }
@@ -100,9 +97,7 @@ trait Neo4jEntity<D> implements GormEntity<D>, DynamicAttributes {
                 GraphPersistentEntity entity = (GraphPersistentEntity) staticApi.gormPersistentEntity
                 if (entity.hasDynamicAssociations()) {
                     staticApi.withSession { Neo4jSession session ->
-                        if ( !areDynamicAssociationsLoaded(session, this) ) {
-                            loadDynamicAssociations(session, entity, this, ident())
-                        }
+                        loadDynamicAssociations(session, entity, this, ident())
                     }
                 }
             }
