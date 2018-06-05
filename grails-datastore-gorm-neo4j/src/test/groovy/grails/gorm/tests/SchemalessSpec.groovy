@@ -397,6 +397,40 @@ class SchemalessSpec extends GormDatastoreSpec {
         Pet.findByName("Cosima").friends*.name.sort() == ["Bob","Lara"]
     }
 
+    def "Test update newly created object"() {
+        setup:
+        def victor = new Pet(name: 'Victor')
+        def fritz = new Pet(name: 'Fritz')
+        def franz = new Pet(name: 'Franz')
+        def heinrich = new Pet(name: 'Heinrich')
+        victor.buddies = [fritz, franz]
+
+        when:
+        victor.save()
+        heinrich.save()
+        session.flush()
+
+        then:
+        victor.buddies.name.sort() == ['Franz', 'Fritz']
+
+        when: "Adding an element"
+        victor.buddies.add(heinrich)
+        def cousin = victor.cousin
+
+        then:
+        victor.buddies.name.sort() == ['Franz', 'Fritz', 'Heinrich']
+
+        when:
+        victor.markDirty("buddies")
+        victor.save()
+        session.flush()
+        victor.discard()
+        victor = Pet.findByName("Victor")
+
+        then:
+        victor.buddies.name.sort() == ['Franz', 'Fritz', 'Heinrich']
+    }
+
 }
 
 

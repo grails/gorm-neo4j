@@ -1,5 +1,18 @@
 package org.grails.datastore.gorm.neo4j.engine;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import org.neo4j.driver.v1.Record;
+import org.neo4j.driver.v1.StatementResult;
+import org.neo4j.driver.v1.StatementRunner;
+
 import org.grails.datastore.gorm.neo4j.GraphPersistentEntity;
 import org.grails.datastore.gorm.neo4j.Neo4jMappingContext;
 import org.grails.datastore.gorm.neo4j.Neo4jSession;
@@ -11,14 +24,8 @@ import org.grails.datastore.gorm.neo4j.util.IteratorUtil;
 import org.grails.datastore.gorm.schemaless.DynamicAttributes;
 import org.grails.datastore.mapping.engine.EntityAccess;
 import org.grails.datastore.mapping.model.config.GormProperties;
-import org.neo4j.driver.v1.Record;
-import org.neo4j.driver.v1.StatementResult;
-import org.neo4j.driver.v1.StatementRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.Serializable;
-import java.util.*;
 
 /**
  * Support class for dynamic associations
@@ -38,6 +45,10 @@ public class DynamicAssociationSupport {
         if(alreadyLoaded == null && hasDynamicAssociations) {
             session.setAttribute(object, Neo4jEntityPersister.DYNAMIC_ASSOCIATION_PARAM, Boolean.TRUE);
 
+            if (id == null) {
+                // at this point we have the object flagged as having dynamic associations loaded but as we don't have anything to load we just exit
+                return relationshipsMap;
+            }
             final String cypher = graphPersistentEntity.formatDynamicAssociationQuery();
             final Map<String, Object> isMap = Collections.<String, Object>singletonMap(GormProperties.IDENTITY, id);
             final StatementRunner boltSession = session.hasTransaction() ? session.getTransaction().getNativeTransaction() : session.getNativeInterface();
