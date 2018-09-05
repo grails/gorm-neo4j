@@ -6,6 +6,7 @@ import org.neo4j.harness.ServerControls;
 import org.neo4j.harness.TestServerBuilder;
 import org.neo4j.harness.TestServerBuilders;
 import org.neo4j.kernel.configuration.BoltConnector;
+import org.neo4j.kernel.configuration.Connector;
 import org.neo4j.server.ServerStartupException;
 
 import java.io.File;
@@ -15,8 +16,8 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.Map;
 
-import static org.neo4j.graphdb.factory.GraphDatabaseSettings.BoltConnector.EncryptionLevel.DISABLED;
-import static org.neo4j.dbms.DatabaseManagementSystemSettings.data_directory;
+import static org.neo4j.kernel.configuration.BoltConnector.EncryptionLevel.DISABLED;
+import static org.neo4j.graphdb.factory.GraphDatabaseSettings.data_directory;
 
 /**
  * Helper class for starting a Neo4j 3.x embedded server
@@ -161,7 +162,7 @@ public class EmbeddedNeo4jServer {
 
         TestServerBuilder serverBuilder = TestServerBuilders.newInProcessBuilder()
                 .withConfig(new BoltConnector("0").enabled, "true")
-                .withConfig(new BoltConnector("0").type, GraphDatabaseSettings.Connector.ConnectorType.BOLT.name())
+                .withConfig(new BoltConnector("0").type, Connector.ConnectorType.BOLT.name())
                 .withConfig(new BoltConnector("0").encryption_level, DISABLED.name())
                 .withConfig(new BoltConnector("0").listen_address, myBoltAddress);
         if(dataLocation != null) {
