@@ -261,6 +261,15 @@ class MiscSpec extends GormDatastoreSpec {
 
         then:
         club.version == 0
+
+        when:
+        club = Club.findByName('club')
+        club.save()
+        session.flush()
+        session.clear()
+
+        then: //non timestamped domains won't increment the version because no properties are dirty
+        Club.findByName('club').version == 0
     }
 
     @Ignore("temporaritly removed since this seems to had side effect")
@@ -455,16 +464,18 @@ class MiscSpec extends GormDatastoreSpec {
         ts.dateCreated != null
         ts.lastUpdated != null
         ts.dateCreated == ts.lastUpdated
+        ts.version == 0
 
-        when:
-        ts.name = "test changed"
+        when: //domains with timestamps will persist the last updated
+              //even if nothing is dirty
         ts.save()
         session.flush()
         session.clear()
-        def newTs = Timestamped.findByName("test changed")
+        def newTs = Timestamped.findByName("test")
 
         then:
         newTs.lastUpdated > newTs.dateCreated
+        newTs.version == 1
     }
 }
 
