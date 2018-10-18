@@ -45,6 +45,8 @@ class NodeConfig extends Entity<Attribute> {
      */
     boolean dynamicAssociations
 
+    Boolean autoLabel
+
     @Override
     protected Attribute newProperty() {
         return new Attribute()

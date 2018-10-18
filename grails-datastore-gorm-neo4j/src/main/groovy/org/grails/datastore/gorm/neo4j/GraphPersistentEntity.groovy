@@ -603,9 +603,12 @@ DELETE r"""
     private void appendRecursive(StringBuilder sb, domainInstance){
         sb.append(getLabelsAsString(domainInstance))
 
-        def parentEntity = getParentEntity()
+        GraphPersistentEntity parentEntity = (GraphPersistentEntity) getParentEntity()
         if (parentEntity != null) {
-            ((GraphPersistentEntity) parentEntity).appendRecursive(sb, domainInstance)
+            Boolean label = parentEntity.mapping?.mappedForm?.autoLabel
+            if (label || (label == null && !GormMappingConfigurationStrategy.isAbstract(parentEntity))) {
+                parentEntity.appendRecursive(sb, domainInstance)
+            }
         }
     }
 

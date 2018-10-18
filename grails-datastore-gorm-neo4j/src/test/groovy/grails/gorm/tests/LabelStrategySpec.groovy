@@ -18,7 +18,7 @@ class LabelStrategySpec extends GormDatastoreSpec {
 
     @Override
     List getDomainClasses() {
-        [FinalSubClass, ParentClass, ClassInTheMiddle, SubClass, Default, StaticLabel, StaticLabels, DynLabel, MixedLabels, InstanceDependentLabels]
+        [FinalSubClass, ParentClass, ClassInTheMiddle, SubClass, Default, StaticLabel, StaticLabels, DynLabel, MixedLabels, InstanceDependentLabels, LabeledAbstract, LabeledSub]
     }
 
     Transaction tx
@@ -166,6 +166,15 @@ class LabelStrategySpec extends GormDatastoreSpec {
         verifyLabelsForId(finalSubclassInstance.id, ['FinalSubClass', 'SubClass'])
     }
 
+    @Issue('https://github.com/grails/gorm-neo4j/issues/98')
+    void 'test abstract classes can contribute to labels'() {
+        when:
+        def subclassInstance = new LabeledSub(name: 'parent name', profession: 'foo').save(flush: true)
+
+        then:
+        verifyLabelsForId(subclassInstance.id, ['LabeledSub', 'LabeledAbstract'])
+    }
+
     private def verifyLabelsForId(id, labelz) {
         def cypherResult = session.transaction.nativeTransaction.run("MATCH (n ) WHERE ID(n) = {1} return labels(n) as labels", ["1":id])
 
@@ -275,4 +284,22 @@ class InstanceDependentLabels implements Neo4jEntity<InstanceDependentLabels>{
             "`${instance.profession}`"
         }
     }
+}
+
+@DirtyCheck
+@Entity
+abstract class LabeledAbstract implements Neo4jEntity<LabeledAbstract>{
+    Long id
+    Long version
+    String name
+
+    static mapping = {
+        autoLabel true
+    }
+}
+
+@DirtyCheck
+@Entity
+class LabeledSub extends LabeledAbstract implements Neo4jEntity<LabeledSub>{
+    String profession
 }
