@@ -601,11 +601,11 @@ DELETE r"""
     }
 
     private void appendRecursive(StringBuilder sb, domainInstance){
-        sb.append(getLabelsAsString(domainInstance));
+        sb.append(getLabelsAsString(domainInstance))
 
         def parentEntity = getParentEntity()
-        if (parentEntity !=null && !GormMappingConfigurationStrategy.isAbstract(parentEntity)) {
-            ((GraphPersistentEntity) parentEntity).appendRecursive(sb, domainInstance);
+        if (parentEntity != null) {
+            ((GraphPersistentEntity) parentEntity).appendRecursive(sb, domainInstance)
         }
     }
 
