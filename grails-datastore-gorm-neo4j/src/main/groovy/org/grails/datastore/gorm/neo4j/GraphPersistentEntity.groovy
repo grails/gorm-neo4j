@@ -8,6 +8,7 @@ import org.grails.datastore.mapping.model.ClassMapping
 import org.grails.datastore.mapping.model.DatastoreConfigurationException
 import org.grails.datastore.mapping.model.MappingContext
 import org.grails.datastore.mapping.model.MappingFactory
+import org.grails.datastore.mapping.model.PersistentEntity
 import org.grails.datastore.mapping.model.PersistentProperty
 import org.grails.datastore.mapping.model.config.GormMappingConfigurationStrategy
 import org.grails.datastore.mapping.model.config.GormProperties
@@ -330,7 +331,7 @@ class GraphPersistentEntity extends AbstractPersistentEntity<NodeConfig> {
      */
     String formatBatchCreate(String batchId) {
         """UNWIND ${batchId} as row
-CREATE ($variableId$labelsAsString)
+CREATE ($variableId$labelsAsStringWithInheritance)
 SET $variableId += row.${CypherBuilder.PROPS}
 """
     }
@@ -346,7 +347,7 @@ SET $variableId += row.${CypherBuilder.PROPS}
         String batchId = association.name
         String variableId = association.isCircular() ? 'child' : variableId
         """FOREACH (${batchId} IN row.${batchId} |
-CREATE ($variableId$labelsAsString)
+CREATE ($variableId$labelsAsStringWithInheritance)
 SET $variableId += ${batchId}.${CypherBuilder.PROPS}
 ${formatAssociationMerge(association, parentVariable, variableId)})"""
     }
@@ -535,6 +536,21 @@ DELETE r"""
         else {
             return getLabelsAsString()
         }
+    }
+
+    /**
+     * @return Return only the statically defined labels as a string usable by cypher, concatenated by ":"
+     */
+    String getLabelsAsStringWithInheritance() {
+        List<String> staticLabels = new ArrayList(this.staticLabels)
+        PersistentEntity parent = this.parentEntity
+        while (parent != null) {
+            if (parent instanceof GraphPersistentEntity) {
+                staticLabels.addAll(((GraphPersistentEntity) parent).labels)
+            }
+            parent = parent.parentEntity
+        }
+        return ":${staticLabels.join(LABEL_SEPARATOR)}"
     }
 
     /**

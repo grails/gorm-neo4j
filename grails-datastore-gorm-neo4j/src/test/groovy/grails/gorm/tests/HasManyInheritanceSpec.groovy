@@ -34,8 +34,7 @@ class HasManyInheritanceSpec extends Specification {
                 "grails.neo4j.options.encryptionLevel": "NONE",
                 (Settings.SETTING_NEO4J_URL)          : "bolt://localhost:7687",
                 (Settings.SETTING_NEO4J_TYPE)         : "embedded",
-                (Settings.SETTING_NEO4J_LOCATION)     : tempDir,
-                (Settings.SETTING_DEFAULT_MAPPING)    : { id generator: 'org.grails.datastore.gorm.neo4j.identity.SnowflakeIdGenerator' }
+                (Settings.SETTING_NEO4J_LOCATION)     : tempDir
         ]
         this.neo4jDatastore = new Neo4jDatastore(config, getDomainClasses() as Class[])
     }
@@ -55,7 +54,7 @@ class HasManyInheritanceSpec extends Specification {
     }
 
     List getDomainClasses() {
-        return [ShoppingCentre, Television, SmartTelevision, BasicTelevision]
+        return [ShoppingCentre, MallShoppingCentre, Television, SmartTelevision, BasicTelevision]
     }
 
     void "test canary"() { expect: true }
@@ -81,6 +80,39 @@ class HasManyInheritanceSpec extends Specification {
         ShoppingCentre.findByName("Reliance World").televisions.size() == 3
     }
 
+    void "Test inheritance hasMany with inheritance should return appropriate class while using custom id generator"() {
+
+        given: "a shopping centre with a smart television"
+        SmartTelevision sonySmartTelevision = new SmartTelevision(name: "Sony Android TV", model: "2018", companyName: "Sony")
+        SmartTelevision lgSmartTelevision = new SmartTelevision(name: "LG Smart TV", model: "2015", companyName: "LG")
+        BasicTelevision basicTelevision = new BasicTelevision(name: "Basic TV", model: "1991", companyName: "BPL")
+
+        MallShoppingCentre shoppingCentre = new MallShoppingCentre(name: "Reliance World")
+        shoppingCentre.addToTelevisions(sonySmartTelevision)
+        shoppingCentre.addToTelevisions(lgSmartTelevision)
+        shoppingCentre.addToTelevisions(basicTelevision)
+        shoppingCentre.save(flush: true)
+
+        when: "get the television from the database"
+        Television television = Television.findByName("Sony Android TV")
+
+        then: "the television class is correct"
+        television.class == SmartTelevision
+        ShoppingCentre.findByName("Reliance World") != null
+    }
+
+    void "Test saving a television directly"() {
+        given:
+        new SmartTelevision(name: "Sony Android TV", model: "2018", companyName: "Sony").save(flush: true)
+
+        when:
+        Television television = Television.findByName("Sony Android TV")
+
+        then:
+        television != null
+        television.class == SmartTelevision
+    }
+
 }
 
 @Entity
@@ -91,9 +123,14 @@ class ShoppingCentre implements Neo4jEntity<ShoppingCentre> {
 
     static mapping = node {
         id {
-            generator: "snowflake"
+            generator "snowflake"
         }
     }
+}
+
+@Entity
+class MallShoppingCentre extends ShoppingCentre implements Neo4jEntity<MallShoppingCentre> {
+
 }
 
 @Entity
@@ -102,6 +139,12 @@ class Television implements Neo4jEntity<Television> {
     String name
     String model
     String companyName
+
+    static mapping = node {
+        id {
+            generator "snowflake"
+        }
+    }
 }
 
 @Entity

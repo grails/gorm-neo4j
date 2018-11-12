@@ -730,8 +730,7 @@ public class Neo4jEntityPersister extends EntityPersister {
                 }
             });
 
-            PersistentEntity parentEntity = entity.getParentEntity();
-            if((isNativeId || (parentEntity != null && !GormMappingConfigurationStrategy.isAbstract(parentEntity))) && !graphPersistentEntity.isRelationshipEntity()) {
+            if(isNativeId && !graphPersistentEntity.isRelationshipEntity()) {
                 // if we have a native identifier then we have to perform an insert to obtain the id
                 final List<PendingOperation<Object, Serializable>> preOperations = pendingInsert.getPreOperations();
                 for (PendingOperation preOperation : preOperations) {
