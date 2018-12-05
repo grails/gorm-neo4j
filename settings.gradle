@@ -9,10 +9,17 @@ include 'grails-plugin'
 include 'docs'
 
 // examples
-include 'examples/grails3-neo4j'
-include 'examples/grails3-neo4j-hibernate'
-include 'examples/neo4j-standalone'
-include 'examples/neo4j-spring-boot'
+include 'examples-grails3-neo4j'
+project(":examples-grails3-neo4j").projectDir = new File(settingsDir, "examples/grails3-neo4j")
+
+include 'examples-grails3-neo4j-hibernate'
+project(":examples-grails3-neo4j-hibernate").projectDir = new File(settingsDir, "examples/grails3-neo4j-hibernate")
+
+include 'examples-neo4j-standalone'
+project(":examples-neo4j-standalone").projectDir = new File(settingsDir, "examples/neo4j-standalone")
+
+include 'examples-neo4j-spring-boot'
+project(":examples-neo4j-spring-boot").projectDir = new File(settingsDir, "examples/neo4j-spring-boot")
 
 findProject(':boot-plugin').name = 'gorm-neo4j-spring-boot'
 
