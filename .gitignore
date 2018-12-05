@@ -6,6 +6,7 @@ boot-plugin/data/
 target/
 examples/*/data
 *.zip
+*.iml
 grails-datastore-gorm-neo4j/data/
 grails2-plugin/plugins/
 grails2-plugin/plugin.xml
