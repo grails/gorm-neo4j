@@ -31,11 +31,7 @@ ext {
 
     nexusUsername = System.getenv("SONATYPE_USERNAME") ?: project.hasProperty("sonatypeOssUsername") ? project.sonatypeOssUsername : ''
     nexusPassword = System.getenv("SONATYPE_PASSWORD") ?: project.hasProperty("sonatypeOssPassword") ? project.sonatypeOssPassword : ''
-
 }
-
-
-
 
 subprojects { project ->
 
@@ -92,7 +88,6 @@ subprojects { project ->
                 delegate.developerConnection projectInfo.projectVcsUrl
             }
 
-
             delegate.developers {
                 delegate.developer {
                     delegate.id 'graemerocher'
@@ -107,7 +102,6 @@ subprojects { project ->
                     delegate.name 'Burt Beckwith'
                 }
             }
-
         }         
     }
        
@@ -122,7 +116,6 @@ subprojects { project ->
 
     configurations {
         documentation
-
         all {
             resolutionStrategy {
                 cacheDynamicVersionsFor 0, 'hours'
@@ -153,8 +146,6 @@ subprojects { project ->
                 delegate.project pomInfo
             }
         }
-
-
     }
 
     if(!isExample) {
@@ -165,7 +156,6 @@ subprojects { project ->
             apply plugin: 'com.jfrog.bintray'
         }
         apply plugin: "io.github.groovylang.groovydoc"
-
 
         sourceCompatibility = "1.8"
         targetCompatibility = "1.8"
@@ -206,9 +196,7 @@ subprojects { project ->
                         else {
                             url  "https://repo.grails.org/grails/libs-releases-local"
                         }
-
                     }
-
                 }
             }
 
@@ -237,13 +225,11 @@ subprojects { project ->
                         xml.children().last() + pomInfo
 
                     }
-
                 }
             }
         }
     }
 
-   
     if(isGrails3PluginProject) {
         bintray {
 
@@ -288,7 +274,6 @@ subprojects { project ->
             }
         }                 
     }
-
 }
 
 class PublishingConvention {
@@ -311,4 +296,3 @@ class PublishingConvention {
         projectArtifactId = name
     }
 }
-
