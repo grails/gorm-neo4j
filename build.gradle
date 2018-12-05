@@ -11,6 +11,7 @@ buildscript {
         classpath "org.grails:grails-gradle-plugin:2.2.0.RC1"
         classpath "org.grails:grails-gradle-plugin:$grailsVersion"
         classpath 'org.asciidoctor:asciidoctor-gradle-plugin:1.5.3'
+        classpath "gradle.plugin.com.energizedwork.webdriver-binaries:webdriver-binaries-gradle-plugin:$webdriverBinariesVersion"
     }
 }
 
@@ -66,6 +67,7 @@ subprojects { project ->
     boolean isPluginProject = project.name.endsWith("-plugin") && project.name.startsWith("grails")
     boolean isGrails3PluginProject = project.name.endsWith("-plugin") && !project.name.startsWith("grails2")
     boolean isExample = project.name.startsWith("examples/")
+    boolean usesGeb = project.name.contains("grails3-neo4j")
 
     ext {
         projectInfo = new PublishingConvention(project)
@@ -168,7 +170,9 @@ subprojects { project ->
         groovydoc.jvmArgs "-Xmx512M"
         groovydoc.classpath += configurations.documentation
 
-    
+    if (usesGeb) {
+        apply plugin:"com.energizedwork.webdriver-binaries"
+    }
 
     if(!isExample) {
         publishing {
