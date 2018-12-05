@@ -3,14 +3,12 @@ include "grails-datastore-gorm-neo4j"
 
 // plugins
 include "boot-plugin"
-include 'grails2-plugin'
 include 'grails-plugin'
 
 // documentation
 include 'docs'
 
 // examples
-include 'examples/grails25-neo4j-hibernate'
 include 'examples/grails3-neo4j'
 include 'examples/grails3-neo4j-hibernate'
 include 'examples/neo4j-standalone'

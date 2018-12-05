@@ -38,12 +38,6 @@ ext {
 
 
 subprojects { project ->
-    if(project.name.startsWith('examples/grails2')) {
-        project.tasks.all { Task t ->
-            t.onlyIf { Boolean.getBoolean("grails2.plugin.enabled" )}
-        }
-        return
-    }
 
     repositories {
         mavenLocal()
@@ -75,7 +69,6 @@ subprojects { project ->
 
     boolean isPluginProject = project.name.endsWith("-plugin") && project.name.startsWith("grails")
     boolean isGrails3PluginProject = project.name.endsWith("-plugin") && !project.name.startsWith("grails2")
-    boolean isGrails2PluginProject = project.name.endsWith("-plugin") && project.name.startsWith("grails2")
     boolean isExample = project.name.startsWith("examples/")
 
     ext {
@@ -152,7 +145,7 @@ subprojects { project ->
     if(isGrails3PluginProject) {
         apply plugin: "org.grails.grails-plugin"       
     }
-    else if(!isGrails2PluginProject) {
+    else {
         apply plugin:"groovy"
         if(!isExample) {
             apply plugin: 'com.bmuschko.nexus'
@@ -168,7 +161,6 @@ subprojects { project ->
         apply plugin: 'maven-publish'
     }
 
-    if(!isGrails2PluginProject) {
         if(isGrails3PluginProject) {
             apply plugin: 'com.jfrog.bintray'
         }
@@ -186,7 +178,7 @@ subprojects { project ->
         groovydoc.jvmArgs "-Xmx512M"
         groovydoc.classpath += configurations.documentation
 
-    }
+    
 
     if(!isExample) {
         publishing {
@@ -199,15 +191,7 @@ subprojects { project ->
                         username = u
                         password = p
                     }
-                    if(isGrails2PluginProject) {
-                        if(isBuildSnapshot) {
-                            url  "https://repo.grails.org/grails/plugins-snapshots-local"
-                        }
-                        else {
-                            url  "https://repo.grails.org/grails/plugins-releases-local"
-                        }                    
-                    }
-                    else if(isGrails3PluginProject) {
+                    if(isGrails3PluginProject) {
                         if(isBuildSnapshot) {
                             url  "https://repo.grails.org/grails/plugins3-snapshots-local"
                         }
@@ -233,26 +217,18 @@ subprojects { project ->
                     artifactId projectInfo.projectArtifactId                
                     from components.java
 
-                    if(!isGrails2PluginProject) {                                        
                         artifact sourcesJar {
                             classifier "sources"
                         }
                         artifact javadocJar {
                             classifier "javadoc"
                         }                    
-                    }
 
                     if(isGrails3PluginProject) {
                         artifact source:"${sourceSets.main.output.classesDir}/META-INF/grails-plugin.xml",
                                  classifier:"plugin",
                                  extension:'xml'
                     }   
-                    else if(isGrails2PluginProject) {
-                        artifact source:"plugin.xml",
-                                 classifier:"plugin",
-                                 extension:'xml'
-
-                    }
 
                     pom.withXml {
                         def xml = asNode()
@@ -260,26 +236,6 @@ subprojects { project ->
                         dependency?.optional = true
                         xml.children().last() + pomInfo
 
-                        if(isGrails2PluginProject) {
-                            xml.dependencies.dependency.each { dep ->
-                                if(!dep.exclusions) {
-                                    dep.appendNode('exclusions').replaceNode {
-                                        delegate.exclusions {
-                                            delegate.exclusion {
-                                                delegate.artifactId 'grails-datastore-gorm-support'
-                                                delegate.groupId 'org.grails'
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            def grailsDep = xml.dependencies.dependency.find { dep -> 
-                                dep.artifactId.text() == 'grails-dependencies' 
-                            }
-                            if(grailsDep) {
-                                grailsDep.replaceNode {}
-                            }                        
-                        }
                     }
 
                 }
