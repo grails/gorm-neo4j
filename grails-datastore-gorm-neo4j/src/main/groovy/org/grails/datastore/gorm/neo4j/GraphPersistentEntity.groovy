@@ -2,6 +2,7 @@ package org.grails.datastore.gorm.neo4j
 
 import grails.neo4j.Relationship
 import groovy.transform.CompileStatic
+import org.codehaus.groovy.runtime.HandleMetaClass
 import org.grails.datastore.gorm.neo4j.mapping.config.NodeConfig
 import org.grails.datastore.mapping.model.AbstractPersistentEntity
 import org.grails.datastore.mapping.model.ClassMapping
@@ -85,7 +86,9 @@ class GraphPersistentEntity extends AbstractPersistentEntity<NodeConfig> {
                     String generatorType = identity.getMapping().getMappedForm().getGenerator()
                     this.idGenerator = createIdGenerator(generatorType)
                     if(identity.name != GormProperties.IDENTITY) {
-                        MetaProperty idProp = getJavaClass().getMetaClass().getMetaProperty(GormProperties.IDENTITY)
+                        Class clazz = getJavaClass()
+                        MetaClass metaClass = clazz.getMetaClass()
+                        MetaProperty idProp = metaClass.getMetaProperty(GormProperties.IDENTITY)
                         if(idProp != null && Long.class.isAssignableFrom(idProp.getType())) {
                             MappingFactory mappingFactory = mappingContext.mappingFactory
                             nodeId = mappingFactory.createSimple(this, context, mappingFactory.createPropertyDescriptor(javaClass, idProp))
