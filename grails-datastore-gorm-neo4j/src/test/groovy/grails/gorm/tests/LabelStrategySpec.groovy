@@ -6,6 +6,7 @@ import grails.persistence.Entity
 
 import org.grails.datastore.gorm.neo4j.GraphPersistentEntity
 import org.grails.datastore.gorm.neo4j.util.IteratorUtil
+import org.neo4j.driver.v1.exceptions.ClientException
 import org.neo4j.graphdb.Label
 import org.neo4j.graphdb.Transaction
 import spock.lang.Issue
@@ -126,25 +127,29 @@ class LabelStrategySpec extends GormDatastoreSpec {
         setupValidator(InstanceDependentLabels)
 
         when:
-        def s = new InstanceDependentLabels(name:'Sam', profession: 'Fireman')
-        s.save(flush:true)
+        def s = InstanceDependentLabels.withNewTransaction {
+            new InstanceDependentLabels(name:'Sam', profession: 'Fireman').save()
+        }
 
         then:
-        s.hasErrors() == false
-        verifyLabelsForId(s.id, ["InstanceDependentLabels", "${s.profession}"])
-
+        noExceptionThrown()
+        !s.hasErrors()
+        InstanceDependentLabels.withNewTransaction {
+            verifyLabelsForId(s.id, ["InstanceDependentLabels", "${s.profession}"])
+        }
 
         when: "create Sam again, now as policeman"
-        def d = new InstanceDependentLabels(name:'Sam', profession: 'Policeman')
-        d.save(flush:true)
+        InstanceDependentLabels.withNewTransaction {
+            new InstanceDependentLabels(name:'Sam', profession: 'Policeman').save()
+        }
 
         then: "we've violated unique constraint"
-        d.hasErrors() == true
-        d.errors.allErrors[0].code == "unique"
-        d.errors
+        thrown(ClientException)
 
         when: "unmarshall Sam instance"
-        def sam = InstanceDependentLabels.findByName("Sam")
+        def sam = InstanceDependentLabels.withNewTransaction {
+            InstanceDependentLabels.findByName("Sam")
+        }
 
         then:
         sam != null

@@ -8,6 +8,7 @@ import groovy.beans.Bindable
 import groovyx.gpars.GParsPool
 
 import org.grails.datastore.gorm.neo4j.util.IteratorUtil
+import org.neo4j.driver.v1.exceptions.ClientException
 import org.neo4j.graphdb.Label
 import spock.lang.Ignore
 import spock.lang.IgnoreIf
@@ -60,14 +61,28 @@ class MiscSpec extends GormDatastoreSpec {
     def "test unique constraint"() {
         setup:
             setupValidator(Role)
+
+        when:
+        Role.withNewTransaction {
             def role1 = new Role(role: 'role')
-            role1.save(flush:true)
-            def result = new Role(role:'role').save(flush:true)
-            session.clear()
+            role1.save()
+        }
 
-        expect:
-            Role.findAllByRole('role').size() == 1
+        then:
+        noExceptionThrown()
 
+        when:
+        Role.withNewTransaction {
+            new Role(role: 'role').save()
+        }
+
+        then:
+        thrown(ClientException)
+
+        and:
+        Role.withNewTransaction(readOnly: true) {
+            Role.findAllByRole('role').size()
+        } == 1
     }
 
     void "Test modification of a persistent instance with explicit save"() {
