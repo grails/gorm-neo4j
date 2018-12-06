@@ -24,7 +24,7 @@ dependencies {
     compileOnly("org.grails:grails-bootstrap")
     compileOnly("org.grails:grails-plugin-converters")
     compileOnly 'javax.servlet:javax.servlet-api:3.1.0'
-    compileOnly "org.spockframework:spock-core:1.0-groovy-2.4"
+    compileOnly "org.spockframework:spock-core:$spockVersion"
 
     runtime "org.grails:grails-datastore-web:$gormVersion"
 
