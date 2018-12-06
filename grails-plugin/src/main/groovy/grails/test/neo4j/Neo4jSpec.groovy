@@ -75,7 +75,7 @@ abstract class Neo4jSpec extends Specification {
                 neo4jDatastore = new Neo4jDatastore((PropertyResolver) config, packageToScan)
             }
             else {
-                neo4jDatastore = new Neo4jDatastore((PropertyResolver) config, (Class[])domainClasses.toArray())
+                neo4jDatastore = new Neo4jDatastore((PropertyResolver) config, (domainClasses as Class[]))
             }
         }
         else {
@@ -84,7 +84,7 @@ abstract class Neo4jSpec extends Specification {
                 neo4jDatastore = new Neo4jDatastore(getClass().getPackage())
             }
             else {
-                neo4jDatastore = new Neo4jDatastore((Class[])domainClasses.toArray())
+                neo4jDatastore = new Neo4jDatastore(domainClasses as Class[])
             }
         }
     }
