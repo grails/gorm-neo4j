@@ -70,7 +70,7 @@ subprojects { project ->
     }
 
     boolean isPluginProject = project.name.endsWith("-plugin") && project.name.startsWith("grails")
-    boolean isGrails3PluginProject = project.name.endsWith("-plugin") && !project.name.startsWith("grails2")
+    boolean isGrails3PluginProject = project.name.endsWith("-plugin")
     boolean isExample = project.name.startsWith("examples-")
 
     ext {
