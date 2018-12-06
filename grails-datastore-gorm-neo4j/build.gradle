@@ -26,6 +26,8 @@ dependencies {
     testRuntime('org.glassfish.web:el-impl:2.2')
 
     testCompile "org.codehaus.gpars:gpars:$gparsVersion"
+    testCompile "cglib:cglib-nodep:$cglibNodepVersion"
+
 }
 
 test {
