@@ -2,17 +2,20 @@ package grails.gorm.tests
 
 import grails.core.DefaultGrailsApplication
 import grails.core.GrailsApplication
+import grails.gorm.validation.PersistentEntityValidator
 import org.grails.datastore.gorm.events.ConfigurableApplicationContextEventPublisher
 import org.grails.datastore.gorm.neo4j.config.Settings
 import org.grails.datastore.gorm.neo4j.Neo4jDatastore
 import org.grails.datastore.gorm.neo4j.Neo4jSession
+import org.grails.datastore.gorm.validation.constraints.eval.DefaultConstraintEvaluator
+import org.grails.datastore.gorm.validation.constraints.registry.DefaultConstraintRegistry
 import org.grails.datastore.mapping.core.DatastoreUtils
 import org.grails.datastore.mapping.model.MappingContext
 import org.grails.datastore.mapping.model.PersistentEntity
-import org.grails.validation.GrailsDomainClassValidator
 import org.neo4j.driver.v1.Driver
 import org.neo4j.harness.ServerControls
 import org.springframework.context.support.GenericApplicationContext
+import org.springframework.context.support.StaticMessageSource
 import org.springframework.validation.Validator
 import spock.lang.AutoCleanup
 import spock.lang.Shared
@@ -61,11 +64,11 @@ abstract class GormDatastoreSpec extends Specification {
     void setupValidator(Class entityClass, Validator validator = null) {
         PersistentEntity entity = mappingContext.persistentEntities.find { PersistentEntity e -> e.javaClass == entityClass }
         if (entity) {
+            def messageSource = new StaticMessageSource()
+            def evaluator = new DefaultConstraintEvaluator(new DefaultConstraintRegistry(messageSource), mappingContext, Collections.emptyMap())
             mappingContext.addEntityValidator(entity, validator ?:
-                    new GrailsDomainClassValidator(
-                            grailsApplication: grailsApplication,
-                            domainClass: grailsApplication.getDomainClass(entity.javaClass.name)
-                    ) )
+                    new PersistentEntityValidator(entity, messageSource, evaluator)
+                    )
         }
     }
 
