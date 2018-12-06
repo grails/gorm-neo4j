@@ -46,7 +46,6 @@ class Neo4jDataStoreSpringInitializerSpec extends Specification {
             author = new Author(name: "Stephen King")
                     .addToBooks(title: "")
             author.validate()
-
         }
 
         then:"GORM for Neo4j is correctly configured"
@@ -55,8 +54,6 @@ class Neo4jDataStoreSpringInitializerSpec extends Specification {
         cleanup:
         ctx.close()
     }
-
-
 
     void "Test configuration from map Neo4jDataStoreSpringInitializer loads neo4j correctly"() {
         when:"neo4j is initialised"
