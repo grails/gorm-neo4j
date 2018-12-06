@@ -294,7 +294,8 @@ class GraphPersistentEntity extends AbstractPersistentEntity<NodeConfig> {
      */
     String formatMatchAndUpdate(String variable, Map<String, Object> props) {
         StringBuilder builder = new StringBuilder( formatMatchId(variable) )
-        if(isVersioned() && hasProperty(GormProperties.VERSION, Long)) {
+        Class clazz = Long
+        if(isVersioned() && hasProperty(GormProperties.VERSION, clazz)) {
             builder.append(" AND ${variable}.version={version}")
         }
         builder.append(" SET ").append(variable).append(" +={props}")
