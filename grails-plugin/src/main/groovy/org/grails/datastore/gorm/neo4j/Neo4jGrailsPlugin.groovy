@@ -9,6 +9,7 @@ import org.grails.core.artefact.DomainClassArtefactHandler
 import org.springframework.beans.factory.support.BeanDefinitionRegistry
 import org.grails.datastore.gorm.plugin.support.*
 import org.springframework.context.ConfigurableApplicationContext
+import org.springframework.core.env.PropertyResolver
 
 class Neo4jGrailsPlugin extends Plugin {
 
@@ -43,7 +44,7 @@ class Neo4jGrailsPlugin extends Plugin {
     @CompileStatic
     Closure doWithSpring() {
         ConfigSupport.prepareConfig(config, (ConfigurableApplicationContext) applicationContext)
-        def initializer = new Neo4jDataStoreSpringInitializer(config, grailsApplication.getArtefacts(DomainClassArtefactHandler.TYPE).collect() { GrailsClass cls -> cls.clazz })
+        def initializer = new Neo4jDataStoreSpringInitializer(config as PropertyResolver, grailsApplication.getArtefacts(DomainClassArtefactHandler.TYPE).collect() { GrailsClass cls -> cls.clazz })
         initializer.registerApplicationIfNotPresent = false
         initializer.setSecondaryDatastore(hasHibernatePlugin())
         return initializer.getBeanDefinitions((BeanDefinitionRegistry)applicationContext)
