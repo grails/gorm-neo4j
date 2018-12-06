@@ -6,10 +6,10 @@ package grails.gorm.tests
 
 import grails.persistence.Entity
 import org.grails.datastore.gorm.validation.constraints.builtin.UniqueConstraint
+import org.grails.datastore.gorm.validation.constraints.eval.DefaultConstraintEvaluator
 import org.grails.datastore.mapping.dirty.checking.DirtyCheckable
 import org.grails.datastore.mapping.model.MappingContext
 import org.grails.datastore.mapping.model.PersistentEntity
-import org.grails.validation.DefaultConstraintEvaluator
 import org.springframework.validation.Errors
 import org.springframework.validation.Validator
 import spock.lang.Issue
