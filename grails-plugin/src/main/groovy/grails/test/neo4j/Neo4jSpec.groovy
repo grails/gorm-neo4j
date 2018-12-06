@@ -8,11 +8,13 @@ import org.grails.datastore.gorm.neo4j.Neo4jSession
 import org.grails.datastore.mapping.core.DatastoreUtils
 import org.grails.datastore.mapping.model.MappingContext
 import org.grails.datastore.mapping.transactions.Transaction
-import org.springframework.boot.env.PropertySourcesLoader
+import org.springframework.boot.env.PropertySourceLoader
 import org.springframework.core.env.PropertyResolver
+import org.springframework.core.env.PropertySource
 import org.springframework.core.io.DefaultResourceLoader
 import org.springframework.core.io.Resource
 import org.springframework.core.io.ResourceLoader
+import org.springframework.core.io.support.SpringFactoriesLoader
 import org.springframework.transaction.support.TransactionSynchronizationManager
 import spock.lang.AutoCleanup
 import spock.lang.Shared
@@ -51,24 +53,27 @@ abstract class Neo4jSpec extends Specification {
     protected List<Class> getDomainClasses() { [] }
 
     void setupSpec() {
-        PropertySourcesLoader loader = new PropertySourcesLoader()
+        List<PropertySourceLoader> propertySourceLoaders = SpringFactoriesLoader.loadFactories(PropertySourceLoader.class, getClass().getClassLoader())
         ResourceLoader resourceLoader = new DefaultResourceLoader()
-        def applicationYml = resourceLoader.getResource("application.yml")
-        boolean hasConfig = false
-        if(applicationYml != null && applicationYml.exists()) {
-            hasConfig = true
-            loader.load applicationYml
+
+        List<PropertySource> propertySources = []
+        PropertySourceLoader ymlLoader = propertySourceLoaders.find { it.getFileExtensions().toList().contains("yml") }
+        if (ymlLoader) {
+            propertySources.addAll(load(resourceLoader, ymlLoader, "application.yml"))
+        }
+        PropertySourceLoader groovyLoader = propertySourceLoaders.find { it.getFileExtensions().toList().contains("groovy") }
+        if (groovyLoader) {
+            propertySources.addAll(load(resourceLoader, groovyLoader, "application.groovy"))
         }
 
-        def applicationGroovy = resourceLoader.getResource("application.groovy")
-        if(applicationGroovy != null && applicationGroovy.exists()) {
-            hasConfig = true
-            loader.load applicationGroovy
-        }
+        if(propertySources) {
+            Map<String, Object> mapPropertySource = [:] as Map<String, Object>
+            mapPropertySource += propertySources
+                    .findAll { it.getSource() }
+                    .collectEntries { it.getSource() as Map }
 
-        if(hasConfig) {
+            Config config = new PropertySourcesConfig(mapPropertySource)
 
-            Config config = new PropertySourcesConfig(loader.propertySources)
             List<Class> domainClasses = getDomainClasses()
             if (!domainClasses) {
                 def packageToScan = getPackageToScan(config)
@@ -115,5 +120,21 @@ abstract class Neo4jSpec extends Specification {
             p = getClass().package
         }
         return p
+    }
+
+    private List<PropertySource> load(ResourceLoader resourceLoader, PropertySourceLoader loader, String filename) {
+        if (canLoadFileExtension(loader, filename)) {
+            Resource appYml = resourceLoader.getResource(filename)
+            return loader.load(appYml.getDescription(), appYml) as List<PropertySource>
+        } else {
+            return Collections.emptyList()
+        }
+    }
+
+    private boolean canLoadFileExtension(PropertySourceLoader loader, String name) {
+        return Arrays
+                .stream(loader.fileExtensions)
+                .map { String extension -> extension.toLowerCase() }
+                .anyMatch { String extension -> name.toLowerCase().endsWith(extension) }
     }
 }
