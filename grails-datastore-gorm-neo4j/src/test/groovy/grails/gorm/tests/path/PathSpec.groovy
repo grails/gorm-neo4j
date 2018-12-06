@@ -52,9 +52,7 @@ class PathSpec extends Specification {
         path.first().relationship().from.name == "Fred"
         path.first().relationship().to.name == "Barney"
         path.first().relationship().type == 'FRIENDS'
-
     }
-
 
     @Rollback
     void "test simple shortest path with findShortestPath with proxies"() {
@@ -87,7 +85,6 @@ class PathSpec extends Specification {
         path.first().relationship().from.name == "Fred"
         path.first().relationship().to.name == "Barney"
         path.first().relationship().type == 'FRIENDS'
-
     }
 
     @Rollback
@@ -119,7 +116,6 @@ class PathSpec extends Specification {
         path.first().relationship().from.name == "Fred"
         path.first().relationship().to.name == "Barney"
         path.first().relationship().type == 'FRIENDS'
-
     }
 
     @Rollback
@@ -151,8 +147,8 @@ class PathSpec extends Specification {
         path.first().relationship().from.name == "Fred"
         path.first().relationship().to.name == "Barney"
         path.first().relationship().type == 'FRIENDS'
-
     }
+
     @Rollback
     void "test shortest path with arguments"() {
         given:
@@ -182,9 +178,7 @@ class PathSpec extends Specification {
         path.first().relationship().from.name == "Fred"
         path.first().relationship().to.name == "Barney"
         path.first().relationship().type == 'FRIENDS'
-
     }
-
 
     @Rollback
     void "test shortest path with gstring arguments"() {
@@ -219,6 +213,5 @@ class PathSpec extends Specification {
         path.first().relationship().from.name == "Fred"
         path.first().relationship().to.name == "Barney"
         path.first().relationship().type == 'FRIENDS'
-
     }
 }
