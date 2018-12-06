@@ -39,9 +39,16 @@ subprojects { project ->
         maven { url "https://repo.grails.org/grails/core" }
     }
 
+    boolean usesGeb = project.name.contains("grails3-neo4j")
+
     if(project.name.startsWith("examples-grails3")) {
         apply plugin:"org.grails.grails-web"
         apply plugin:"org.grails.grails-gsp"
+
+        if (usesGeb) {
+            apply plugin:"com.energizedwork.webdriver-binaries"
+        }
+
         tasks.withType(Test) {
             testLogging {
                 showStandardStreams = true
@@ -65,7 +72,6 @@ subprojects { project ->
     boolean isPluginProject = project.name.endsWith("-plugin") && project.name.startsWith("grails")
     boolean isGrails3PluginProject = project.name.endsWith("-plugin") && !project.name.startsWith("grails2")
     boolean isExample = project.name.startsWith("examples-")
-    boolean usesGeb = project.name.contains("grails3-neo4j")
 
     ext {
         projectInfo = new PublishingConvention(project)
@@ -168,9 +174,6 @@ subprojects { project ->
         groovydoc.jvmArgs "-Xmx512M"
         groovydoc.classpath += configurations.documentation
 
-    if (usesGeb) {
-        apply plugin:"com.energizedwork.webdriver-binaries"
-    }
 
     if(!isExample) {
         publishing {
