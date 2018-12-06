@@ -35,7 +35,7 @@ dependencies {
 
     testRuntime "org.neo4j.test:neo4j-harness:$neo4jVersion"
 
-    profile "org.grails.profiles:web:$webProfilesVersion"
+    profile "org.grails.profiles:web"
 }
 
 webdriverBinaries {
