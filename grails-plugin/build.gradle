@@ -17,8 +17,8 @@ configurations.all {
         }
     }
 }
-dependencies {
 
+dependencies {
 
     compileOnly("org.grails:grails-core:")
     compileOnly("org.grails:grails-bootstrap")
