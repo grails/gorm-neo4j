@@ -39,7 +39,7 @@ subprojects { project ->
         maven { url "https://repo.grails.org/grails/core" }
     }
 
-    boolean usesGeb = project.name.contains("grails3-neo4j")
+    boolean usesGeb = ["grails3-neo4j", "grails3-neo4j-hibernate"].any { projectName -> project.name.contains(projectName) }
 
     if(project.name.startsWith("examples-grails3")) {
         apply plugin:"org.grails.grails-web"
