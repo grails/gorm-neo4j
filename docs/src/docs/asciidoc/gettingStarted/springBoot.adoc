@@ -30,7 +30,7 @@ Finally create your GORM entities and ensure they are annotated with `grails.per
 
 [source,groovy]
 ----
-import grails.persistence.*
+import grails.gorm.annotation.*
 
 @Entity
 class Person {

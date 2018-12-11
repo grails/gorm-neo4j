@@ -25,9 +25,6 @@ ext {
     
     isCiBuild = project.hasProperty("isCiBuild")
     isBuildSnapshot = version.endsWith("BUILD-SNAPSHOT")
-
-    servletApiVersion = "3.0.1"
-
     nexusUsername = System.getenv("SONATYPE_USERNAME") ?: project.hasProperty("sonatypeOssUsername") ? project.sonatypeOssUsername : ''
     nexusPassword = System.getenv("SONATYPE_PASSWORD") ?: project.hasProperty("sonatypeOssPassword") ? project.sonatypeOssPassword : ''
 }
@@ -168,6 +165,8 @@ subprojects { project ->
 
         dependencies {
             documentation "org.fusesource.jansi:jansi:1.11"
+            documentation 'info.picocli:picocli:3.8.2'
+            documentation "org.codehaus.groovy:groovy-dateutil:$groovyVersion"
             testCompile "org.spockframework:spock-core:$spockVersion"
         }
 
@@ -215,11 +214,12 @@ subprojects { project ->
                         artifact source: javadocJar, classifier: "javadoc"
 
 
-                        if(isGrails3PluginProject) {
-                            artifact source:"${sourceSets.main.output.classesDirs}/META-INF/grails-plugin.xml",
+                        if (isGrails3PluginProject) {
+                            artifact source:"${sourceSets.main.groovy.outputDir}/META-INF/grails-plugin.xml",
                                     classifier:"plugin",
                                     extension:'xml'
                         }
+
                     }
 
                     pom.withXml {

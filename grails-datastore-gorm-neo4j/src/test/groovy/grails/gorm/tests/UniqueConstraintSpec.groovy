@@ -1,15 +1,17 @@
 package grails.gorm.tests
 
+import grails.gorm.annotation.Entity
+
 /**
  * Created by graemerocher on 13/12/16.
  */
 
-import grails.persistence.Entity
 import org.grails.datastore.gorm.validation.constraints.builtin.UniqueConstraint
 import org.grails.datastore.gorm.validation.constraints.eval.DefaultConstraintEvaluator
 import org.grails.datastore.mapping.dirty.checking.DirtyCheckable
 import org.grails.datastore.mapping.model.MappingContext
 import org.grails.datastore.mapping.model.PersistentEntity
+import org.grails.datastore.mapping.model.config.GormProperties
 import org.springframework.validation.Errors
 import org.springframework.validation.Validator
 import spock.lang.Issue
@@ -47,11 +49,8 @@ class UniqueConstraintSpec extends GormDatastoreSpec {
     }
 
     void "Test simple unique constraint"() {
-        given:"A validator that uses the unique constraint"
-        setupValidator()
-
         when:"Two domain classes with the same name are saved"
-        def one = new UniqueGroup(name:"foo").save(flush:true)
+        def one = new UniqueGroup(name:"foo").save(flush:true, failOnError:true)
         def two = new UniqueGroup(name:"foo")
         two.save(flush:true)
 
@@ -67,21 +66,20 @@ class UniqueConstraintSpec extends GormDatastoreSpec {
         one != null
 
         when:"Three domain classes are saved within different uniqueness groups"
-        one = new GroupWithin(name:"foo", org:"mycompany").save(flush:true)
-        two = new GroupWithin(name:"foo", org:"othercompany").save(flush:true)
+        one = new GroupWithin(name:"foo", org:"mycompany").save(flush:true, failOnError:true)
+        two = new GroupWithin(name:"foo", org:"othercompany").save(flush:true, failOnError:true)
         def three = new GroupWithin(name:"foo", org:"mycompany")
         three.save(flush:true)
 
         then:"Only the third has errors"
         one != null
         two != null
-        three.hasErrors()
         GroupWithin.count() == 2
+        three.hasErrors()
     }
 
     void "should update to a existing value fail"() {
         given:"A validator that uses the unique constraint"
-        setupValidator()
 
         new UniqueGroup(name:"foo").save()
         def two = new UniqueGroup(name:"bar").save()
@@ -105,47 +103,6 @@ class UniqueConstraintSpec extends GormDatastoreSpec {
         then:
         two.name == "bar"
 
-    }
-
-    void "withManualFlushMode should use flushmode commit"() {
-
-        setup:
-        def constraint = new UniqueConstraint(session.datastore)
-        constraint.owningClass = UniqueGroup
-        def origFlushMode = session.flushMode
-
-        when: "check if session flushmode has really switched to COMMIT"
-        constraint.withManualFlushMode { s->
-            assert s.flushMode == FlushModeType.COMMIT
-        }
-
-        then:
-        session.flushMode == origFlushMode
-    }
-
-    protected void setupValidator() {
-
-        def groupValidator = [supports: {Class cls -> true},
-                              validate: {Object target, Errors errors ->
-                                  def constrainedProperties = new DefaultConstraintEvaluator().evaluate(UniqueGroup)
-                                  for (cp in constrainedProperties.values()) {
-                                      cp.validate(target, target[cp.propertyName], errors)
-                                  }
-                              }] as Validator
-
-        def groupWithinValidator = [supports: {Class cls -> true},
-                                    validate: {Object target, Errors errors ->
-                                        def constrainedProperties = new DefaultConstraintEvaluator().evaluate(GroupWithin)
-                                        for (cp in constrainedProperties.values()) {
-                                            cp.validate(target, target[cp.propertyName], errors)
-                                        }
-                                    }] as Validator
-
-        final MappingContext context = session.datastore.mappingContext
-        PersistentEntity entity = context.getPersistentEntity(UniqueGroup.name)
-        context.addEntityValidator(entity, groupValidator)
-        entity = context.getPersistentEntity(GroupWithin.name)
-        context.addEntityValidator(entity, groupWithinValidator)
     }
 
     @Override

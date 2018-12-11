@@ -3,30 +3,26 @@ sourceSets.main.groovy.srcDirs += ["src/main/java"]
 
 dependencies {
     compile "org.neo4j.driver:neo4j-java-driver:$neo4jDriverVersion"
-
     compile "org.grails:grails-datastore-gorm-validation:$gormVersion"
     compile "org.grails:grails-datastore-gorm:$gormVersion"
-
-
-    // only needed for Neo4jDatastoreSpringInitializer
-    compileOnly("org.grails:grails-datastore-gorm-support:$gormVersion") {
-        exclude group:'org.grails', module:'grails-datastore-gorm-hibernate-core'
-    }
 
     // only needed for web dependencies
     compileOnly "org.grails:grails-datastore-web:$gormVersion"
     compileOnly "org.neo4j.test:neo4j-harness:$neo4jVersion"
 
-    testRuntime "ch.qos.logback:logback-classic:1.1.7"
     testCompile "org.neo4j.test:neo4j-harness:$neo4jVersion"
     testCompile "org.grails:grails-datastore-gorm-test:$gormVersion",
                 "org.grails:grails-datastore-gorm-tck:$gormVersion"
     testCompile("org.hibernate:hibernate-validator:$hibernateValidatorVersion")
+    testCompile "org.codehaus.gpars:gpars:$gparsVersion"
+    testCompile "cglib:cglib-nodep:$cglibNodepVersion"
+    testCompile "org.objenesis:objenesis:${objenesisVersion}"
+    
+    testRuntime "org.springframework:spring-aop:$springVersion"
+    testRuntime "ch.qos.logback:logback-classic:1.1.7"
     testRuntime('javax.el:javax.el-api:2.2.4')
     testRuntime('org.glassfish.web:el-impl:2.2')
 
-    testCompile "org.codehaus.gpars:gpars:$gparsVersion"
-    testCompile "cglib:cglib-nodep:$cglibNodepVersion"
 
 }
 

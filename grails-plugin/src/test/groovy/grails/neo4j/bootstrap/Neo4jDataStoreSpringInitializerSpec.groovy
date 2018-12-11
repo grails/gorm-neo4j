@@ -1,6 +1,6 @@
 package grails.neo4j.bootstrap
 
-import grails.persistence.Entity
+import grails.gorm.annotation.Entity
 import org.grails.datastore.gorm.neo4j.config.Settings
 import org.springframework.core.env.MapPropertySource
 import org.springframework.core.env.StandardEnvironment

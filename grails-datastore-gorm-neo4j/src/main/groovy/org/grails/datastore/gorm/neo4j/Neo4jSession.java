@@ -1,7 +1,9 @@
 package org.grails.datastore.gorm.neo4j;
 
-import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
-import com.googlecode.concurrentlinkedhashmap.EvictionListener;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.RemovalCause;
+import com.github.benmanes.caffeine.cache.RemovalListener;
 import grails.neo4j.Relationship;
 import org.grails.datastore.gorm.neo4j.engine.*;
 import org.grails.datastore.gorm.neo4j.mapping.config.DynamicAssociation;
@@ -43,6 +45,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * Represents a session for interacting with Neo4j
@@ -56,22 +59,25 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class Neo4jSession extends AbstractSession<Session> {
 
     private static Logger log = LoggerFactory.getLogger(Neo4jSession.class);
-    private static final EvictionListener<RelationshipUpdateKey, Collection<Serializable>> EXCEPTION_THROWING_INSERT_LISTENER =
-            new EvictionListener<RelationshipUpdateKey, Collection<Serializable>>() {
-                public void onEviction(RelationshipUpdateKey association, Collection<Serializable> value) {
+    private static final RemovalListener<RelationshipUpdateKey, Collection<Serializable>> EXCEPTION_THROWING_INSERT_LISTENER =
+            (key, value, cause) -> {
+                if (RemovalCause.SIZE == cause) {
                     throw new DataAccessResourceFailureException("Maximum number (5000) of relationship update operations to flush() exceeded. Flush the session periodically to avoid this error for batch operations.");
                 }
+
             };
 
-    protected Map<RelationshipUpdateKey, Collection<Serializable>> pendingRelationshipInserts =
-            new ConcurrentLinkedHashMap.Builder<RelationshipUpdateKey, Collection<Serializable>>()
-                    .listener(EXCEPTION_THROWING_INSERT_LISTENER)
-                    .maximumWeightedCapacity(5000).build();
+    protected ConcurrentMap<RelationshipUpdateKey, Collection<Serializable>> pendingRelationshipInserts =
+            Caffeine.newBuilder()
+                    .executor(Runnable::run)
+                    .removalListener(EXCEPTION_THROWING_INSERT_LISTENER)
+                    .maximumSize(5000).build().asMap();
 
-    protected Map<RelationshipUpdateKey, Collection<Serializable>> pendingRelationshipDeletes =
-            new ConcurrentLinkedHashMap.Builder<RelationshipUpdateKey, Collection<Serializable>>()
-                    .listener(EXCEPTION_THROWING_INSERT_LISTENER)
-                    .maximumWeightedCapacity(5000).build();
+    protected ConcurrentMap<RelationshipUpdateKey, Collection<Serializable>> pendingRelationshipDeletes =
+            Caffeine.newBuilder()
+                    .executor(Runnable::run)
+                    .removalListener(EXCEPTION_THROWING_INSERT_LISTENER)
+                    .maximumSize(5000).build().asMap();
 
 
     /**
@@ -130,7 +136,7 @@ public class Neo4jSession extends AbstractSession<Session> {
             super.clearPendingOperations();
         } finally {
             pendingRelationshipInserts.clear();
-            pendingRelationshipDeletes.clear();
+            pendingRelationshipDeletes.clear();;
         }
     }
 

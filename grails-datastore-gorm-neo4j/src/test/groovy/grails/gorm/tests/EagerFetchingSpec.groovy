@@ -1,6 +1,6 @@
 package grails.gorm.tests
 
-import grails.persistence.Entity
+import grails.gorm.annotation.Entity
 import javassist.util.proxy.ProxyObject
 import org.grails.datastore.gorm.neo4j.collection.Neo4jList
 import org.grails.datastore.gorm.neo4j.collection.Neo4jPersistentList

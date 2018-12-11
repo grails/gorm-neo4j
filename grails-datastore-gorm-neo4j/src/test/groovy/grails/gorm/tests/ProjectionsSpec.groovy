@@ -1,6 +1,5 @@
 package grails.gorm.tests
 
-import grails.persistence.Entity
 import spock.lang.Issue
 
 /*

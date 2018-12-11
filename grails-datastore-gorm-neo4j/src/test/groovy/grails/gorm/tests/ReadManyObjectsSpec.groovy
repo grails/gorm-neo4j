@@ -1,8 +1,8 @@
 package org.grails.datastore.gorm.mongo
 
+import grails.gorm.annotation.Entity
 import grails.gorm.tests.GormDatastoreSpec
 import grails.neo4j.Neo4jEntity
-import grails.persistence.Entity
 import org.neo4j.driver.v1.types.Node
 import spock.lang.Ignore
 

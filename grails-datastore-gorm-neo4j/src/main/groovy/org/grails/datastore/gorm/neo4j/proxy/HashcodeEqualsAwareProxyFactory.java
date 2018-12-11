@@ -92,7 +92,7 @@ public class HashcodeEqualsAwareProxyFactory extends JavassistProxyFactory {
                     target = session.retrieve(cls, id);
                 }
             };
-            Object proxy = BeanUtils.instantiate(proxyClass);
+            Object proxy = BeanUtils.instantiateClass(proxyClass);
             ((ProxyObject)proxy).setHandler(mi);
             return proxy;
         }

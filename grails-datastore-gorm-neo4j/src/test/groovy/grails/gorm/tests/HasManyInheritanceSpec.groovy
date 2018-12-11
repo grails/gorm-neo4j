@@ -1,7 +1,7 @@
 package grails.gorm.tests
 
+import grails.gorm.annotation.Entity
 import grails.neo4j.Neo4jEntity
-import grails.persistence.Entity
 import groovy.transform.CompileStatic
 import org.grails.datastore.gorm.neo4j.Neo4jDatastore
 import org.grails.datastore.gorm.neo4j.Neo4jSession

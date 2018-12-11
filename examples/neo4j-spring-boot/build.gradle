@@ -13,9 +13,9 @@ apply plugin: 'org.springframework.boot'
 ext['jetty.version'] = "9.4.11.v20180605"
 
 dependencies {
-    compile("org.springframework.boot:spring-boot-starter-web")
+    compile("org.springframework.boot:spring-boot-starter-web:$springBootVersion")
     compile project(":gorm-neo4j-spring-boot")
-    testCompile('org.springframework.boot:spring-boot-starter-test')
+    testCompile("org.springframework.boot:spring-boot-starter-test:$springBootVersion")
     runtime "org.neo4j.test:neo4j-harness:$neo4jVersion"
 }
 

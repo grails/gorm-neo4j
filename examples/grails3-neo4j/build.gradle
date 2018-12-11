@@ -10,7 +10,7 @@ dependencies {
     compile "org.springframework.boot:spring-boot-autoconfigure"
     compile "org.springframework.boot:spring-boot-starter-actuator"
     compile "org.springframework.boot:spring-boot-starter-tomcat"
-    compile "javax.servlet:javax.servlet-api:3.1.0"
+    compile "javax.servlet:javax.servlet-api:$servletApiVersion"
     compile "org.grails:grails-core:$grailsVersion"
     compile "org.grails:grails-dependencies:$grailsVersion"
     compile "org.grails:grails-web-boot:$grailsVersion"
@@ -22,9 +22,16 @@ dependencies {
     runtime "org.grails.plugins:scaffolding:$scaffoldingVersion"
     runtime "org.grails.plugins:fields:$fieldsVersion"
 
-    testCompile "org.grails:grails-plugin-testing:$grailsVersion"
+    testCompile "org.grails:grails-gorm-testing-support:$testingSupportVersion"
+    testCompile "org.grails:grails-web-testing-support:$testingSupportVersion"
 
-    testCompile "org.grails.plugins:geb"
+    testCompile "org.spockframework:spock-core:$spockVersion"
+
+    testCompile("org.grails.plugins:geb") {
+        exclude group: 'org.gebish', module: 'geb-spock'
+    }
+    testCompile "org.gebish:geb-spock:$gebVersion"
+
     testRuntime "org.seleniumhq.selenium:selenium-chrome-driver:$seleniumVersion"
     testRuntime "org.seleniumhq.selenium:selenium-firefox-driver:$seleniumVersion"
     testRuntime "org.seleniumhq.selenium:selenium-safari-driver:$seleniumSafariDriverVersion"

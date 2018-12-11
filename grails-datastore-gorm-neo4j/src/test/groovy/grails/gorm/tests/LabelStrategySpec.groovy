@@ -1,8 +1,8 @@
 package grails.gorm.tests
 
+import grails.gorm.annotation.Entity
 import grails.gorm.dirty.checking.DirtyCheck
 import grails.neo4j.Neo4jEntity
-import grails.persistence.Entity
 
 import org.grails.datastore.gorm.neo4j.GraphPersistentEntity
 import org.grails.datastore.gorm.neo4j.util.IteratorUtil

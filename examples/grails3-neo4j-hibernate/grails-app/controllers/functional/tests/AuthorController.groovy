@@ -1,10 +1,10 @@
 package functional.tests
 
+import grails.gorm.transactions.Transactional
 import grails.neo4j.Neo4jEntity
 import org.grails.datastore.gorm.GormEntity
 
 import static org.springframework.http.HttpStatus.*
-import grails.transaction.Transactional
 
 @Transactional(readOnly = true)
 class AuthorController {

@@ -1,6 +1,7 @@
 package grails.gorm.tests
 
-import grails.persistence.Entity
+import grails.gorm.annotation.Entity
+
 
 class JoinCriteriaSpec extends GormDatastoreSpec {
 

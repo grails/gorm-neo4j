@@ -88,8 +88,15 @@ abstract class GormDatastoreSpec extends Specification {
             tx.run("MATCH (n) DETACH DELETE n")
             tx.success()
         } finally {
-            tx.close()
-            session.close()
+            try {
+                tx.close()
+                session.close()
+            } catch (e) {
+                // latest driver throws a nonsensical error. Ignore it for the moment
+                if (!e.message.contains("insanely frequent schema changes")) {
+                    throw e
+                }
+            }
         }
     }
 

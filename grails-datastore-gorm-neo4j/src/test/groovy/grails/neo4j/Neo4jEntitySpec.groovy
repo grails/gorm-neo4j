@@ -27,7 +27,7 @@ class Neo4jEntitySpec extends Specification {
 
         when:
         def cls = new GroovyClassLoader().parseClass('''
-import grails.persistence.*
+import grails.gorm.annotation.*
 
 @Entity
 class Foo {

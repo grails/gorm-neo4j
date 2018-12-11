@@ -1,8 +1,7 @@
 package grails.gorm.tests
 
 import grails.gorm.DetachedCriteria
-import grails.persistence.Entity
-
+import grails.gorm.annotation.Entity
 import org.grails.datastore.mapping.core.Datastore
 import org.grails.datastore.mapping.engine.event.AbstractPersistenceEvent
 import org.grails.datastore.mapping.engine.event.AbstractPersistenceEventListener

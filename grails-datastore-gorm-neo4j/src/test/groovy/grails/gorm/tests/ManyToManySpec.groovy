@@ -1,7 +1,7 @@
 package grails.gorm.tests
 
+import grails.gorm.annotation.Entity
 import grails.gorm.dirty.checking.DirtyCheck
-import grails.persistence.Entity
 import org.grails.datastore.gorm.neo4j.util.IteratorUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
