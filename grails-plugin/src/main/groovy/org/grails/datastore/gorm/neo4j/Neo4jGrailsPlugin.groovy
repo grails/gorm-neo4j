@@ -21,7 +21,7 @@ class Neo4jGrailsPlugin extends Plugin {
     def issueManagement = [ system: "JIRA", url: "https://github.com/grails/grails-data-mapping/issues" ]
     def scm = [ url: "https://github.com/grails/grails-data-mapping" ]
 
-    def grailsVersion = "3.0.0 > *"
+    def grailsVersion = "3.3.0 > *"
     def loadAfter = ['domainClass', 'hibernate', 'services', 'converters']
     //def loadBefore = ['dataSource']
     def observe = ['services', 'domainClass']
