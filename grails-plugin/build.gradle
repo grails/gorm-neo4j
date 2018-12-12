@@ -48,7 +48,8 @@ dependencies {
         exclude group:'javax.transaction', module:'jta'
     }
 
-    testCompile("org.grails:grails-core:")
+    testCompile("org.grails:grails-core")
     testCompile("org.grails:grails-bootstrap")
+    testCompile "org.neo4j.test:neo4j-harness:$neo4jVersion"
 
 }

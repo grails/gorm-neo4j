@@ -28,7 +28,6 @@ import org.grails.datastore.gorm.plugin.support.PersistenceContextInterceptorAgg
 import org.grails.datastore.gorm.support.AbstractDatastorePersistenceContextInterceptor
 import org.grails.datastore.gorm.support.DatastorePersistenceContextInterceptor
 import org.grails.datastore.mapping.core.grailsversion.GrailsVersion
-import org.grails.datastore.mapping.validation.BeanFactoryValidatorRegistry
 import org.springframework.beans.factory.BeanFactory
 import org.springframework.beans.factory.support.BeanDefinitionRegistry
 import org.springframework.context.ApplicationEventPublisher
@@ -79,11 +78,7 @@ class Neo4jDataStoreSpringInitializer extends AbstractDatastoreInitializer {
             }
             neo4jDatastore(Neo4jDatastore, configuration, ref("neo4jConnectionSourceFactory"), eventPublisher, collectMappedClasses(DATASTORE_TYPE))
             neo4jDatastoreServiceRegistry(ServiceRegistryFactoryBean, ref("neo4jDatastore"))
-            neo4jMappingContext(neo4jDatastore:"getMappingContext") {
-                if(!isRecentGrailsVersion) {
-                    validatorRegistry = new BeanFactoryValidatorRegistry((BeanFactory)beanDefinitionRegistry)
-                }
-            }
+            neo4jMappingContext(neo4jDatastore:"getMappingContext") 
             neo4jTransactionManager(neo4jDatastore:"getTransactionManager")
             neo4jAutoTimestampEventListener(neo4jDatastore:"getAutoTimestampEventListener")
             neo4jDriver(neo4jDatastore:"getBoltDriver")

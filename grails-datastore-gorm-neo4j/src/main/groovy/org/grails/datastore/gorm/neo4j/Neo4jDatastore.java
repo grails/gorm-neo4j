@@ -634,7 +634,7 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
     @Override
     public void setMessageSource(MessageSource messageSource) {
         if (messageSource != null) {
-            Neo4jMappingContext mappingContext = (Neo4jMappingContext) getMappingContext();
+            Neo4jMappingContext mappingContext = getMappingContext();
             ValidatorRegistry validatorRegistry = createValidatorRegistry(connectionSources.getDefaultConnectionSource().getSettings(), mappingContext, messageSource);
             configureValidatorRegistry(mappingContext, messageSource, validatorRegistry);
             mappingContext.setValidatorRegistry(validatorRegistry);
