@@ -3,4 +3,5 @@ apply plugin:"groovy"
 dependencies {
     compile project(":grails-datastore-gorm-neo4j")
     testRuntime "org.neo4j.test:neo4j-harness:$neo4jVersion"
+    testCompile "org.spockframework:spock-core:$spockVersion"
 }

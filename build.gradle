@@ -1,9 +1,14 @@
+import groovyx.net.http.RESTClient
+
+import static groovyx.net.http.ContentType.JSON
+
 buildscript {
     repositories {
         mavenLocal()
         maven { url "https://repo.grails.org/grails/core" }
     }
     dependencies {
+        classpath "org.codehaus.groovy.modules.http-builder:http-builder:0.7.1"
         classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4"
         classpath 'com.bmuschko:gradle-nexus-plugin:2.3'
         // classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.5.3"
@@ -69,6 +74,11 @@ subprojects { project ->
     boolean isPluginProject = project.name.endsWith("-plugin") && project.name.startsWith("grails")
     boolean isGrails3PluginProject = project.name.endsWith("-plugin")
     boolean isExample = project.name.startsWith("examples-")
+
+    if (isExample) {
+        apply plugin:'groovy'
+        return
+    }
 
     ext {
         projectInfo = new PublishingConvention(project)
@@ -143,140 +153,165 @@ subprojects { project ->
     }
     else {
         apply plugin:"groovy"
-        if(!isExample) {
-            apply plugin: 'com.bmuschko.nexus'
-            modifyPom {
-                delegate.project pomInfo
-            }
+        apply plugin: 'com.bmuschko.nexus'
+        modifyPom {
+            delegate.project pomInfo
         }
     }
 
-    if(!isExample) {
-        apply plugin: 'maven-publish'
+    apply plugin: 'maven-publish'
+    apply plugin: 'com.jfrog.bintray'
+    apply plugin: "io.github.groovylang.groovydoc"
+
+    groovydoc.jvmArgs "-Xmx512M"
+    groovydoc.classpath += configurations.documentation
+
+    sourceCompatibility = "1.8"
+    targetCompatibility = "1.8"
+
+    dependencies {
+        documentation "org.fusesource.jansi:jansi:1.11"
+        documentation 'info.picocli:picocli:3.8.2'
+        documentation "org.codehaus.groovy:groovy-dateutil:$groovyVersion"
+        testCompile "org.spockframework:spock-core:$spockVersion"
     }
 
-        if(isGrails3PluginProject) {
-            apply plugin: 'com.jfrog.bintray'
-        }
-        apply plugin: "io.github.groovylang.groovydoc"
+    publishing {
 
-        sourceCompatibility = "1.8"
-        targetCompatibility = "1.8"
-
-        dependencies {
-            documentation "org.fusesource.jansi:jansi:1.11"
-            documentation 'info.picocli:picocli:3.8.2'
-            documentation "org.codehaus.groovy:groovy-dateutil:$groovyVersion"
-            testCompile "org.spockframework:spock-core:$spockVersion"
-        }
-
-        groovydoc.jvmArgs "-Xmx512M"
-        groovydoc.classpath += configurations.documentation
-
-
-    if(!isExample) {
-        publishing {
-
-            repositories {
-                maven {
-                    credentials {
-                        def u = System.getenv("ARTIFACTORY_USERNAME") ?: project.hasProperty("artifactoryPublishUsername") ? project.artifactoryPublishUsername : ''
-                        def p = System.getenv("ARTIFACTORY_PASSWORD") ?: project.hasProperty("artifactoryPublishPassword") ? project.artifactoryPublishPassword : ''
-                        username = u
-                        password = p
-                    }
-                    if(isGrails3PluginProject) {
-                        if(isBuildSnapshot) {
-                            url  "https://repo.grails.org/grails/plugins3-snapshots-local"
-                        }
-                        else {
-                            url  "https://repo.grails.org/grails/plugins3-releases-local"
-                        }                    
+        repositories {
+            maven {
+                credentials {
+                    def u = System.getenv("ARTIFACTORY_USERNAME") ?: project.hasProperty("artifactoryPublishUsername") ? project.artifactoryPublishUsername : ''
+                    def p = System.getenv("ARTIFACTORY_PASSWORD") ?: project.hasProperty("artifactoryPublishPassword") ? project.artifactoryPublishPassword : ''
+                    username = u
+                    password = p
+                }
+                if(isGrails3PluginProject) {
+                    if(isBuildSnapshot) {
+                        url  "https://repo.grails.org/grails/plugins3-snapshots-local"
                     }
                     else {
-                        if(isBuildSnapshot) {
-                            url  "https://repo.grails.org/grails/libs-snapshots-local"
-                        }
-                        else {
-                            url  "https://repo.grails.org/grails/libs-releases-local"
-                        }
+                        url  "https://repo.grails.org/grails/plugins3-releases-local"
+                    }
+                }
+                else {
+                    if(isBuildSnapshot) {
+                        url  "https://repo.grails.org/grails/libs-snapshots-local"
+                    }
+                    else {
+                        url  "https://repo.grails.org/grails/libs-releases-local"
                     }
                 }
             }
+        }
 
-            publications {
-                maven(MavenPublication) {
-                    artifactId projectInfo.projectArtifactId                
-                    from components.java
+        publications {
+            maven(MavenPublication) {
+                artifactId projectInfo.projectArtifactId
+                from components.java
 
-                    afterEvaluate {
-                        artifact source: sourcesJar, classifier: "sources"
-                        artifact source: javadocJar, classifier: "javadoc"
+                afterEvaluate {
+                    artifact source: sourcesJar, classifier: "sources"
+                    artifact source: javadocJar, classifier: "javadoc"
 
 
-                        if (isGrails3PluginProject) {
-                            artifact source:"${sourceSets.main.groovy.outputDir}/META-INF/grails-plugin.xml",
-                                    classifier:"plugin",
-                                    extension:'xml'
-                        }
-
+                    if (isGrails3PluginProject) {
+                        artifact source:"${sourceSets.main.groovy.outputDir}/META-INF/grails-plugin.xml",
+                                classifier:"plugin",
+                                extension:'xml'
                     }
 
-                    pom.withXml {
-                        def xml = asNode()
-                        def dependency = xml.dependencies.find { dep -> dep.artifactId == 'slf4j-simple' }
-                        dependency?.optional = true
-                        xml.children().last() + pomInfo
+                }
 
-                    }
+                pom.withXml {
+                    def xml = asNode()
+                    def dependency = xml.dependencies.find { dep -> dep.artifactId == 'slf4j-simple' }
+                    dependency?.optional = true
+                    xml.children().last() + pomInfo
+
                 }
             }
         }
     }
 
-    if(isGrails3PluginProject) {
-        bintray {
+    bintray {
 
-            def u = System.getenv("BINTRAY_USER") ?: project.hasProperty("bintrayUser") ? project.bintrayUser : ''
-            def p = System.getenv("BINTRAY_KEY") ?: project.hasProperty("bintrayKey") ? project.bintrayKey : ''
+        def u = System.getenv("BINTRAY_USER") ?: project.hasProperty("bintrayUser") ? project.bintrayUser : ''
+        def p = System.getenv("BINTRAY_KEY") ?: project.hasProperty("bintrayKey") ? project.bintrayKey : ''
 
-            user = u
-            key = p
-            publications = ['maven']
-            publish = true
-            dryRun = false
-            pkg {
-                if(isGrails3PluginProject) {
-                    repo = 'plugins'
+        user = u
+        key = p
+        publications = ['maven']
+        publish = true
+        dryRun = false
+        pkg {
+            if(isGrails3PluginProject) {
+                repo = 'plugins'
+            }
+            else {
+                repo = 'grails-core'
+            }
+            userOrg = 'grails'
+            name = projectInfo.projectArtifactId
+            desc = projectInfo.projectDescription
+            websiteUrl = projectInfo.projectURL
+            issueTrackerUrl = projectInfo.projectIssueTrackerUrl
+            vcsUrl = projectInfo.projectVcsUrl
+            licenses = ['Apache-2.0']
+            publicDownloadNumbers = true
+            version {
+                name = project.version
+                gpg {
+                    sign = true
+                    passphrase = System.getenv("SIGNING_PASSPHRASE") ?: project.hasProperty("signingPassphrase") ? project.signingPassphrase : ''
                 }
-                else {
-                    repo = 'grails-core'
+                mavenCentralSync {
+                    sync = false
+                    def ossUser = System.getenv("SONATYPE_USERNAME") ?: project.hasProperty("sonatypeOssUsername") ? project.sonatypeOssUsername : ''
+                    def ossPass = System.getenv("SONATYPE_PASSWORD") ?: project.hasProperty("sonatypeOssPassword") ? project.sonatypeOssPassword : ''
+                    user = ossUser
+                    password = ossPass
                 }
-                userOrg = 'grails'
-                name = projectInfo.projectArtifactId
-                desc = projectInfo.projectDescription
-                websiteUrl = projectInfo.projectURL
-                issueTrackerUrl = projectInfo.projectIssueTrackerUrl
-                vcsUrl = projectInfo.projectVcsUrl
-                licenses = ['Apache-2.0']
-                publicDownloadNumbers = true
-                version {
-                    name = project.version
-                    gpg {
-                        sign = true
-                        passphrase = System.getenv("SIGNING_PASSPHRASE") ?: project.hasProperty("signingPassphrase") ? project.signingPassphrase : ''
-                    }
-                    mavenCentralSync {
-                        sync = false
-                        def ossUser = System.getenv("SONATYPE_USERNAME") ?: project.hasProperty("sonatypeOssUsername") ? project.sonatypeOssUsername : ''
-                        def ossPass = System.getenv("SONATYPE_PASSWORD") ?: project.hasProperty("sonatypeOssPassword") ? project.sonatypeOssPassword : ''
-                        user = ossUser
-                        password = ossPass
-                    }
 
+            }
+        }
+    }
+
+    if (!isGrails3PluginProject) {
+        task synchronizeWithMavenCentral() {
+            description = "Syncs with Maven Central/Sonatype"
+            doLast {
+                println """
+Synchronizing with Maven central. This may take a few minutes ...
+If this fails, log on to http://oss.sonatype.org/ using the centralUser credentials
+and progress through process manually -> Close -> Publish ... under staging repositories
+"""
+                try {
+                    try {
+                        def mavenClent = new RESTClient("https://repo.maven.apache.org/maven2/")
+                        mavenClent.get(path:"${project.group.replace('.','/')}/$project.name/$projectVersion/$project.name-${projectVersion}.jar")
+                    } catch(groovyx.net.http.HttpResponseException e) {
+                        // doesn't exist.. try sync
+                        def client = new RESTClient('https://api.bintray.com/maven_central_sync/grails/grails-core/')
+                        client.headers['Authorization'] = 'Basic ' + "$bintrayUser:$bintrayKey".getBytes('iso-8859-1').encodeBase64()
+                        def body = /{}/
+                        def resp = client.post(
+                                path: "$bintray.pkg.name/versions/$projectVersion",
+                                body: body,
+                                requestContentType: JSON
+                        )
+                        assert resp.status == 200
+                        println resp.data.status
+                        println resp.data.messages.join('\n')
+                    }
+                } catch (groovyx.net.http.HttpResponseException e) {
+                    println "Error: $e"
+                    println "Message: $e.message"
+                    println "Body: $e.response.data"
+                    throw e
                 }
             }
-        }                 
+        }
     }
 }
 

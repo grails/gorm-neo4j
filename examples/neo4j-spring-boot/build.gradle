@@ -16,6 +16,7 @@ dependencies {
     compile("org.springframework.boot:spring-boot-starter-web:$springBootVersion")
     compile project(":gorm-neo4j-spring-boot")
     testCompile("org.springframework.boot:spring-boot-starter-test:$springBootVersion")
+    testCompile "org.spockframework:spock-core:$spockVersion"
     runtime "org.neo4j.test:neo4j-harness:$neo4jVersion"
 }
 
