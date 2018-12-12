@@ -5,7 +5,6 @@ import org.grails.datastore.gorm.validation.CascadingValidator
 import org.grails.datastore.mapping.model.PersistentEntity
 import org.springframework.validation.Validator
 import spock.lang.IgnoreIf
-import spock.lang.Unroll
 
 /**
  * Tests validation semantics.
