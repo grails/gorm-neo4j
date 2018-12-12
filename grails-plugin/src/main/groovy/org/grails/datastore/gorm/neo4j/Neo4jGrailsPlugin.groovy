@@ -6,6 +6,7 @@ import grails.plugins.GrailsPlugin
 import grails.plugins.Plugin
 import groovy.transform.CompileStatic
 import org.grails.core.artefact.DomainClassArtefactHandler
+import org.grails.datastore.gorm.neo4j.converters.*
 import org.springframework.beans.factory.support.BeanDefinitionRegistry
 import org.grails.datastore.gorm.plugin.support.*
 import org.springframework.context.ConfigurableApplicationContext
@@ -55,4 +56,26 @@ class Neo4jGrailsPlugin extends Plugin {
         manager.allPlugins.any() { GrailsPlugin plugin -> plugin.name ==~ /hibernate\d*/}
     }
 
+    @Override
+    void doWithApplicationContext() {
+        Neo4jMappingContext mappingContext = applicationContext.getBean(Neo4jMappingContext)
+
+        mappingContext.addTypeConverter(new LongToLocalDateConverter())
+        mappingContext.addTypeConverter(new LongToLocalDateTimeConverter())
+        mappingContext.addTypeConverter(new LongToLocalTimeConverter())
+        mappingContext.addTypeConverter(new LongToOffsetDateTimeConverter())
+        mappingContext.addTypeConverter(new LongToOffsetTimeConverter())
+        mappingContext.addTypeConverter(new LongToZonedDateTimeConverter())
+        mappingContext.addTypeConverter(new StringToPeriodConverter())
+        mappingContext.addTypeConverter(new LongToInstantConverter())
+
+        mappingContext.addTypeConverter(new LocalDateToLongConverter())
+        mappingContext.addTypeConverter(new LocalDateTimeToLongConverter())
+        mappingContext.addTypeConverter(new LocalTimeToLongConverter())
+        mappingContext.addTypeConverter(new OffsetDateTimeToLongConverter())
+        mappingContext.addTypeConverter(new OffsetTimeToLongConverter())
+        mappingContext.addTypeConverter(new ZonedDateTimeToLongConverter())
+        mappingContext.addTypeConverter(new PeriodToStringConverter())
+        mappingContext.addTypeConverter(new InstantToLongConverter())
+    }
 }

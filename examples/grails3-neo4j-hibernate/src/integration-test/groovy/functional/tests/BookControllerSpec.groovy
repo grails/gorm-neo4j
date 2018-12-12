@@ -4,9 +4,6 @@ import geb.spock.*
 import grails.testing.mixin.integration.Integration
 import spock.lang.Ignore
 
-/**
- * See the API for {@link grails.test.mixin.support.GrailsUnitTestMixin} for usage instructions
- */
 @Integration
 class BookControllerSpec extends GebSpec {
 
