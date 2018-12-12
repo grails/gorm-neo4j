@@ -60,8 +60,6 @@ class ValidationSpec extends GormDatastoreSpec {
 
         then:
         1 * mockValidator.validate(task, _)
-
-
     }
 
     void 'Test validating an object that has had values rejected with an ObjectError'() {
@@ -230,12 +228,7 @@ class ValidationSpec extends GormDatastoreSpec {
         t.hasErrors() == true
         1 == t.errors.allErrors.size()
         0 == TestEntity.count()
-
     }
-
-
-
-
 
     private PersistentEntity persistentEntityFor(Class c) {
         session.mappingContext.persistentEntities.find { it.javaClass == c }
