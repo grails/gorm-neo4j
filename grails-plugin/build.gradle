@@ -47,4 +47,8 @@ dependencies {
         exclude group:'org.grails', module:'grails-core'
         exclude group:'javax.transaction', module:'jta'
     }
+
+    testCompile("org.grails:grails-core:")
+    testCompile("org.grails:grails-bootstrap")
+
 }
