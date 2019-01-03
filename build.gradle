@@ -39,6 +39,8 @@ subprojects { project ->
     repositories {
         mavenLocal()
         maven { url "https://repo.grails.org/grails/core" }
+        maven { url "https://oss.jfrog.org/artifactory/oss-snapshot-local" }
+        maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
     }
 
     boolean usesGeb = ["grails3-neo4j", "grails3-neo4j-hibernate"].any { projectName -> project.name.contains(projectName) }
