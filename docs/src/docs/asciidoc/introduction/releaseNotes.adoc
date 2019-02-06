@@ -1,3 +1,9 @@
+==== 7.0.x
+
+* Java 8 Minimum
+* Support for Neo4j Bolt Driver 1.7
+* Support for Neo4j 3.5.x
+
 ==== 6.2.x
 
 * Support for Neo4j Bolt Driver 1.5
