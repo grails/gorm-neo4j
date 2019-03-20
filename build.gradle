@@ -20,7 +20,7 @@ buildscript {
 }
 
 group "org.grails"
-version "7.0.0.BUILD-SNAPSHOT"
+version "7.0.0.RC2"
 println "GORM VERSION = ${project.gormVersion}"
 
 ext {
