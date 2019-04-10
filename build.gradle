@@ -4,7 +4,6 @@ import static groovyx.net.http.ContentType.JSON
 
 buildscript {
     repositories {
-        mavenLocal()
         maven { url "https://repo.grails.org/grails/core" }
     }
     dependencies {
@@ -20,12 +19,12 @@ buildscript {
 }
 
 group "org.grails"
-version "7.0.0.BUILD-SNAPSHOT"
+version "7.0.0.RELEASE"
 println "GORM VERSION = ${project.datastoreVersion}"
 
 ext {
     isTravisBuild = System.getenv().get("TRAVIS") == 'true'
-    hibernatePluginVersion = "7.0.0.BUILD-SNAPSHOT"
+    hibernatePluginVersion = "7.0.0"
     
     isCiBuild = project.hasProperty("isCiBuild")
     isBuildSnapshot = version.endsWith("BUILD-SNAPSHOT")
@@ -36,10 +35,7 @@ ext {
 subprojects { project ->
 
     repositories {
-        mavenLocal()
         maven { url "https://repo.grails.org/grails/core" }
-        maven { url "https://oss.jfrog.org/artifactory/oss-snapshot-local" }
-        maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
     }
 
     boolean usesGeb = ["grails3-neo4j", "grails3-neo4j-hibernate"].any { projectName -> project.name.contains(projectName) }

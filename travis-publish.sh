@@ -16,9 +16,6 @@ if [[ $TRAVIS_REPO_SLUG == "grails/gorm-neo4j" && $TRAVIS_PULL_REQUEST == 'false
     # for releases we upload to Bintray and Sonatype OSS
       if [[ -n $TRAVIS_TAG ]]; then
           ./gradlew publish bintrayUpload --no-daemon --stacktrace || EXIT_STATUS=$?
-        if [[ $EXIT_STATUS -eq 0 ]]; then
-          ./gradlew synchronizeWithMavenCentral --no-daemon
-        fi
       else
           ./gradlew publish --no-daemon --stacktrace || EXIT_STATUS=$?
       fi
@@ -77,8 +74,14 @@ if [[ $TRAVIS_REPO_SLUG == "grails/gorm-neo4j" && $TRAVIS_PULL_REQUEST == 'false
 
     git commit -a -m "Updating Neo4j Docs for Travis build: https://travis-ci.org/$TRAVIS_REPO_SLUG/builds/$TRAVIS_BUILD_ID"
     git push origin HEAD
-    cd ../../..
+    cd ..
     rm -rf gh-pages
+
+    if [[ $EXIT_STATUS -eq 0 ]]; then
+        if [[ -n $TRAVIS_TAG ]]; then
+          ./gradlew synchronizeWithMavenCentral --no-daemon
+        fi
+    fi    
   fi   
 fi
 
