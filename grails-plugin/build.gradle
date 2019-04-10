@@ -13,7 +13,7 @@ configurations.all {
         if(details.requested.group == 'org.grails'
                 && details.requested.name.startsWith('grails-datastore')
                 && !details.requested.name.contains('neo4j')) {
-            details.useVersion(gormVersion)
+            details.useVersion(datastoreVersion)
         }
     }
 }
@@ -25,9 +25,9 @@ dependencies {
     compileOnly "javax.servlet:javax.servlet-api:$servletApiVersion"
     compileOnly "org.spockframework:spock-core:$spockVersion"
 
-    runtime "org.grails:grails-datastore-web:$gormVersion"
+    runtime "org.grails:grails-datastore-web:$datastoreVersion"
 
-    compile "org.grails:grails-datastore-gorm-support:$gormVersion", {
+    compile "org.grails:grails-datastore-gorm-support:$datastoreVersion", {
         exclude group:'org.springframework', module:'spring-context'
         exclude group:'org.springframework', module:'spring-core'
         exclude group:'org.springframework', module:'spring-beans'
