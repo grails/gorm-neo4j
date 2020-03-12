@@ -10,7 +10,12 @@ dependencies {
     compile "org.springframework:spring-tx:$springVersion"
 
     testRuntime "org.neo4j.test:neo4j-harness:$neo4jVersion"
-    testCompile "org.spockframework:spock-core:$spockVersion"
+    testCompile ("org.spockframework:spock-core:$spockVersion") {
+        exclude group: 'junit', module: 'junit-dep'
+        exclude group: 'org.codehaus.groovy', module: 'groovy-all'
+        exclude group: 'org.hamcrest', module: 'hamcrest-core'
+        transitive = false
+    }
     testCompile "org.springframework.boot:spring-boot-cli:$springBootVersion", {
         exclude group:'org.codehaus.groovy', module:'groovy'
     }
