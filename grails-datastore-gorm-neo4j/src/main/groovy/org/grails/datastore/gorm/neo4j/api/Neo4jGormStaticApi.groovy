@@ -287,9 +287,9 @@ LIMIT 1"""
                 String query = """MATCH (from)-[r]-(to) 
 WHERE ${fromEntity.formatId(RelationshipPersistentEntity.FROM)} = {start} AND ${toEntity.formatId(RelationshipPersistentEntity.TO)} = {end}
 RETURN DISTINCT(r)$skip$limit"""
-                List<org.neo4j.driver.v1.types.Relationship> results = executeQuery(query, [start:from.ident(), end:to.ident()])
+                List<org.neo4j.driver.v1.types.Relationship> results = (List<org.neo4j.driver.v1.types.Relationship>) executeQuery(query, [start:from.ident(), end:to.ident()])
 
-                for(neoRel in results) {
+                for(org.neo4j.driver.v1.types.Relationship neoRel in results) {
                     def relationship = new Neo4jRelationship<F,T>(from, to, neoRel)
                     relationship.attributes(neoRel.asMap())
                     rels.add(relationship)
