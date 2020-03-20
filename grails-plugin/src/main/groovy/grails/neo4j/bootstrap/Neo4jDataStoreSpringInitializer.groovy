@@ -17,6 +17,7 @@
 package grails.neo4j.bootstrap
 
 import grails.neo4j.Neo4jEntity
+import grails.spring.BeanBuilder
 import groovy.transform.InheritConstructors
 import org.grails.datastore.gorm.bootstrap.AbstractDatastoreInitializer
 import org.grails.datastore.gorm.bootstrap.support.ServiceRegistryFactoryBean
@@ -28,7 +29,7 @@ import org.grails.datastore.gorm.plugin.support.PersistenceContextInterceptorAgg
 import org.grails.datastore.gorm.support.AbstractDatastorePersistenceContextInterceptor
 import org.grails.datastore.gorm.support.DatastorePersistenceContextInterceptor
 import org.grails.datastore.mapping.core.grailsversion.GrailsVersion
-import org.springframework.beans.factory.BeanFactory
+import org.springframework.beans.factory.groovy.GroovyBeanDefinitionReader
 import org.springframework.beans.factory.support.BeanDefinitionRegistry
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.ConfigurableApplicationContext
@@ -85,7 +86,11 @@ class Neo4jDataStoreSpringInitializer extends AbstractDatastoreInitializer {
             neo4jPersistenceInterceptor(getPersistenceInterceptorClass(), ref("neo4jDatastore"))
             neo4jPersistenceContextInterceptorAggregator(PersistenceContextInterceptorAggregator)
             if (!secondaryDatastore) {
-                springConfig.addAlias "grailsDomainClassMappingContext", "neo4jMappingContext"
+                if (delegate instanceof BeanBuilder) {
+                    springConfig.addAlias "grailsDomainClassMappingContext", "neo4jMappingContext"
+                } else if (delegate instanceof GroovyBeanDefinitionReader) {
+                    registerAlias "neo4jMappingContext", "grailsDomainClassMappingContext"
+                }
             }
 
             String transactionManagerBeanName = TRANSACTION_MANAGER_BEAN
