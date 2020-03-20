@@ -84,7 +84,9 @@ class Neo4jDataStoreSpringInitializer extends AbstractDatastoreInitializer {
             neo4jDriver(neo4jDatastore:"getBoltDriver")
             neo4jPersistenceInterceptor(getPersistenceInterceptorClass(), ref("neo4jDatastore"))
             neo4jPersistenceContextInterceptorAggregator(PersistenceContextInterceptorAggregator)
-
+            if (!secondaryDatastore) {
+                springConfig.addAlias "grailsDomainClassMappingContext", "neo4jMappingContext"
+            }
 
             String transactionManagerBeanName = TRANSACTION_MANAGER_BEAN
             if (!containsRegisteredBean(delegate, beanDefinitionRegistry, transactionManagerBeanName)) {
