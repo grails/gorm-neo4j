@@ -2,6 +2,7 @@ package grails.neo4j.bootstrap
 
 import grails.gorm.annotation.Entity
 import org.grails.datastore.gorm.neo4j.config.Settings
+import org.grails.spring.DefaultRuntimeSpringConfiguration
 import org.springframework.core.env.MapPropertySource
 import org.springframework.core.env.StandardEnvironment
 import spock.lang.Specification
