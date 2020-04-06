@@ -45,6 +45,12 @@ subprojects { project ->
         }
     }
 
+    configurations.all {
+        resolutionStrategy.dependencySubstitution {
+            substitute module("org.codehaus.groovy:groovy-all") with module("org.codehaus.groovy:groovy:$groovyVersion")
+        }
+    }
+
     boolean usesGeb = ["grails3-neo4j", "grails3-neo4j-hibernate"].any { projectName -> project.name.contains(projectName) }
 
     if(project.name.startsWith("examples-grails3")) {
