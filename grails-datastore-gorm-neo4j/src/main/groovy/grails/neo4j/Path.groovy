@@ -7,27 +7,27 @@ package grails.neo4j
  * @see org.neo4j.driver.v1.types.Path
  * @since 6.1
  */
-interface Path<F, T> extends Iterable<Segment<F,T>> {
+interface Path<S, E> extends Iterable<Segment<S,E>> {
 
     /**
      * A segment
      *
      * @see org.neo4j.driver.v1.types.Path.Segment
      */
-    interface Segment<F, T> {
-        Relationship<F, T> relationship()
+    interface Segment<S, E> {
+        Relationship<S, E> relationship()
 
-        F start()
+        S start()
 
-        T end()
+        E end()
     }
 
 
     /** @return the start node of this path */
-    F start()
+    S start()
 
     /** @return the end node of this path */
-    T end()
+    E end()
 
     /** @return the number of segments in this path, which will be the same as the number of relationships */
     int length()
