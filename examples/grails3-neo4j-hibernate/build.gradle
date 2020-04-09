@@ -16,7 +16,7 @@ dependencies {
     compile "org.grails:grails-web-boot:$grailsVersion"
 
     compile project(':grails-plugin')
-    compile "org.grails.plugins:hibernate5:$hibernatePluginVersion"
+    compile "org.grails.plugins:hibernate5:$hibernateDatastoreVersion"
     compile "org.hibernate:hibernate-ehcache:$hibernateEhcacheVersion"
 
     runtime "com.bertramlabs.plugins:asset-pipeline-grails:$assetPipelineVersion"
