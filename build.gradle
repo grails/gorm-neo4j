@@ -25,8 +25,6 @@ println "GORM VERSION = ${project.datastoreVersion}"
 
 ext {
     isTravisBuild = System.getenv().get("TRAVIS") == 'true'
-    hibernatePluginVersion = "7.0.0"
-    
     isCiBuild = project.hasProperty("isCiBuild")
     isBuildSnapshot = version.endsWith("BUILD-SNAPSHOT")
     nexusUsername = System.getenv("SONATYPE_USERNAME") ?: project.hasProperty("sonatypeOssUsername") ? project.sonatypeOssUsername : ''
@@ -52,34 +50,38 @@ subprojects { project ->
     }
 
     boolean usesGeb = ["grails3-neo4j", "grails3-neo4j-hibernate"].any { projectName -> project.name.contains(projectName) }
+    boolean isPluginProject = project.name.endsWith("-plugin") && project.name.startsWith("grails")
+    boolean isGrails3PluginProject = project.name.endsWith("-plugin")
+    boolean isExample = project.name.startsWith("examples-")
 
-    if(project.name.startsWith("examples-grails3")) {
-        apply plugin:"org.grails.grails-web"
-        apply plugin:"org.grails.grails-gsp"
+    if (isExample) {
 
-        if (usesGeb) {
-            apply plugin:"com.energizedwork.webdriver-binaries"
-        }
+        boolean isGrails3Example = project.name.startsWith("examples-grails3")
 
-        tasks.withType(Test) {
-            useJUnitPlatform()
-            testLogging {
-                showStandardStreams = true
-                exceptionFormat = 'full'
+        if (isGrails3Example) {
+            apply plugin:"org.grails.grails-web"
+            apply plugin:"org.grails.grails-gsp"
+
+            if (usesGeb) {
+                apply plugin:"com.energizedwork.webdriver-binaries"
             }
-        }
-        configurations.all {
-            resolutionStrategy.eachDependency { DependencyResolveDetails details ->
-                if(details.requested.group == 'org.codehaus.groovy' && details.requested.name.startsWith('groovy')) {
-                    details.useVersion(groovyVersion)   
-                }
-                if(details.requested.group == 'org.springframework') {
-                    details.useVersion(springVersion)
+
+            configurations.all {
+                resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+                    if(details.requested.group == 'org.codehaus.groovy' && details.requested.name.startsWith('groovy')) {
+                        details.useVersion(groovyVersion)
+                    }
+                    if(details.requested.group == 'org.springframework') {
+                        details.useVersion(springVersion)
+                    }
                 }
             }
-        }
 
-        apply plugin: "java"
+            apply plugin: "java"
+
+        } else {
+            apply plugin:'groovy'
+        }
 
         dependencies {
             testCompile "org.codehaus.groovy:groovy-test-junit5:$groovyVersion"
@@ -94,15 +96,14 @@ subprojects { project ->
             testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.6.0"
         }
 
-        return
-    }
+        tasks.withType(Test) {
+            useJUnitPlatform()
+            testLogging {
+                showStandardStreams = true
+                exceptionFormat = 'full'
+            }
+        }
 
-    boolean isPluginProject = project.name.endsWith("-plugin") && project.name.startsWith("grails")
-    boolean isGrails3PluginProject = project.name.endsWith("-plugin")
-    boolean isExample = project.name.startsWith("examples-")
-
-    if (isExample) {
-        apply plugin:'groovy'
         return
     }
 
