@@ -34,7 +34,11 @@ class MultipleConnectionsSpec extends Specification {
                     ]
             ]
     ]
-    @Shared @AutoCleanup Neo4jDatastore datastore = new Neo4jDatastore(config, getDomainClasses() as Class[])
+    @Shared @AutoCleanup Neo4jDatastore datastore
+
+    void setupSpec() {
+        datastore = new Neo4jDatastore(config, getDomainClasses() as Class[])
+    }
 
 
     void "Test query multiple data sources"() {

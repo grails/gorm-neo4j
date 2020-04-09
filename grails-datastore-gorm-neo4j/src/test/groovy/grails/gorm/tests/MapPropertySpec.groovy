@@ -2,14 +2,15 @@ package grails.gorm.tests
 
 import grails.gorm.annotation.Entity
 import grails.neo4j.Neo4jEntity
-import groovy.transform.NotYetImplemented
+import spock.lang.Ignore
 
 /**
  * Created by graemerocher on 09/09/2016.
  */
+@Ignore
 class MapPropertySpec extends GormDatastoreSpec {
 
-    @NotYetImplemented
+    @Ignore
     void "Test persist map property"() {
         when:"a object with a map property is persisted"
 
