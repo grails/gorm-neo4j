@@ -19,14 +19,14 @@ import org.neo4j.driver.v1.types.Node
  * @since 6.1
  */
 @CompileStatic
-class Neo4jPath<F extends Neo4jEntity<F>, T extends Neo4jEntity<T>> implements Path<F, T> {
+class Neo4jPath<S extends Neo4jEntity<S>, E extends Neo4jEntity<E>> implements Path<S, E> {
     final Neo4jDatastore datastore
     final org.neo4j.driver.v1.types.Path neo4jPath
     final GraphPersistentEntity from
     final GraphPersistentEntity to
 
-    private F start
-    private T end
+    private S start
+    private E end
     private Iterable nodes
 
     Neo4jPath(Neo4jDatastore datastore, org.neo4j.driver.v1.types.Path neo4jPath, GraphPersistentEntity from, GraphPersistentEntity to) {
@@ -61,22 +61,22 @@ class Neo4jPath<F extends Neo4jEntity<F>, T extends Neo4jEntity<T>> implements P
 
 
     @Override
-    F start() {
+    S start() {
         if(start == null) {
             Class clazz = from.javaClass
             Neo4jEntityPersister persister = (Neo4jEntityPersister )GormEnhancer.findDatastore(clazz).currentSession.getPersister(clazz)
-            start = (F)persister.unmarshallOrFromCache(from, neo4jPath.start())
+            start = (S)persister.unmarshallOrFromCache(from, neo4jPath.start())
         }
         return start
     }
 
     @Override
-    T end() {
+    E end() {
         if(end == null) {
             Class clazz = to.javaClass
             Neo4jEntityPersister persister = (Neo4jEntityPersister )GormEnhancer.findDatastore(clazz).currentSession.getPersister(clazz)
 
-            end = (T)persister.unmarshallOrFromCache(to, neo4jPath.end())
+            end = (E)persister.unmarshallOrFromCache(to, neo4jPath.end())
         }
         return end
     }

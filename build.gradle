@@ -19,14 +19,12 @@ buildscript {
 }
 
 group "org.grails"
-//version "7.0.2.RELEASE"
-version "7.0.2.BUILD-SNAPSHOT"
+// version "7.1.0.RELEASE"
+version "7.1.0.BUILD-SNAPSHOT"
 println "GORM VERSION = ${project.datastoreVersion}"
 
 ext {
     isTravisBuild = System.getenv().get("TRAVIS") == 'true'
-    hibernatePluginVersion = "7.0.0"
-    
     isCiBuild = project.hasProperty("isCiBuild")
     isBuildSnapshot = version.endsWith("BUILD-SNAPSHOT")
     nexusUsername = System.getenv("SONATYPE_USERNAME") ?: project.hasProperty("sonatypeOssUsername") ? project.sonatypeOssUsername : ''
@@ -37,44 +35,75 @@ subprojects { project ->
 
     repositories {
         maven { url "https://repo.grails.org/grails/core" }
+        if(groovyVersion && groovyVersion.endsWith('-SNAPSHOT')) {
+            maven {
+                name 'JFrog OSS snapshot repo'
+                url 'https://oss.jfrog.org/oss-snapshot-local/'
+            }
+        }
+    }
+
+    configurations.all {
+        resolutionStrategy.dependencySubstitution {
+            substitute module("org.codehaus.groovy:groovy-all") with module("org.codehaus.groovy:groovy:$groovyVersion")
+        }
     }
 
     boolean usesGeb = ["grails3-neo4j", "grails3-neo4j-hibernate"].any { projectName -> project.name.contains(projectName) }
-
-    if(project.name.startsWith("examples-grails3")) {
-        apply plugin:"org.grails.grails-web"
-        apply plugin:"org.grails.grails-gsp"
-
-        if (usesGeb) {
-            apply plugin:"com.energizedwork.webdriver-binaries"
-        }
-
-        tasks.withType(Test) {
-            testLogging {
-                showStandardStreams = true
-                exceptionFormat = 'full'
-            }
-        }
-        configurations.all {
-            resolutionStrategy.eachDependency { DependencyResolveDetails details ->
-                if(details.requested.group == 'org.codehaus.groovy' && details.requested.name.startsWith('groovy')) {
-                    details.useVersion(groovyVersion)   
-                }
-                if(details.requested.group == 'org.springframework') {
-                    details.useVersion(springVersion)
-                }
-            }
-        } 
-
-        return
-    }
-
     boolean isPluginProject = project.name.endsWith("-plugin") && project.name.startsWith("grails")
     boolean isGrails3PluginProject = project.name.endsWith("-plugin")
     boolean isExample = project.name.startsWith("examples-")
 
     if (isExample) {
-        apply plugin:'groovy'
+
+        boolean isGrails3Example = project.name.startsWith("examples-grails3")
+
+        if (isGrails3Example) {
+            apply plugin:"org.grails.grails-web"
+            apply plugin:"org.grails.grails-gsp"
+
+            if (usesGeb) {
+                apply plugin:"com.energizedwork.webdriver-binaries"
+            }
+
+            configurations.all {
+                resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+                    if(details.requested.group == 'org.codehaus.groovy' && details.requested.name.startsWith('groovy')) {
+                        details.useVersion(groovyVersion)
+                    }
+                    if(details.requested.group == 'org.springframework') {
+                        details.useVersion(springVersion)
+                    }
+                }
+            }
+
+            apply plugin: "java"
+
+        } else {
+            apply plugin:'groovy'
+        }
+
+        dependencies {
+            testCompile "org.codehaus.groovy:groovy-test-junit5:$groovyVersion"
+            testCompile "org.spockframework:spock-core:$spockVersion", {
+                exclude group: 'junit', module: 'junit-dep'
+                exclude group: 'org.codehaus.groovy', module: 'groovy-all'
+                exclude group: 'org.hamcrest', module: 'hamcrest-core'
+                transitive = false
+            }
+            testCompile "org.junit.jupiter:junit-jupiter-api:5.6.0"
+            testCompile "org.junit.platform:junit-platform-runner:1.6.0"
+            testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.6.0"
+        }
+
+        tasks.withType(Test) {
+            useJUnitPlatform()
+            testLogging {
+                showStandardStreams = true
+                exceptionFormat = 'full'
+            }
+        }
+
         return
     }
 
@@ -171,7 +200,16 @@ subprojects { project ->
         documentation "org.fusesource.jansi:jansi:1.11"
         documentation 'info.picocli:picocli:3.8.2'
         documentation "org.codehaus.groovy:groovy-dateutil:$groovyVersion"
-        testCompile "org.spockframework:spock-core:$spockVersion"
+        testCompile "org.codehaus.groovy:groovy-test-junit5:$groovyVersion"
+        testCompile "org.spockframework:spock-core:$spockVersion", {
+            exclude group: 'junit', module: 'junit-dep'
+            exclude group: 'org.codehaus.groovy', module: 'groovy-all'
+            exclude group: 'org.hamcrest', module: 'hamcrest-core'
+            transitive = false
+        }
+        testCompile "org.junit.jupiter:junit-jupiter-api:5.6.0"
+        testCompile "org.junit.platform:junit-platform-runner:1.6.0"
+        testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.6.0"
     }
 
     publishing {

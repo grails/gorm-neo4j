@@ -68,7 +68,8 @@ class Neo4jExtensions {
      * @return The domain instance
      */
     static <N> N asType(Node node, Class<N> c) {
-        if(Map.isAssignableFrom(c)) {
+        //TODO: Remove explicit typecast to Class<?> once GROOVY-9460 is resolved
+        if(Map.isAssignableFrom((Class<?>) c)) {
             return (N)node.asMap()
         }
         else {

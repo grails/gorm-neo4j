@@ -7,6 +7,7 @@ dependencyManagement {
     }
     applyMavenExclusions false
 }
+
 configurations.all {
     exclude(group:'org.grails',module:'grails-datastore-simple')
     resolutionStrategy.eachDependency { DependencyResolveDetails details ->
@@ -14,6 +15,9 @@ configurations.all {
                 && details.requested.name.startsWith('grails-datastore')
                 && !details.requested.name.contains('neo4j')) {
             details.useVersion(datastoreVersion)
+        }
+        if(details.requested.group == 'org.codehaus.groovy' && details.requested.name.startsWith('groovy')) {
+            details.useVersion(groovyVersion)
         }
     }
 }
@@ -23,7 +27,11 @@ dependencies {
     compileOnly("org.grails:grails-core:")
     compileOnly("org.grails:grails-bootstrap")
     compileOnly "javax.servlet:javax.servlet-api:$servletApiVersion"
-    compileOnly "org.spockframework:spock-core:$spockVersion"
+    compileOnly "org.spockframework:spock-core:$spockVersion", {
+        exclude group: "junit", module: "junit-dep"
+        exclude group: 'org.codehaus.groovy', module: 'groovy-all'
+        exclude group: 'org.hamcrest', module: 'hamcrest-core'
+    }
 
     runtime "org.grails:grails-datastore-web:$datastoreVersion"
 
