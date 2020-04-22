@@ -1,3 +1,7 @@
+==== 7.1.x
+
+* Support for Groovy 3
+
 ==== 7.0.x
 
 * Java 8 Minimum
