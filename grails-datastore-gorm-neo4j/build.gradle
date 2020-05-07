@@ -20,7 +20,7 @@ dependencies {
     
     testRuntime "org.springframework:spring-aop:$springVersion"
     testRuntime "ch.qos.logback:logback-classic:1.1.7"
-    testRuntime('javax.el:javax.el-api:2.2.4')
+    testRuntime('javax.el:javax.el-api:3.0.0')
     testRuntime('org.glassfish.web:el-impl:2.2')
 
 
