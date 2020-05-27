@@ -1,74 +1,24 @@
 If you are upgrading from a previous version of the plugin to the {version}, you will need to take into account the following changes.
 
-==== Removal of grails-datastore-simple
-
-The `grails-datastore-simple` and `grails-datastore-gorm-test` dependencies have been combined into a single `grails-datastore-gorm-test` dependency.
-
-Unfortunately existing versions of Grails still depend on the old `grails-datastore-simple` dependency. And you may receive an error such as:
-
-[source,groovy,subs="attributes"]
-----
-> Could not resolve all dependencies for configuration ':example:runtime'.
-   > Could not find org.grails:grails-datastore-simple:{version}.
-     Searched in the following locations:
-         https://repo.grails.org/grails/core/org/grails/grails-datastore-simple/{version}/grails-datastore-simple-{version}.pom
-         https://repo.grails.org/grails/core/org/grails/grails-datastore-simple/{version}/grails-datastore-simple-{version}.jar
-     Required by:
-         project :example > org.grails:grails-dependencies:3.2.4 >
-            ...
-----
-
-If you are upgrading you will need to exclude this dependency using the following Gradle syntax directly before the `dependencies` block:
-
-[source,groovy]
-.build.gradle
-----
-configurations.all { Configuration c ->
-    c.exclude(group:'org.grails',module:'grails-datastore-simple')
-}
-dependencies {
-    ....
-}
-----
-
-==== Native Identifiers by Default
-
-Since 6.1, GORM for Neo4j uses native node and relationship identifiers by default for ids instead of the prevous snowflake id generation strategy. If you wish to revert to the previous strategy you can do so by applying the following configuration:
-
-[source,groovy]
-----
-grails.gorm.neo4j.default.mapping = {
-    id generator:'snowflake'
-}
-----
-
 ==== Configuration Changes
 
-Since the plugin now uses the Neo4j Bolt driver the configuration has been altered.
-
-The `grails.neo4j.options` setting no longer configures the Neo4j embedded options, but instead configures the Bolt driver options.
-
-If you want to continue to configure Neo4j in embedded mode you must use `grails.neo4j.embedded.options`.
+The version 4 of the Neo4j driver contains changes in the configuration builder which require configuration changes to conform to them. For example `grails.neo4j.options.maxSessions` is now `grails.neo4j.options.maxConnectionPoolSize`. Some configuration defaults have also changed, so be sure to check the documentation of the driver for more information.
 
 ==== Bolt Java Driver and API Changes
 
-The API has changed to accommodate the Neo4j Bolt driver and all references to the Neo4j server itself have been removed.
+The API has changed to accommodate the new Neo4j Bolt driver.
 
 Therefore you need to replace the usages of the following interfaces with their bolt equivalents:
 
 [format="csv", options="header"]
 |===
 
-Neo4j Class, Bolt Driver Replacement
-org.neo4j.graphdb.GraphDatabaseService, org.neo4j.driver.Driver
-org.neo4j.graphdb.Transaction, org.neo4j.driver.Transaction
-org.neo4j.graphdb.Node, org.neo4j.driver.types.Node
-org.neo4j.graphdb.Relationship, org.neo4j.driver.types.Relationship
-org.neo4j.graphdb.Result, org.neo4j.driver.Result
+Class, Replacement
+org.neo4j.driver.v1.Driver, org.neo4j.driver.Driver
+org.neo4j.driver.v1.Transaction, org.neo4j.driver.Transaction
+org.neo4j.driver.v1.types.Node, org.neo4j.driver.types.Node
+org.neo4j.driver.v1.types.Relationship, org.neo4j.driver.types.Relationship
+org.neo4j.driver.v1.StatementResult, org.neo4j.driver.Result
 |===
 
-There may be other classes that you need to replace references too. Generally the `org.neo4j.graphdb` package is considered the server-side API and only the `org.neo4j.driver` package should be used in applications.
-
-==== General Neo4j 3.x Changes
-
-Since GORM for Neo4j {version} is based on Neo4j 3.x, if you are upgrading from Neo4j 2.x there will be other changes related to Neo4j 3 that you may need to make. These are described in the https://neo4j.com/guides/upgrade/[upgrade guide] on the Neo4j website.
+There may be other classes that you need to replace references too. The `org.neo4j.driver.v1` package has shed its `v1` package, however there are also other changes.

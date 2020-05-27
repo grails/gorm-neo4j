@@ -9,7 +9,7 @@ The following options can be configured in `grails-app/conf/application.yml`:
 * `grails.neo4j.default.mapping` - The default database mapping. Must be a closure configured in `application.groovy`
 * `grails.neo4j.options` - Any options to be passed to the driver
 
-The `grails.neo4j.options` setting allows you to configure the properties of http://neo4j.com/docs/api/java-driver/1.0/org/neo4j/driver/v1/Config.html[org.neo4j.driver.Config], for example:
+The `grails.neo4j.options` setting allows you to configure the properties of http://neo4j.com/docs/api/java-driver/4.0/org/neo4j/driver/Config.html[org.neo4j.driver.Config], for example:
 
 
 [source,yaml]
@@ -17,12 +17,11 @@ The `grails.neo4j.options` setting allows you to configure the properties of htt
 grails:
     neo4j:
         options:
-            maxSessions: 100
-            encryptionLevel: NONE
-            sessionLivenessCheckTimeout: 200
+            maxConnectionPoolSize: 100
+            connectionLivenessCheckTimeout: 200
 ----
 
-For builder methods with 0 arguments, setting the configuration value to true will cause the method to be executed. For example the following configuration will result in the http://neo4j.com/docs/api/java-driver/1.4/org/neo4j/driver/v1/Config.ConfigBuilder.html#withEncryption--[ConfigBuilder#withEncryption] method to be called.
+For builder methods with 0 arguments, setting the configuration value to true will cause the method to be executed. For example the following configuration will result in the http://neo4j.com/docs/api/java-driver/4.0/org/neo4j/driver/Config.ConfigBuilder.html#withEncryption--[ConfigBuilder#withEncryption] method to be called.
 
 [source,yaml]
 ----
@@ -32,7 +31,7 @@ grails:
             encryption: true
 ----
 
-For builder methods with more than 1 argument, it is possible to configure values for the method using `arg#` syntax. For example the following configuration will result in the http://neo4j.com/docs/api/java-driver/1.4/org/neo4j/driver/v1/Config.ConfigBuilder.html#withConnectionTimeout-long-java.util.concurrent.TimeUnit-[ConfigBuilder#withConnectionTimeout] method to be called.
+For builder methods with more than 1 argument, it is possible to configure values for the method using `arg#` syntax. For example the following configuration will result in the http://neo4j.com/docs/api/java-driver/4.0/org/neo4j/driver/Config.ConfigBuilder.html#withConnectionTimeout-long-java.util.concurrent.TimeUnit-[ConfigBuilder#withConnectionTimeout] method to be called.
 
 [source,yaml]
 ----
