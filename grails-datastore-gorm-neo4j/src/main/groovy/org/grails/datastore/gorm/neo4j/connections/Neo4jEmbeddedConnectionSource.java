@@ -1,7 +1,7 @@
 package org.grails.datastore.gorm.neo4j.connections;
 
 import org.grails.datastore.mapping.core.connections.DefaultConnectionSource;
-import org.neo4j.driver.v1.Driver;
+import org.neo4j.driver.Driver;
 import org.neo4j.harness.ServerControls;
 
 import java.io.IOException;

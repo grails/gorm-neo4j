@@ -8,7 +8,7 @@ import groovy.beans.Bindable
 import groovyx.gpars.GParsPool
 
 import org.grails.datastore.gorm.neo4j.util.IteratorUtil
-import org.neo4j.driver.v1.exceptions.ClientException
+import org.neo4j.driver.exceptions.ClientException
 import org.neo4j.graphdb.Label
 import spock.lang.Ignore
 import spock.lang.IgnoreIf
@@ -175,7 +175,7 @@ class MiscSpec extends GormDatastoreSpec {
                 def tx = session.beginTransaction()
 
                 tx.run("CREATE (n1:Team {props})", [props:[name:"Team $count".toString()]])
-                tx.success()
+                tx.commit()
                 session.close()
             }
         }

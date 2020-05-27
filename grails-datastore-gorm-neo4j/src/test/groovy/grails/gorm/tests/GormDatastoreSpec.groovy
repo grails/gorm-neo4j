@@ -12,7 +12,7 @@ import org.grails.datastore.gorm.validation.constraints.registry.DefaultConstrai
 import org.grails.datastore.mapping.core.DatastoreUtils
 import org.grails.datastore.mapping.model.MappingContext
 import org.grails.datastore.mapping.model.PersistentEntity
-import org.neo4j.driver.v1.Driver
+import org.neo4j.driver.Driver
 import org.neo4j.harness.ServerControls
 import org.springframework.context.support.GenericApplicationContext
 import org.springframework.context.support.StaticMessageSource
@@ -86,10 +86,9 @@ abstract class GormDatastoreSpec extends Specification {
         def tx = session.beginTransaction()
         try {
             tx.run("MATCH (n) DETACH DELETE n")
-            tx.success()
+            tx.commit()
         } finally {
             try {
-                tx.close()
                 session.close()
             } catch (e) {
                 // latest driver throws a nonsensical error. Ignore it for the moment

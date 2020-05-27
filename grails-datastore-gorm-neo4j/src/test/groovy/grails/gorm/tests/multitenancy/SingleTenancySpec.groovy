@@ -9,8 +9,8 @@ import org.grails.datastore.gorm.neo4j.util.EmbeddedNeo4jServer
 import org.grails.datastore.mapping.core.Session
 import org.grails.datastore.mapping.multitenancy.exceptions.TenantNotFoundException
 import org.grails.datastore.mapping.multitenancy.resolvers.SystemPropertyTenantResolver
-import org.neo4j.driver.v1.exceptions.ClientException
-import org.neo4j.driver.v1.exceptions.ServiceUnavailableException
+import org.neo4j.driver.exceptions.ClientException
+import org.neo4j.driver.exceptions.ServiceUnavailableException
 import org.neo4j.harness.ServerControls
 import org.springframework.util.SocketUtils
 import spock.lang.AutoCleanup

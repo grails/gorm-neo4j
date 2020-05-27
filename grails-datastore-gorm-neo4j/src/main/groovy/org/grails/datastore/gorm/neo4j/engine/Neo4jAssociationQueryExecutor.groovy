@@ -32,9 +32,9 @@ import org.grails.datastore.mapping.model.types.Basic
 import org.grails.datastore.mapping.model.types.ManyToOne
 import org.grails.datastore.mapping.model.types.ToMany
 import org.grails.datastore.mapping.model.types.ToOne
-import org.neo4j.driver.v1.Session
-import org.neo4j.driver.v1.StatementResult
-import org.neo4j.driver.v1.StatementRunner
+import org.neo4j.driver.Session
+import org.neo4j.driver.Result
+import org.neo4j.driver.QueryRunner
 
 import javax.persistence.FetchType
 
@@ -80,7 +80,7 @@ class Neo4jAssociationQueryExecutor implements AssociationQueryExecutor<Serializ
     @Override
     List<Object> query(Serializable primaryKey) {
 
-        StatementRunner statementRunner = session.hasTransaction() ? session.getTransaction().getNativeTransaction() : (Session)session.nativeInterface
+        QueryRunner statementRunner = session.hasTransaction() ? session.getTransaction().getNativeTransaction() : (Session)session.nativeInterface
         String relType
 
         GraphPersistentEntity parent = (GraphPersistentEntity)association.owner
@@ -227,7 +227,7 @@ class Neo4jAssociationQueryExecutor implements AssociationQueryExecutor<Serializ
         log.debug("Lazy loading association [${association}] using relationship $relationship")
         log.debug("QUERY Cypher [$cypher] for params [$params]")
 
-        StatementResult result = statementRunner.run(cypher.toString(), params)
+        Result result = statementRunner.run(cypher.toString(), params)
         if(isLazyToMany) {
             List<Object> results = []
             while(result.hasNext()) {

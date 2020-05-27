@@ -1,6 +1,6 @@
 package grails.gorm.tests
 
-import org.neo4j.driver.v1.StatementResult
+import org.neo4j.driver.Result
 
 /*
  * Copyright 2014 original authors
@@ -116,7 +116,7 @@ class CypherQueryStringSpec extends GormDatastoreSpec {
         clubs[0].teams.size() == 2
 
         when:"A find method is executed with a gstring"
-        StatementResult result  = Club.executeCypher("MATCH (n) where n.name = $name RETURN n")
+        Result result  = Club.executeCypher("MATCH (n) where n.name = $name RETURN n")
 
         then:"The result is correct"
         result.hasNext()

@@ -12,9 +12,9 @@ import org.grails.datastore.gorm.schemaless.DynamicAttributes;
 import org.grails.datastore.mapping.engine.EntityAccess;
 import org.grails.datastore.mapping.engine.NonPersistentTypeException;
 import org.grails.datastore.mapping.model.config.GormProperties;
-import org.neo4j.driver.v1.Record;
-import org.neo4j.driver.v1.StatementResult;
-import org.neo4j.driver.v1.StatementRunner;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.Result;
+import org.neo4j.driver.QueryRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,13 +41,13 @@ public class DynamicAssociationSupport {
 
             final String cypher = graphPersistentEntity.formatDynamicAssociationQuery();
             final Map<String, Object> isMap = Collections.<String, Object>singletonMap(GormProperties.IDENTITY, id);
-            final StatementRunner boltSession = session.hasTransaction() ? session.getTransaction().getNativeTransaction() : session.getNativeInterface();
+            final QueryRunner boltSession = session.hasTransaction() ? session.getTransaction().getNativeTransaction() : session.getNativeInterface();
 
             if(log.isDebugEnabled()) {
                 log.debug("QUERY Cypher [{}] for parameters [{}]", cypher, isMap);
             }
 
-            final StatementResult relationships = boltSession.run(cypher, isMap);
+            final Result relationships = boltSession.run(cypher, isMap);
             while(relationships.hasNext()) {
                 final Record row = relationships.next();
                 String relType = row.get("relType").asString();

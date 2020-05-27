@@ -56,7 +56,7 @@ class OptimisticLockingSpec extends GormDatastoreSpec {
         session.transaction.nativeTransaction.close()
         session.clear()
 
-        def neo4jSession = (org.neo4j.driver.v1.Session) session.getNativeInterface()
+        def neo4jSession = (org.neo4j.driver.Session) session.getNativeInterface()
         SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager.getResource(session.getDatastore());
 //        sessionHolder.setTransaction( new Neo4jTransaction(neo4jSession))
 

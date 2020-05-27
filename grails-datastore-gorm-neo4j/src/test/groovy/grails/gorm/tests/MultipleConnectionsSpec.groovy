@@ -4,8 +4,8 @@ import grails.gorm.annotation.Entity
 import grails.neo4j.Neo4jEntity
 import org.grails.datastore.gorm.neo4j.Neo4jDatastore
 import org.grails.datastore.gorm.neo4j.config.Settings
-import org.neo4j.driver.v1.exceptions.ClientException
-import org.neo4j.driver.v1.exceptions.ServiceUnavailableException
+import org.neo4j.driver.exceptions.ClientException
+import org.neo4j.driver.exceptions.ServiceUnavailableException
 import org.springframework.util.SocketUtils
 import spock.lang.AutoCleanup
 import spock.lang.Ignore

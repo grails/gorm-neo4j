@@ -10,10 +10,10 @@ import org.grails.datastore.gorm.neo4j.Neo4jDatastore
 import org.grails.datastore.gorm.neo4j.Neo4jMappingContext
 import org.grails.datastore.gorm.neo4j.engine.Neo4jEntityPersister
 import org.grails.datastore.mapping.query.QueryException
-import org.neo4j.driver.v1.types.Node
+import org.neo4j.driver.types.Node
 
 /**
- * A neo4j {@link org.neo4j.driver.v1.types.Path} adapter
+ * A neo4j {@link org.neo4j.driver.types.Path} adapter
  *
  * @author Graeme Rocher
  * @since 6.1
@@ -21,7 +21,7 @@ import org.neo4j.driver.v1.types.Node
 @CompileStatic
 class Neo4jPath<S extends Neo4jEntity<S>, E extends Neo4jEntity<E>> implements Path<S, E> {
     final Neo4jDatastore datastore
-    final org.neo4j.driver.v1.types.Path neo4jPath
+    final org.neo4j.driver.types.Path neo4jPath
     final GraphPersistentEntity from
     final GraphPersistentEntity to
 
@@ -29,7 +29,7 @@ class Neo4jPath<S extends Neo4jEntity<S>, E extends Neo4jEntity<E>> implements P
     private E end
     private Iterable nodes
 
-    Neo4jPath(Neo4jDatastore datastore, org.neo4j.driver.v1.types.Path neo4jPath, GraphPersistentEntity from, GraphPersistentEntity to) {
+    Neo4jPath(Neo4jDatastore datastore, org.neo4j.driver.types.Path neo4jPath, GraphPersistentEntity from, GraphPersistentEntity to) {
         this.datastore = datastore
         this.neo4jPath = neo4jPath
         if(from == null) {
@@ -48,13 +48,13 @@ class Neo4jPath<S extends Neo4jEntity<S>, E extends Neo4jEntity<E>> implements P
         this.to = to
     }
 
-    Neo4jPath(Neo4jDatastore datastore, org.neo4j.driver.v1.types.Path neo4jPath, Class from, Class to) {
+    Neo4jPath(Neo4jDatastore datastore, org.neo4j.driver.types.Path neo4jPath, Class from, Class to) {
         this(datastore, neo4jPath,
                 (GraphPersistentEntity)datastore.mappingContext.getPersistentEntity(from.name),
                 (GraphPersistentEntity)datastore.mappingContext.getPersistentEntity(to.name))
     }
 
-    Neo4jPath(Neo4jDatastore datastore, org.neo4j.driver.v1.types.Path neo4jPath) {
+    Neo4jPath(Neo4jDatastore datastore, org.neo4j.driver.types.Path neo4jPath) {
         this(datastore, neo4jPath,(GraphPersistentEntity)null,null)
     }
 
@@ -110,9 +110,9 @@ class Neo4jPath<S extends Neo4jEntity<S>, E extends Neo4jEntity<E>> implements P
 
     static class Neo4jPathIterator implements Iterator<Path.Segment> {
         final Neo4jDatastore datastore
-        final Iterator<org.neo4j.driver.v1.types.Path.Segment> iterator
+        final Iterator<org.neo4j.driver.types.Path.Segment> iterator
 
-        Neo4jPathIterator(Neo4jDatastore datastore, Iterator<org.neo4j.driver.v1.types.Path.Segment> iterator) {
+        Neo4jPathIterator(Neo4jDatastore datastore, Iterator<org.neo4j.driver.types.Path.Segment> iterator) {
             this.datastore = datastore
             this.iterator = iterator
         }
@@ -124,19 +124,19 @@ class Neo4jPath<S extends Neo4jEntity<S>, E extends Neo4jEntity<E>> implements P
 
         @Override
         Path.Segment next() {
-            org.neo4j.driver.v1.types.Path.Segment neoSegment = iterator.next()
+            org.neo4j.driver.types.Path.Segment neoSegment = iterator.next()
             return new Neo4jPathSegment(datastore,neoSegment)
         }
     }
 
     static class Neo4jPathSegment implements  Path.Segment {
         final Neo4jDatastore datastore
-        final org.neo4j.driver.v1.types.Path.Segment neoSegment
+        final org.neo4j.driver.types.Path.Segment neoSegment
 
         private Neo4jEntity start
         private Neo4jEntity end
 
-        Neo4jPathSegment(Neo4jDatastore datastore, org.neo4j.driver.v1.types.Path.Segment neoSegment) {
+        Neo4jPathSegment(Neo4jDatastore datastore, org.neo4j.driver.types.Path.Segment neoSegment) {
             this.datastore = datastore
             this.neoSegment = neoSegment
         }
