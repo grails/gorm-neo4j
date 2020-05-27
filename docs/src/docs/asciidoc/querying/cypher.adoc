@@ -10,7 +10,7 @@ Note that the first returned item should be the node itself. To execute cypher q
 
 [source,groovy]
 ----
-StatementResult result = Club.executeCypher("MATCH n where n.name = {1} RETURN n", ['FC Bayern Muenchen'])
+Result result = Club.executeCypher("MATCH n where n.name = {1} RETURN n", ['FC Bayern Muenchen'])
 ----
 
 Or alternatively you can use `executeQuery` which will return a list of results:
@@ -20,7 +20,7 @@ Or alternatively you can use `executeQuery` which will return a list of results:
 List<Node> nodes = Club.executeQuery("MATCH n where n.name = {1} RETURN n", ['FC Bayern Muenchen'])
 ----
 
-When working with raw results, you can convert any `org.neo4j.driver.v1.types.Node` into a domain instance using the `as` keyword:
+When working with raw results, you can convert any `org.neo4j.driver.types.Node` into a domain instance using the `as` keyword:
 
 [source,groovy]
 ----
@@ -30,11 +30,11 @@ Node myNode = ...
 
 TIP: This also works for `Relationship` and `Path` types
 
-You can also convert any http://neo4j.com/docs/api/java-driver/1.0/org/neo4j/driver/v1/StatementResult.html[org.neo4j.driver.v1.StatementResult] instance to a list of domain classes:
+You can also convert any http://neo4j.com/docs/api/java-driver/1.0/org/neo4j/driver/v1/Result.html[org.neo4j.driver.Result] instance to a list of domain classes:
 
 [source,groovy]
 ----
-StatementResult result = ...
+Result result = ...
 List<Club> clubs = result.toList(Club)
 ----
 

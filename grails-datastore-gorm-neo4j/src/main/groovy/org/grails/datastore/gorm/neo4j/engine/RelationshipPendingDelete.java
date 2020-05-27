@@ -23,7 +23,7 @@ import org.grails.datastore.mapping.core.impl.PendingOperationAdapter;
 import org.grails.datastore.mapping.engine.EntityAccess;
 import org.grails.datastore.mapping.model.config.GormProperties;
 import org.grails.datastore.mapping.model.types.Association;
-import org.neo4j.driver.v1.Transaction;
+import org.neo4j.driver.Transaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

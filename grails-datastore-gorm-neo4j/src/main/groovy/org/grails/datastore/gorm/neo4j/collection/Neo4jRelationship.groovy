@@ -20,7 +20,7 @@ class Neo4jRelationship<F, T> implements Relationship<F, T> {
         this.type = type
     }
 
-    Neo4jRelationship(F from, T to, org.neo4j.driver.v1.types.Relationship neoRel) {
+    Neo4jRelationship(F from, T to, org.neo4j.driver.types.Relationship neoRel) {
         this.from = from
         this.to = to
         this.type = neoRel.type()

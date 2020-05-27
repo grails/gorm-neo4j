@@ -22,12 +22,12 @@ import org.grails.datastore.gorm.neo4j.Neo4jSession
 import org.grails.datastore.gorm.neo4j.collection.Neo4jPath
 import org.grails.datastore.gorm.neo4j.collection.Neo4jResultList
 import org.grails.datastore.mapping.core.AbstractDatastore
-import org.neo4j.driver.v1.StatementResult
-import org.neo4j.driver.v1.StatementRunner
-import org.neo4j.driver.v1.types.MapAccessor
-import org.neo4j.driver.v1.types.Node
-import org.neo4j.driver.v1.types.Path
-import org.neo4j.driver.v1.types.Relationship
+import org.neo4j.driver.Result
+import org.neo4j.driver.QueryRunner
+import org.neo4j.driver.types.MapAccessor
+import org.neo4j.driver.types.Node
+import org.neo4j.driver.types.Path
+import org.neo4j.driver.types.Relationship
 
 /**
  * Extension methods to improve the Neo4j experience in Groovy.
@@ -129,7 +129,7 @@ class Neo4jExtensions {
      * @param c The domain class type
      * @return The domain instance
      */
-    static <N> N asType(StatementResult result, Class<N> c) {
+    static <N> N asType(Result result, Class<N> c) {
         Neo4jSession session = (Neo4jSession)AbstractDatastore.retrieveSession(Neo4jDatastore)
         def entityPersister = session.getEntityPersister(c)
         if(entityPersister != null) {
@@ -154,7 +154,7 @@ class Neo4jExtensions {
      * @param c The domain class type
      * @return The domain instance
      */
-    static <N> List<N> toList(StatementResult result, Class<N> c) {
+    static <N> List<N> toList(Result result, Class<N> c) {
         Neo4jSession session = (Neo4jSession)AbstractDatastore.retrieveSession(Neo4jDatastore)
         def entityPersister = session.getEntityPersister(c)
         if(entityPersister != null) {
@@ -173,7 +173,7 @@ class Neo4jExtensions {
      * @param positionalParameters The position parameters
      * @return The query result
      */
-    static StatementResult execute(StatementRunner session, String cypher, List<Object> positionalParameters) {
+    static Result execute(QueryRunner session, String cypher, List<Object> positionalParameters) {
         Map<String,Object> params = new LinkedHashMap<>()
         int i = 0;
         for(p in positionalParameters) {

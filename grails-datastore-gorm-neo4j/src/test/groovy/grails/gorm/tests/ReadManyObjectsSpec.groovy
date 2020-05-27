@@ -3,7 +3,7 @@ package org.grails.datastore.gorm.mongo
 import grails.gorm.annotation.Entity
 import grails.gorm.tests.GormDatastoreSpec
 import grails.neo4j.Neo4jEntity
-import org.neo4j.driver.v1.types.Node
+import org.neo4j.driver.types.Node
 import spock.lang.Ignore
 
 import javax.persistence.FlushModeType

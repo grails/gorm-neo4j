@@ -220,7 +220,7 @@ class RelationshipMappingSpec extends GormDatastoreSpec{
 
         then:
         !results.isEmpty()
-        results.get(0) instanceof org.neo4j.driver.v1.types.Relationship
+        results.get(0) instanceof org.neo4j.driver.types.Relationship
 
         when:"The relationship is converted"
         CastMember castMember = results.get(0) as CastMember

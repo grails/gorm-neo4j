@@ -32,11 +32,11 @@ import org.grails.datastore.mapping.query.AssociationQuery
 import org.grails.datastore.mapping.query.Query
 import org.grails.datastore.mapping.query.QueryException
 import org.grails.datastore.mapping.reflect.EntityReflector
-import org.neo4j.driver.v1.Record
-import org.neo4j.driver.v1.StatementResult
-import org.neo4j.driver.v1.StatementRunner
-import org.neo4j.driver.v1.Value
-import org.neo4j.driver.v1.types.Node
+import org.neo4j.driver.Record
+import org.neo4j.driver.Result
+import org.neo4j.driver.QueryRunner
+import org.neo4j.driver.Value
+import org.neo4j.driver.types.Node
 
 import javax.persistence.FetchType
 
@@ -63,7 +63,7 @@ class Neo4jQuery extends Query {
         this.isRelationshipEntity = entity instanceof RelationshipPersistentEntity
     }
 
-    private static Map<Class<? extends Query.Criterion>, String> COMPARISON_OPERATORS = [
+    private static Map<Class<? extends Query.PropertyComparisonCriterion>, String> COMPARISON_OPERATORS = [
             (Query.GreaterThanEqualsProperty): CriterionHandler.OPERATOR_GREATER_THAN_EQUALS,
             (Query.EqualsProperty): CriterionHandler.OPERATOR_EQUALS,
             (Query.NotEqualsProperty): CriterionHandler.OPERATOR_NOT_EQUALS,
@@ -72,7 +72,7 @@ class Neo4jQuery extends Query {
             (Query.GreaterThanProperty): CriterionHandler.OPERATOR_GREATER_THAN
     ]
 
-    protected static Map<Class<? extends Query.Projection>, ProjectionHandler> PROJECT_HANDLERS = [
+    protected static Map<Class<? extends Query.Projection>, ProjectionHandler<? extends Projection>> PROJECT_HANDLERS = [
             (Query.CountProjection): new ProjectionHandler<Query.CountProjection>() {
                 @Override
                 @CompileStatic
@@ -165,7 +165,7 @@ class Neo4jQuery extends Query {
             }
     ]
 
-    public static Map<Class<? extends Query.Criterion>, CriterionHandler> CRITERION_HANDLERS = [
+    public static Map<Class<? extends Query.Criterion>, CriterionHandler<? extends Criterion>> CRITERION_HANDLERS = [
             (Query.Conjunction): new CriterionHandler<Query.Conjunction>() {
                 @Override
                 @CompileStatic
@@ -204,7 +204,7 @@ class Neo4jQuery extends Query {
                 CypherExpression handle(GraphPersistentEntity entity, Query.Negation criterion, CypherBuilder builder, String prefix) {
                     List<Query.Criterion> criteria = criterion.criteria
                     def disjunction = new Query.Disjunction(criteria)
-                    CriterionHandler<Query.Disjunction> handler = { ->
+                    CriterionHandler<Query.Criterion> handler = { ->
                         CRITERION_HANDLERS.get(Query.Disjunction)
                     }.call()
                     new CypherExpression("NOT (${handler.handle(entity, disjunction, builder, prefix)})")
@@ -511,8 +511,8 @@ class Neo4jQuery extends Query {
 
         log.debug("QUERY Cypher [$cypher] for params [$params]")
 
-        StatementRunner statementRunner = session.hasTransaction() ? session.getTransaction().getTransaction() : boltSession
-        StatementResult executionResult = params.isEmpty() ? statementRunner.run(cypher) : statementRunner.run(cypher, params)
+        QueryRunner statementRunner = session.hasTransaction() ? session.getTransaction().getTransaction() : boltSession
+        Result executionResult = params.isEmpty() ? statementRunner.run(cypher) : statementRunner.run(cypher, params)
         if (projectionList.empty) {
             return new Neo4jResultList(offset, executionResult, neo4jEntityPersister, lockResult)
         } else {
@@ -524,7 +524,7 @@ class Neo4jQuery extends Query {
                 def columnNames = executionResult.keys()
                 projectedResults.add columnNames.collect { String columnName ->
                     Value value = record.get(columnName)
-                    if(value.type() == boltSession.typeSystem().NODE()) {
+                    if(value.type() == session.boltDriver.defaultTypeSystem().NODE()) {
                         // if a Node has been project then this is an association
                         def propName = columnName.substring(0, columnName.lastIndexOf('_'))
                         def prop = persistentEntity.getPropertyByName(propName)
@@ -623,8 +623,8 @@ class Neo4jQuery extends Query {
         return (Neo4jSession)super.getSession()
     }
 
-    org.neo4j.driver.v1.Session getBoltSession() {
-        return (org.neo4j.driver.v1.Session)getSession().getNativeInterface()
+    org.neo4j.driver.Session getBoltSession() {
+        return (org.neo4j.driver.Session)getSession().getNativeInterface()
     }
 
 

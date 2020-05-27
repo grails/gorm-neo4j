@@ -31,8 +31,8 @@ import org.grails.datastore.gorm.schemaless.DynamicAttributes
 import org.grails.datastore.mapping.model.config.GormProperties
 import org.grails.datastore.mapping.multitenancy.MultiTenancySettings
 import org.grails.datastore.mapping.multitenancy.exceptions.TenantNotFoundException
-import org.neo4j.driver.v1.StatementResult
-import org.neo4j.driver.v1.StatementRunner
+import org.neo4j.driver.Result
+import org.neo4j.driver.QueryRunner
 
 /**
  * Extends the default {@org.grails.datastore.gorm.GormEntity} trait, adding new methods specific to Neo4j
@@ -97,9 +97,9 @@ trait Neo4jEntity<D> implements GormEntity<D>, DynamicAttributes {
      * @param params The parameters
      * @return The statement result
      */
-    StatementResult cypher(CharSequence cypher, Map params) {
+    Result cypher(CharSequence cypher, Map params) {
         GormEnhancer.findDatastore(getClass()).withSession { Neo4jSession session ->
-            StatementRunner boltSession = getStatementRunner(session)
+            QueryRunner boltSession = getStatementRunner(session)
 
             String queryString
             if(cypher instanceof GString) {
@@ -121,9 +121,9 @@ trait Neo4jEntity<D> implements GormEntity<D>, DynamicAttributes {
      * @param params The parameters
      * @return The statement result
      */
-    StatementResult cypher(String cypher, List params) {
+    Result cypher(String cypher, List params) {
         GormEnhancer.findDatastore(getClass()).withSession { Neo4jSession session ->
-            StatementRunner boltSession = getStatementRunner(session)
+            QueryRunner boltSession = getStatementRunner(session)
 
             Map<String, Object> paramsMap = new LinkedHashMap()
             paramsMap.put("this", session.getObjectIdentifier(this))
@@ -144,7 +144,7 @@ trait Neo4jEntity<D> implements GormEntity<D>, DynamicAttributes {
      * @param queryString
      * @return
      */
-    StatementResult cypher(String queryString) {
+    Result cypher(String queryString) {
         GormEnhancer.findDatastore(getClass()).withSession { Neo4jSession session ->
             Map<String, Object> arguments
             if (session.getDatastore().multiTenancyMode == MultiTenancySettings.MultiTenancyMode.DISCRIMINATOR) {
@@ -158,7 +158,7 @@ trait Neo4jEntity<D> implements GormEntity<D>, DynamicAttributes {
             } else {
                 arguments = (Map<String, Object>) Collections.singletonMap("this", session.getObjectIdentifier(this))
             }
-            StatementRunner boltSession = getStatementRunner(session)
+            QueryRunner boltSession = getStatementRunner(session)
             boltSession.run(queryString, arguments)
         }
     }
@@ -171,7 +171,7 @@ trait Neo4jEntity<D> implements GormEntity<D>, DynamicAttributes {
      * @deprecated Use {@link #executeCypher(java.lang.CharSequence, java.util.Map)} intead
      */
     @Deprecated
-    static StatementResult cypherStatic(CharSequence queryString, Map params) {
+    static Result cypherStatic(CharSequence queryString, Map params) {
         ((Neo4jGormStaticApi) GormEnhancer.findStaticApi(this)).cypherStatic(queryString, params)
     }
 
@@ -183,7 +183,7 @@ trait Neo4jEntity<D> implements GormEntity<D>, DynamicAttributes {
      * @deprecated Use {@link #executeCypher(java.lang.CharSequence, java.util.Map)} intead
      */
     @Deprecated
-    static StatementResult cypherStatic(CharSequence queryString, List params) {
+    static Result cypherStatic(CharSequence queryString, List params) {
         ((Neo4jGormStaticApi) GormEnhancer.findStaticApi(this)).cypherStatic(queryString, params)
     }
 
@@ -195,7 +195,7 @@ trait Neo4jEntity<D> implements GormEntity<D>, DynamicAttributes {
      * @deprecated Use {@link #executeCypher(java.lang.CharSequence)} intead
      */
     @Deprecated
-    static StatementResult cypherStatic(CharSequence queryString) {
+    static Result cypherStatic(CharSequence queryString) {
         ((Neo4jGormStaticApi) GormEnhancer.findStaticApi(this)).cypherStatic(queryString)
     }
 
@@ -205,7 +205,7 @@ trait Neo4jEntity<D> implements GormEntity<D>, DynamicAttributes {
      * @param queryString
      * @return The statement result
      */
-    static StatementResult executeCypher(CharSequence queryString, Map params) {
+    static Result executeCypher(CharSequence queryString, Map params) {
         ((Neo4jGormStaticApi) GormEnhancer.findStaticApi(this)).cypherStatic(queryString, params)
     }
 
@@ -215,7 +215,7 @@ trait Neo4jEntity<D> implements GormEntity<D>, DynamicAttributes {
      * @param queryString
      * @return The statement result
      */
-    static StatementResult executeCypher(CharSequence queryString) {
+    static Result executeCypher(CharSequence queryString) {
         ((Neo4jGormStaticApi) GormEnhancer.findStaticApi(this)).cypherStatic(queryString)
     }
     /**
@@ -259,7 +259,7 @@ trait Neo4jEntity<D> implements GormEntity<D>, DynamicAttributes {
         }
     }
 
-    private StatementRunner getStatementRunner(Neo4jSession session) {
+    private QueryRunner getStatementRunner(Neo4jSession session) {
         return session.hasTransaction() ? session.getTransaction().getNativeTransaction() : session.getNativeInterface()
     }
 

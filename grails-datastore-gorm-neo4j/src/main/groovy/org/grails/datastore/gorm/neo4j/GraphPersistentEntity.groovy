@@ -14,7 +14,7 @@ import org.grails.datastore.mapping.model.PersistentProperty
 import org.grails.datastore.mapping.model.config.GormMappingConfigurationStrategy
 import org.grails.datastore.mapping.model.config.GormProperties
 import org.grails.datastore.mapping.model.types.Association
-import org.neo4j.driver.v1.types.Entity
+import org.neo4j.driver.types.Entity
 import org.springframework.util.ClassUtils
 
 import java.beans.Introspector

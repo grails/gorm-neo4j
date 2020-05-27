@@ -7,11 +7,11 @@ import org.grails.datastore.gorm.neo4j.util.EmbeddedNeo4jServer;
 import org.grails.datastore.mapping.core.connections.*;
 import org.grails.datastore.mapping.model.DatastoreConfigurationException;
 import org.grails.datastore.mapping.reflect.ClassUtils;
-import org.neo4j.driver.v1.AuthToken;
-import org.neo4j.driver.v1.AuthTokens;
-import org.neo4j.driver.v1.Config;
-import org.neo4j.driver.v1.Driver;
-import org.neo4j.driver.v1.GraphDatabase;
+import org.neo4j.driver.AuthToken;
+import org.neo4j.driver.AuthTokens;
+import org.neo4j.driver.Config;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.GraphDatabase;
 import org.neo4j.harness.ServerControls;
 import org.springframework.core.env.PropertyResolver;
 
@@ -73,7 +73,7 @@ public class Neo4jConnectionSourceFactory extends AbstractConnectionSourceFactor
                 ServerControls serverControls;
                 try {
                     serverControls = url != null ? EmbeddedNeo4jServer.start(url, dataDir, options) : EmbeddedNeo4jServer.start(dataDir, options);
-                    Config config = Config.build().withoutEncryption().toConfig();
+                    Config config = Config.builder().withoutEncryption().build();
                     URI boltURI = serverControls.boltURI();
                     Driver driver =  GraphDatabase.driver(boltURI, config);
                     return new Neo4jEmbeddedConnectionSource(name, driver, settings, serverControls);

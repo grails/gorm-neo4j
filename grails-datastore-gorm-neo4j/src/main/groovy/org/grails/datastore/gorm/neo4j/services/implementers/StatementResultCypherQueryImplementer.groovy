@@ -8,7 +8,7 @@ import org.codehaus.groovy.ast.expr.Expression
 import org.codehaus.groovy.ast.stmt.Statement
 import org.grails.datastore.gorm.services.implementers.AnnotatedServiceImplementer
 import org.grails.datastore.mapping.reflect.AstUtils
-import org.neo4j.driver.v1.StatementResult
+import org.neo4j.driver.Result
 
 import static org.codehaus.groovy.ast.tools.GeneralUtils.callX
 import static org.codehaus.groovy.ast.tools.GeneralUtils.castX
@@ -25,7 +25,7 @@ class StatementResultCypherQueryImplementer extends FindAllCypherQueryImplemente
 
     @Override
     protected boolean isCompatibleReturnType(ClassNode domainClass, MethodNode methodNode, ClassNode returnType, String prefix) {
-        return AstUtils.implementsInterface(returnType, StatementResult.name)
+        return AstUtils.implementsInterface(returnType, Result.name)
     }
 
     @Override

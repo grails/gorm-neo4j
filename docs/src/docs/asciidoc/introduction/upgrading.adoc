@@ -60,14 +60,14 @@ Therefore you need to replace the usages of the following interfaces with their 
 |===
 
 Neo4j Class, Bolt Driver Replacement
-org.neo4j.graphdb.GraphDatabaseService, org.neo4j.driver.v1.Driver
-org.neo4j.graphdb.Transaction, org.neo4j.driver.v1.Transaction
-org.neo4j.graphdb.Node, org.neo4j.driver.v1.types.Node
-org.neo4j.graphdb.Relationship, org.neo4j.driver.v1.types.Relationship
-org.neo4j.graphdb.Result, org.neo4j.driver.v1.StatementResult
+org.neo4j.graphdb.GraphDatabaseService, org.neo4j.driver.Driver
+org.neo4j.graphdb.Transaction, org.neo4j.driver.Transaction
+org.neo4j.graphdb.Node, org.neo4j.driver.types.Node
+org.neo4j.graphdb.Relationship, org.neo4j.driver.types.Relationship
+org.neo4j.graphdb.Result, org.neo4j.driver.Result
 |===
 
-There may be other classes that you need to replace references too. Generally the `org.neo4j.graphdb` package is considered the server-side API and only the `org.neo4j.driver.v1` package should be used in applications.
+There may be other classes that you need to replace references too. Generally the `org.neo4j.graphdb` package is considered the server-side API and only the `org.neo4j.driver` package should be used in applications.
 
 ==== General Neo4j 3.x Changes
 

@@ -16,10 +16,11 @@ package org.grails.datastore.gorm.neo4j
 
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
-import org.neo4j.driver.v1.AccessMode
-import org.neo4j.driver.v1.Driver
-import org.neo4j.driver.v1.Session
+import org.neo4j.driver.AccessMode
+import org.neo4j.driver.Driver
+import org.neo4j.driver.Session
 import org.grails.datastore.mapping.transactions.Transaction
+import org.neo4j.driver.SessionConfig
 import org.springframework.transaction.TransactionDefinition
 import org.springframework.transaction.support.DefaultTransactionDefinition
 
@@ -31,7 +32,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition
  */
 @CompileStatic
 @Slf4j
-class Neo4jTransaction implements Transaction<org.neo4j.driver.v1.Transaction>, Closeable {
+class Neo4jTransaction implements Transaction<org.neo4j.driver.Transaction>, Closeable {
 
     public static final String DEFAULT_NAME = "Neo4j Transaction"
 
@@ -40,13 +41,13 @@ class Neo4jTransaction implements Transaction<org.neo4j.driver.v1.Transaction>, 
     boolean rollbackOnly = false
 
     Session boltSession
-    org.neo4j.driver.v1.Transaction transaction
+    org.neo4j.driver.Transaction transaction
     TransactionDefinition transactionDefinition
 
     Neo4jTransaction(Driver boltDriver, TransactionDefinition transactionDefinition = new DefaultTransactionDefinition(), boolean sessionCreated = false) {
 
         log.debug("TX START: Neo4J beginTx()")
-        this.boltSession = boltDriver.session(transactionDefinition.readOnly ? AccessMode.READ : AccessMode.WRITE)
+        this.boltSession = boltDriver.session(SessionConfig.builder().withDefaultAccessMode(transactionDefinition.readOnly ? AccessMode.READ : AccessMode.WRITE).build())
         transaction = boltSession.beginTransaction()
         this.transactionDefinition = transactionDefinition
         this.sessionCreated = sessionCreated
@@ -54,16 +55,16 @@ class Neo4jTransaction implements Transaction<org.neo4j.driver.v1.Transaction>, 
 
     void commit() {
         if(isActive() && !rollbackOnly) {
-            log.debug("TX COMMIT: Neo4J success()")
-            transaction.success()
+            log.debug("TX COMMIT: Neo4J commit()")
+            transaction.commit()
             close()
         }
     }
 
     void rollback() {
         if(isActive()) {
-            log.debug("TX ROLLBACK: Neo4J failure()")
-            transaction.failure()
+            log.debug("TX ROLLBACK: Neo4J rollback()")
+            transaction.rollback()
             close()
         }
     }
@@ -71,8 +72,8 @@ class Neo4jTransaction implements Transaction<org.neo4j.driver.v1.Transaction>, 
     void rollbackOnly() {
         if(active) {
             rollbackOnly = true
-            log.debug("TX ROLLBACK ONLY: Neo4J failure()")
-            transaction.failure()
+            log.debug("TX ROLLBACK ONLY: Neo4J rollback()")
+            transaction.rollback()
             close()
         }
     }
@@ -88,8 +89,8 @@ class Neo4jTransaction implements Transaction<org.neo4j.driver.v1.Transaction>, 
         }
     }
 
-    org.neo4j.driver.v1.Transaction getNativeTransaction() {
-        return transaction;
+    org.neo4j.driver.Transaction getNativeTransaction() {
+        transaction
     }
 
     boolean isActive() {

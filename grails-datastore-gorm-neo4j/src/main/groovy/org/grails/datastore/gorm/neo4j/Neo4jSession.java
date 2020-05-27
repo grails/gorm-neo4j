@@ -28,9 +28,9 @@ import org.grails.datastore.mapping.query.api.QueryableCriteria;
 import org.grails.datastore.mapping.reflect.EntityReflector;
 import org.grails.datastore.mapping.transactions.SessionHolder;
 import org.grails.datastore.mapping.transactions.Transaction;
-import org.neo4j.driver.v1.Driver;
-import org.neo4j.driver.v1.Session;
-import org.neo4j.driver.v1.StatementResult;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.Result;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -96,6 +96,9 @@ public class Neo4jSession extends AbstractSession<Session> {
         this.boltSession = boltDriver.session();
     }
 
+    public Driver getBoltDriver() {
+        return boltDriver;
+    }
 
     /**
      * Adds a relationship that is pending insertion
@@ -302,7 +305,7 @@ public class Neo4jSession extends AbstractSession<Session> {
                         log.debug("UPDATE Cypher [{}] for parameters [{}]", cypher, params);
                     }
 
-                    final StatementResult executionResult = getTransaction().getNativeTransaction().run(cypher, params);
+                    final Result executionResult = getTransaction().getNativeTransaction().run(cypher, params);
                     if (!executionResult.hasNext() && isVersioned) {
                         throw new OptimisticLockingException(entity, id);
                     } else {
@@ -406,7 +409,7 @@ public class Neo4jSession extends AbstractSession<Session> {
     @Override
     protected void flushPendingInserts(Map<PersistentEntity, Collection<PendingInsert>> inserts) {
 
-        org.neo4j.driver.v1.Transaction neo4jTransaction = getTransaction().getNativeTransaction();
+        org.neo4j.driver.Transaction neo4jTransaction = getTransaction().getNativeTransaction();
         List<PendingOperation<Object, Serializable>> cascadingOperations = new ArrayList<>();
         // processing relationship entities first, to ensure the most optimal queries are executed
         for (RelationshipUpdateKey relationshipUpdateKey : pendingRelationshipInserts.keySet()) {
@@ -426,7 +429,7 @@ public class Neo4jSession extends AbstractSession<Session> {
 
     }
 
-    private void processInsertsForEntity(org.neo4j.driver.v1.Transaction neo4jTransaction, GraphPersistentEntity entity, Map<PersistentEntity, Collection<PendingInsert>> inserts, List<PendingOperation<Object, Serializable>> cascadingOperations) {
+    private void processInsertsForEntity(org.neo4j.driver.Transaction neo4jTransaction, GraphPersistentEntity entity, Map<PersistentEntity, Collection<PendingInsert>> inserts, List<PendingOperation<Object, Serializable>> cascadingOperations) {
         final Collection<PendingInsert> entityInserts = inserts.get(entity);
         final boolean hasDynamicLabels = entity.hasDynamicLabels();
         final EntityReflector reflector = entity.getReflector();
@@ -975,7 +978,7 @@ public class Neo4jSession extends AbstractSession<Session> {
             log.debug("UPDATE Cypher [{}] for parameters [{}]", cypher, params);
         }
 
-        final StatementResult execute = getTransaction().getNativeTransaction().run(cypher, params);
+        final Result execute = getTransaction().getNativeTransaction().run(cypher, params);
         return Neo4jEntityPersister.countUpdates(execute);
     }
 

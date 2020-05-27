@@ -4,7 +4,7 @@ package grails.neo4j
  * Represents a Neo4j path
  *
  * @author Graeme Rocher
- * @see org.neo4j.driver.v1.types.Path
+ * @see org.neo4j.driver.types.Path
  * @since 6.1
  */
 interface Path<S, E> extends Iterable<Segment<S,E>> {
@@ -12,7 +12,7 @@ interface Path<S, E> extends Iterable<Segment<S,E>> {
     /**
      * A segment
      *
-     * @see org.neo4j.driver.v1.types.Path.Segment
+     * @see org.neo4j.driver.types.Path.Segment
      */
     interface Segment<S, E> {
         Relationship<S, E> relationship()

@@ -24,8 +24,8 @@ import org.grails.datastore.mapping.engine.EntityAccess;
 import org.grails.datastore.mapping.model.PersistentProperty;
 import org.grails.datastore.mapping.model.types.*;
 import org.grails.datastore.mapping.reflect.EntityReflector;
-import org.neo4j.driver.v1.Session;
-import org.neo4j.driver.v1.Transaction;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.Transaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -54,9 +54,9 @@ import org.grails.datastore.mapping.core.connections.MultipleConnectionSourceCap
 import org.grails.datastore.mapping.multitenancy.TenantResolver;
 import org.grails.datastore.mapping.transactions.TransactionCapableDatastore;
 import org.grails.datastore.mapping.validation.ValidatorRegistry;
-import org.neo4j.driver.v1.Driver;
-import org.neo4j.driver.v1.Transaction;
-import org.neo4j.driver.v1.exceptions.Neo4jException;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.Transaction;
+import org.neo4j.driver.exceptions.Neo4jException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
@@ -535,7 +535,7 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
             }
         }
 
-        org.neo4j.driver.v1.Session boltSession = boltDriver.session();
+        org.neo4j.driver.Session boltSession = boltDriver.session();
 
         final Transaction transaction = boltSession.beginTransaction();;
         try {
@@ -544,11 +544,11 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
                     log.debug("CREATE INDEX Cypher [{}]", cypher);
                 }
                 transaction.run(cypher);
-                transaction.success();
             }
+            transaction.commit();
         } catch(Throwable e) {
             log.error("Error creating Neo4j index: " + e.getMessage(), e);
-            transaction.failure();
+            transaction.rollback();
             throw new DatastoreConfigurationException("Error creating Neo4j index: " + e.getMessage(), e);
         }
         finally {

@@ -11,7 +11,7 @@ class JavaxValidationSpec extends GormDatastoreSpec {
 
     void "test javax.validator validation"() {
         when:"An invalid entity is created"
-        Product p = new Product(name:"MacBook", price: "bad")
+        JavaxProduct p = new JavaxProduct(name:"MacBook", price: "bad")
         p.save()
 
         then:"The are errors"
@@ -21,12 +21,12 @@ class JavaxValidationSpec extends GormDatastoreSpec {
 
     @Override
     List getDomainClasses() {
-        [Product]
+        [JavaxProduct]
     }
 }
 
 @Entity
-class Product {
+class JavaxProduct {
     @Digits(integer = 6, fraction = 2)
     String price
     String name

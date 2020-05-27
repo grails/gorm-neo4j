@@ -9,7 +9,7 @@ The following options can be configured in `grails-app/conf/application.yml`:
 * `grails.neo4j.default.mapping` - The default database mapping. Must be a closure configured in `application.groovy`
 * `grails.neo4j.options` - Any options to be passed to the driver
 
-The `grails.neo4j.options` setting allows you to configure the properties of http://neo4j.com/docs/api/java-driver/1.0/org/neo4j/driver/v1/Config.html[org.neo4j.driver.v1.Config], for example:
+The `grails.neo4j.options` setting allows you to configure the properties of http://neo4j.com/docs/api/java-driver/1.0/org/neo4j/driver/v1/Config.html[org.neo4j.driver.Config], for example:
 
 
 [source,yaml]

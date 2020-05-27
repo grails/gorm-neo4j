@@ -24,18 +24,18 @@ import org.grails.datastore.mapping.engine.EntityPersister
 import org.grails.datastore.mapping.model.PersistentEntity
 import org.grails.datastore.mapping.model.types.Association
 import org.grails.datastore.mapping.query.QueryException
-import org.neo4j.driver.v1.Record
-import org.neo4j.driver.v1.StatementResult
-import org.neo4j.driver.v1.Value
-import org.neo4j.driver.v1.types.Entity
-import org.neo4j.driver.v1.types.Node
-import org.neo4j.driver.v1.types.Relationship
+import org.neo4j.driver.Record
+import org.neo4j.driver.Result
+import org.neo4j.driver.Value
+import org.neo4j.driver.types.Entity
+import org.neo4j.driver.types.Node
+import org.neo4j.driver.types.Relationship
 
 import javax.persistence.LockModeType
 
 
 /**
- * A Neo4j result list for decoding objects from the {@link StatementResult} interface
+ * A Neo4j result list for decoding objects from the {@link Result} interface
  *
  * @author Graeme Rocher
  * @since 5.0
@@ -53,7 +53,7 @@ class Neo4jResultList extends AbstractResultList {
 
     protected final LockModeType lockMode
 
-    Neo4jResultList(int offset, StatementResult cursor, Neo4jEntityPersister entityPersister, LockModeType lockMode = LockModeType.NONE) {
+    Neo4jResultList(int offset, Result cursor, Neo4jEntityPersister entityPersister, LockModeType lockMode = LockModeType.NONE) {
         super(offset, (Iterator<Object>)cursor)
         this.entityPersister = entityPersister
         this.lockMode = lockMode
@@ -148,7 +148,7 @@ class Neo4jResultList extends AbstractResultList {
             else {
 
                 Node node = record.values().find() {  Value v ->
-                    v.type() == entityPersister.getSession().getNativeInterface().typeSystem().NODE()
+                    v.type() == entityPersister.getSession().boltDriver.defaultTypeSystem().NODE()
                 }?.asNode()
 
                 if (node != null) {

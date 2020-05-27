@@ -25,13 +25,13 @@ import org.grails.datastore.mapping.model.types.*;
 import org.grails.datastore.mapping.proxy.EntityProxy;
 import org.grails.datastore.mapping.query.Query;
 import org.grails.datastore.mapping.reflect.EntityReflector;
-import org.neo4j.driver.v1.Record;
-import org.neo4j.driver.v1.StatementResult;
-import org.neo4j.driver.v1.StatementRunner;
-import org.neo4j.driver.v1.summary.ResultSummary;
-import org.neo4j.driver.v1.summary.SummaryCounters;
-import org.neo4j.driver.v1.types.Entity;
-import org.neo4j.driver.v1.types.Node;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.Result;
+import org.neo4j.driver.QueryRunner;
+import org.neo4j.driver.summary.ResultSummary;
+import org.neo4j.driver.summary.SummaryCounters;
+import org.neo4j.driver.types.Entity;
+import org.neo4j.driver.types.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -190,7 +190,7 @@ public class Neo4jEntityPersister extends EntityPersister {
             }
             if(insertIndex > 0) {
 
-                StatementRunner statementRunner = session.hasTransaction() ? session.getTransaction().getNativeTransaction() : session.getNativeInterface();
+                QueryRunner statementRunner = session.hasTransaction() ? session.getTransaction().getNativeTransaction() : session.getNativeInterface();
 
                 final String finalCypher = createCypher.toString() + " RETURN *";
                 if(log.isDebugEnabled()) {
@@ -201,7 +201,7 @@ public class Neo4jEntityPersister extends EntityPersister {
                     params.remove(DYNAMIC_ASSOCIATION_PARAM);
                 }
 
-                final StatementResult result = statementRunner.run(finalCypher, params);
+                final Result result = statementRunner.run(finalCypher, params);
 
                 if(!result.hasNext()) {
                     throw new IdentityGenerationException("CREATE operation did not generate an identifier for entity " + pe.getJavaClass());
@@ -289,7 +289,7 @@ public class Neo4jEntityPersister extends EntityPersister {
     }
 
 
-    public Object unmarshallOrFromCache(PersistentEntity entity, org.neo4j.driver.v1.types.Relationship data, Map<Association, Object> initializedAssociations, Map<Serializable, Node> initializedNodes) {
+    public Object unmarshallOrFromCache(PersistentEntity entity, org.neo4j.driver.types.Relationship data, Map<Association, Object> initializedAssociations, Map<Serializable, Node> initializedNodes) {
         Object object = unmarshallOrFromCache(entity, data, initializedAssociations);
         RelationshipPersistentEntity relEntity = (RelationshipPersistentEntity) entity;
         if(object != null) {
@@ -751,12 +751,12 @@ public class Neo4jEntityPersister extends EntityPersister {
                 if(graphPersistentEntity.hasDynamicAssociations()) {
                     dynamicAssociations = (Map<String, List<Object>>) params.remove(DYNAMIC_ASSOCIATION_PARAM);
                 }
-                final StatementRunner boltSession = session.hasTransaction() ? session.getTransaction().getNativeTransaction() : session.getNativeInterface();
+                final QueryRunner boltSession = session.hasTransaction() ? session.getTransaction().getNativeTransaction() : session.getNativeInterface();
                 final String finalCypher = cypher + graphPersistentEntity.formatReturnId();
                 if(log.isDebugEnabled()) {
                     log.debug("CREATE Cypher [{}] for parameters [{}]", finalCypher, params);
                 }
-                final StatementResult result = boltSession.run(finalCypher, params);
+                final Result result = boltSession.run(finalCypher, params);
 
                 if(!result.hasNext()) {
                     throw new IdentityGenerationException("CREATE operation did not generate an identifier for entity " + entityAccess.getEntity());
@@ -1098,7 +1098,7 @@ public class Neo4jEntityPersister extends EntityPersister {
         throw new UnsupportedOperationException();
     }
 
-    public static long countUpdates(StatementResult execute) {
+    public static long countUpdates(Result execute) {
         ResultSummary resultSummary = execute.consume();
         SummaryCounters counters = resultSummary.counters();
         if (counters.containsUpdates()) {
