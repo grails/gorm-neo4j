@@ -27,7 +27,7 @@ import org.grails.datastore.gorm.neo4j.connections.Neo4jConnectionSourceFactory
 import org.grails.datastore.gorm.plugin.support.PersistenceContextInterceptorAggregator
 import org.grails.datastore.gorm.support.AbstractDatastorePersistenceContextInterceptor
 import org.grails.datastore.gorm.support.DatastorePersistenceContextInterceptor
-import org.grails.datastore.mapping.config.GormMethodInvokingFactoryBean
+import org.grails.datastore.mapping.config.DatastoreServiceMethodInvokingFactoryBean
 import org.grails.datastore.mapping.core.grailsversion.GrailsVersion
 import org.grails.datastore.mapping.reflect.NameUtils
 import org.grails.datastore.mapping.services.Service
@@ -114,7 +114,7 @@ class Neo4jDataStoreSpringInitializer extends AbstractDatastoreInitializer {
             for (ServiceDefinition<Service> serviceDefinition : services) {
                 if (serviceDefinition.isPresent()) {
                     final Class<Service> clazz = serviceDefinition.getType()
-                    if (clazz.simpleName.startsWith('$')) {
+                    if (clazz.simpleName.startsWith('$') && clazz.simpleName.endsWith('Implementation')) {
                         String serviceClassName = clazz.name - '$' - 'Implementation'
                         final ClassLoader cl = org.grails.datastore.mapping.reflect.ClassUtils.classLoader
                         final Class<?> serviceClass = cl.loadClass(serviceClassName)
@@ -128,7 +128,7 @@ class Neo4jDataStoreSpringInitializer extends AbstractDatastoreInitializer {
                             serviceName = 'neo4j' + NameUtils.capitalize(serviceName)
                         }
                         if (serviceClass != null && serviceClass != Object.class) {
-                            "$serviceName"(GormMethodInvokingFactoryBean) {
+                            "$serviceName"(DatastoreServiceMethodInvokingFactoryBean) {
                                 targetObject = ref('neo4jDatastore')
                                 targetMethod = 'getService'
                                 arguments = [serviceClass]
