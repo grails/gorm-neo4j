@@ -45,7 +45,7 @@ dependencies {
     testCompile "org.seleniumhq.selenium:selenium-api:$seleniumVersion"
     testCompile "org.seleniumhq.selenium:selenium-support:$seleniumVersion"
 
-    testRuntime "org.neo4j.test:neo4j-harness:$neo4jVersion"
+    runtime "org.neo4j.test:neo4j-harness:$neo4jVersion"
 }
 webdriverBinaries {
     chromedriver "$chromeDriverVersion"
