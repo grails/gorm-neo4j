@@ -110,31 +110,11 @@ class Neo4jDataStoreSpringInitializer extends AbstractDatastoreInitializer {
                 }
             }
 
-            final SoftServiceLoader<Service> services = SoftServiceLoader.load(Service)
-            for (ServiceDefinition<Service> serviceDefinition : services) {
-                if (serviceDefinition.isPresent()) {
-                    final Class<Service> clazz = serviceDefinition.getType()
-                    if (clazz.simpleName.startsWith('$') && clazz.simpleName.endsWith('Implementation')) {
-                        String serviceClassName = clazz.name - '$' - 'Implementation'
-                        final ClassLoader cl = org.grails.datastore.mapping.reflect.ClassUtils.classLoader
-                        final Class<?> serviceClass = cl.loadClass(serviceClassName)
-
-                        final grails.gorm.services.Service ann = clazz.getAnnotation(grails.gorm.services.Service)
-                        String serviceName = ann?.name()
-                        if (serviceName == null) {
-                            serviceName = Introspector.decapitalize(serviceClass.simpleName)
-                        }
-                        if (secondaryDatastore) {
-                            serviceName = 'neo4j' + NameUtils.capitalize(serviceName)
-                        }
-                        if (serviceClass != null && serviceClass != Object.class) {
-                            "$serviceName"(DatastoreServiceMethodInvokingFactoryBean) {
-                                targetObject = ref('neo4jDatastore')
-                                targetMethod = 'getService'
-                                arguments = [serviceClass]
-                            }
-                        }
-                    }
+            loadDataServices(secondaryDatastore ? 'neo4j': null).each {serviceName, serviceClass->
+                "$serviceName"(DatastoreServiceMethodInvokingFactoryBean) {
+                    targetObject = ref("neo4jDatastore")
+                    targetMethod = 'getService'
+                    arguments = [serviceClass]
                 }
             }
         }
