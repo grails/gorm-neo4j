@@ -21,5 +21,8 @@ project(":examples-neo4j-standalone").projectDir = new File(settingsDir, "exampl
 include 'examples-neo4j-spring-boot'
 project(":examples-neo4j-spring-boot").projectDir = new File(settingsDir, "examples/neo4j-spring-boot")
 
+include 'examples-test-data-service'
+project(":examples-test-data-service").projectDir = new File(settingsDir, "examples/test-data-service")
+
 findProject(':boot-plugin').name = 'gorm-neo4j-spring-boot'
 

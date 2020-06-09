@@ -20,7 +20,6 @@ import grails.neo4j.Neo4jEntity
 import grails.spring.BeanBuilder
 import groovy.transform.InheritConstructors
 import org.grails.datastore.gorm.bootstrap.AbstractDatastoreInitializer
-import org.grails.datastore.gorm.bootstrap.support.ServiceRegistryFactoryBean
 import org.grails.datastore.gorm.events.ConfigurableApplicationContextEventPublisher
 import org.grails.datastore.gorm.events.DefaultApplicationEventPublisher
 import org.grails.datastore.gorm.neo4j.Neo4jDatastore
@@ -28,12 +27,19 @@ import org.grails.datastore.gorm.neo4j.connections.Neo4jConnectionSourceFactory
 import org.grails.datastore.gorm.plugin.support.PersistenceContextInterceptorAggregator
 import org.grails.datastore.gorm.support.AbstractDatastorePersistenceContextInterceptor
 import org.grails.datastore.gorm.support.DatastorePersistenceContextInterceptor
+import org.grails.datastore.mapping.config.DatastoreServiceMethodInvokingFactoryBean
 import org.grails.datastore.mapping.core.grailsversion.GrailsVersion
+import org.grails.datastore.mapping.reflect.NameUtils
+import org.grails.datastore.mapping.services.Service
+import org.grails.datastore.mapping.services.ServiceDefinition
+import org.grails.datastore.mapping.services.SoftServiceLoader
 import org.springframework.beans.factory.groovy.GroovyBeanDefinitionReader
 import org.springframework.beans.factory.support.BeanDefinitionRegistry
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.util.ClassUtils
+
+import java.beans.Introspector
 
 /**
  * An {@link AbstractDatastoreInitializer} used for initializing GORM for Neo4j when using Spring.
@@ -61,28 +67,26 @@ class Neo4jDataStoreSpringInitializer extends AbstractDatastoreInitializer {
 
     @Override
     Closure getBeanDefinitions(BeanDefinitionRegistry beanDefinitionRegistry) {
-        {->
+        { ->
             def callable = getCommonConfiguration(beanDefinitionRegistry, DATASTORE_TYPE)
             callable.delegate = delegate
             callable.call()
 
             ApplicationEventPublisher eventPublisher
-            if(beanDefinitionRegistry instanceof ConfigurableApplicationContext){
-                eventPublisher = new ConfigurableApplicationContextEventPublisher((ConfigurableApplicationContext)beanDefinitionRegistry)
-            }
-            else {
+            if (beanDefinitionRegistry instanceof ConfigurableApplicationContext) {
+                eventPublisher = new ConfigurableApplicationContextEventPublisher((ConfigurableApplicationContext) beanDefinitionRegistry)
+            } else {
                 eventPublisher = new DefaultApplicationEventPublisher()
             }
-            final boolean isRecentGrailsVersion = GrailsVersion.isAtLeastMajorMinor(3,3)
+            final boolean isRecentGrailsVersion = GrailsVersion.isAtLeastMajorMinor(3, 3)
             neo4jConnectionSourceFactory(Neo4jConnectionSourceFactory) { bean ->
                 bean.autowire = true
             }
             neo4jDatastore(Neo4jDatastore, configuration, ref("neo4jConnectionSourceFactory"), eventPublisher, collectMappedClasses(DATASTORE_TYPE))
-            neo4jDatastoreServiceRegistry(ServiceRegistryFactoryBean, ref("neo4jDatastore"))
-            neo4jMappingContext(neo4jDatastore:"getMappingContext")
-            neo4jTransactionManager(neo4jDatastore:"getTransactionManager")
-            neo4jAutoTimestampEventListener(neo4jDatastore:"getAutoTimestampEventListener")
-            neo4jDriver(neo4jDatastore:"getBoltDriver")
+            neo4jMappingContext(neo4jDatastore: "getMappingContext")
+            neo4jTransactionManager(neo4jDatastore: "getTransactionManager")
+            neo4jAutoTimestampEventListener(neo4jDatastore: "getAutoTimestampEventListener")
+            neo4jDriver(neo4jDatastore: "getBoltDriver")
             neo4jPersistenceInterceptor(getPersistenceInterceptorClass(), ref("neo4jDatastore"))
             neo4jPersistenceContextInterceptorAggregator(PersistenceContextInterceptorAggregator)
             if (!secondaryDatastore) {
@@ -103,6 +107,14 @@ class Neo4jDataStoreSpringInitializer extends AbstractDatastoreInitializer {
                 String interceptorName = "neo4jOpenSessionInViewInterceptor"
                 "${interceptorName}"(ClassUtils.forName(OSIV_CLASS_NAME, classLoader)) {
                     datastore = ref("neo4jDatastore")
+                }
+            }
+
+            loadDataServices(secondaryDatastore ? 'neo4j': null).each {serviceName, serviceClass->
+                "$serviceName"(DatastoreServiceMethodInvokingFactoryBean) {
+                    targetObject = ref("neo4jDatastore")
+                    targetMethod = 'getService'
+                    arguments = [serviceClass]
                 }
             }
         }
