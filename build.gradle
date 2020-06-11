@@ -11,7 +11,6 @@ buildscript {
         classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4"
         classpath 'com.bmuschko:gradle-nexus-plugin:2.3'
         // classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.5.3"
-        classpath "io.github.groovylang.groovydoc:groovydoc-gradle-plugin:1.0.1"
         classpath "org.grails:grails-gradle-plugin:$grailsVersion"
         classpath 'org.asciidoctor:asciidoctor-gradle-plugin:1.5.3'
         classpath "gradle.plugin.com.energizedwork.webdriver-binaries:webdriver-binaries-gradle-plugin:$webdriverBinariesVersion"
@@ -188,9 +187,7 @@ subprojects { project ->
 
     apply plugin: 'maven-publish'
     apply plugin: 'com.jfrog.bintray'
-    apply plugin: "io.github.groovylang.groovydoc"
 
-    groovydoc.jvmArgs "-Xmx512M"
     groovydoc.classpath += configurations.documentation
 
     sourceCompatibility = "1.8"
