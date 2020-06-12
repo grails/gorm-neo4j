@@ -1,6 +1,4 @@
-apply plugin:"groovy"
-
 dependencies {
-    compile project(":grails-datastore-gorm-neo4j")
-    testRuntime "org.neo4j.test:neo4j-harness:$neo4jVersion"
+    implementation project(":grails-datastore-gorm-neo4j")
+    testRuntimeOnly "org.neo4j.test:neo4j-harness:$neo4jVersion"
 }
