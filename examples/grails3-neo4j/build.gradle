@@ -6,44 +6,44 @@ configurations.all { Configuration c ->
 ext['jetty.version'] = "9.4.11.v20180605"
 
 dependencies {
-    compile "org.springframework.boot:spring-boot-starter-logging"
-    compile "org.springframework.boot:spring-boot-autoconfigure"
-    compile "org.springframework.boot:spring-boot-starter-actuator"
-    compile "org.springframework.boot:spring-boot-starter-tomcat"
-    compile "javax.servlet:javax.servlet-api:$servletApiVersion"
-    compile "org.grails:grails-core:$grailsVersion"
-    compile "org.grails:grails-dependencies:$grailsVersion"
-    compile "org.grails:grails-web-boot:$grailsVersion"
+    implementation "org.springframework.boot:spring-boot-starter-logging"
+    implementation "org.springframework.boot:spring-boot-autoconfigure"
+    implementation "org.springframework.boot:spring-boot-starter-actuator"
+    implementation "org.springframework.boot:spring-boot-starter-tomcat"
+    implementation "javax.servlet:javax.servlet-api:$servletApiVersion"
+    implementation "org.grails:grails-core:$grailsVersion"
+    implementation "org.grails:grails-dependencies:$grailsVersion"
+    implementation "org.grails:grails-web-boot:$grailsVersion"
 
     // in a real app this would be org.grails.plugins:neo4j
-    compile project(":grails-plugin")
+    implementation project(":grails-plugin")
 
-    runtime "com.bertramlabs.plugins:asset-pipeline-grails:$assetPipelineVersion"
-    runtime "org.grails.plugins:scaffolding:$scaffoldingVersion"
-    runtime "org.grails.plugins:fields:$fieldsVersion"
+    runtimeOnly "com.bertramlabs.plugins:asset-pipeline-grails:$assetPipelineVersion"
+    runtimeOnly "org.grails.plugins:scaffolding:$scaffoldingVersion"
+    runtimeOnly "org.grails.plugins:fields:$fieldsVersion"
 
-    testCompile ("org.grails:grails-gorm-testing-support:$testingSupportVersion") {
+    testImplementation ("org.grails:grails-gorm-testing-support:$testingSupportVersion") {
         exclude group: "org.spockframework", module: "spock-core"
     }
-    testCompile ("org.grails:grails-web-testing-support:$testingSupportVersion") {
+    testImplementation ("org.grails:grails-web-testing-support:$testingSupportVersion") {
         exclude group: "org.spockframework", module: "spock-core"
     }
 
-    testCompile("org.grails.plugins:geb") {
+    testImplementation("org.grails.plugins:geb") {
         exclude group: 'org.gebish', module: 'geb-spock'
         exclude group: 'org.codehaus.groovy', module: 'groovy-all'
     }
-    testCompile ("org.gebish:geb-spock:$gebVersion")
+    testImplementation ("org.gebish:geb-spock:$gebVersion")
 
-    testRuntime "org.seleniumhq.selenium:selenium-chrome-driver:$seleniumVersion"
-    testRuntime "org.seleniumhq.selenium:selenium-firefox-driver:$seleniumVersion"
-    testRuntime "org.seleniumhq.selenium:selenium-safari-driver:$seleniumSafariDriverVersion"
+    testRuntimeOnly "org.seleniumhq.selenium:selenium-chrome-driver:$seleniumVersion"
+    testRuntimeOnly "org.seleniumhq.selenium:selenium-firefox-driver:$seleniumVersion"
+    testRuntimeOnly "org.seleniumhq.selenium:selenium-safari-driver:$seleniumSafariDriverVersion"
 
-    testCompile "org.seleniumhq.selenium:selenium-remote-driver:$seleniumVersion"
-    testCompile "org.seleniumhq.selenium:selenium-api:$seleniumVersion"
-    testCompile "org.seleniumhq.selenium:selenium-support:$seleniumVersion"
+    testImplementation "org.seleniumhq.selenium:selenium-remote-driver:$seleniumVersion"
+    testImplementation "org.seleniumhq.selenium:selenium-api:$seleniumVersion"
+    testImplementation "org.seleniumhq.selenium:selenium-support:$seleniumVersion"
 
-    testRuntime "org.neo4j.test:neo4j-harness:$neo4jVersion"
+    testRuntimeOnly "org.neo4j.test:neo4j-harness:$neo4jVersion"
 
     profile "org.grails.profiles:web"
 }

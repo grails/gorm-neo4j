@@ -2,27 +2,27 @@ sourceSets.main.java.srcDirs = []
 sourceSets.main.groovy.srcDirs += ["src/main/java"]
 
 dependencies {
-    compile "org.neo4j.driver:neo4j-java-driver:$neo4jDriverVersion"
-    compile "org.grails:grails-datastore-gorm-validation:$datastoreVersion"
-    compile "org.grails:grails-datastore-gorm:$datastoreVersion"
+    api "org.neo4j.driver:neo4j-java-driver:$neo4jDriverVersion"
+    api "org.grails:grails-datastore-gorm-validation:$datastoreVersion"
+    api "org.grails:grails-datastore-gorm:$datastoreVersion"
 
     // only needed for web dependencies
     compileOnly "org.grails:grails-datastore-web:$datastoreVersion"
     compileOnly "org.neo4j.test:neo4j-harness:$neo4jVersion"
 
-    testCompile "org.neo4j.test:neo4j-harness:$neo4jVersion"
-    testCompile "org.grails:grails-datastore-gorm-test:$datastoreVersion",
+    implementation "org.javassist:javassist:$javassistVersion"
+    testImplementation "org.neo4j.test:neo4j-harness:$neo4jVersion"
+    testImplementation "org.grails:grails-datastore-gorm-test:$datastoreVersion",
                 "org.grails:grails-datastore-gorm-tck:$datastoreVersion"
-    testCompile("org.hibernate:hibernate-validator:$hibernateValidatorVersion")
-    testCompile "org.codehaus.gpars:gpars:$gparsVersion"
-    testCompile "cglib:cglib-nodep:$cglibNodepVersion"
-    testCompile "org.objenesis:objenesis:${objenesisVersion}"
+    testImplementation "org.hibernate:hibernate-validator:$hibernateValidatorVersion"
+    testImplementation "org.codehaus.gpars:gpars:$gparsVersion"
+    testImplementation "cglib:cglib-nodep:$cglibNodepVersion"
+    testImplementation "org.objenesis:objenesis:${objenesisVersion}"
     
-    testRuntime "org.springframework:spring-aop:$springVersion"
-    testRuntime "ch.qos.logback:logback-classic:1.1.7"
-    testRuntime('javax.el:javax.el-api:2.2.4')
-    testRuntime('org.glassfish.web:el-impl:2.2')
-
+    testRuntimeOnly "org.springframework:spring-aop:$springVersion"
+    testRuntimeOnly "ch.qos.logback:logback-classic:1.1.7"
+    testRuntimeOnly "javax.el:javax.el-api:2.2.4"
+    testRuntimeOnly "org.glassfish.web:el-impl:2.2"
 
 }
 
@@ -59,7 +59,7 @@ test.doFirst {
     }    
     def tckClassesFile = project
                             .configurations
-                            .testCompile
+                            .testCompileClasspath
                             .resolvedConfiguration
                             .getResolvedArtifacts()
                             .find { resolved ->

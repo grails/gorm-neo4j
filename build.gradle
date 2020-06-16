@@ -11,7 +11,6 @@ buildscript {
         classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4"
         classpath 'com.bmuschko:gradle-nexus-plugin:2.3'
         // classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.5.3"
-        classpath "io.github.groovylang.groovydoc:groovydoc-gradle-plugin:1.0.1"
         classpath "org.grails:grails-gradle-plugin:$grailsVersion"
         classpath 'org.asciidoctor:asciidoctor-gradle-plugin:1.5.3'
         classpath "gradle.plugin.com.energizedwork.webdriver-binaries:webdriver-binaries-gradle-plugin:$webdriverBinariesVersion"
@@ -44,6 +43,13 @@ subprojects { project ->
     }
 
     configurations.all {
+        resolutionStrategy {
+            cacheDynamicVersionsFor 0, 'hours'
+            cacheChangingModulesFor 0, 'hours'
+        }
+    }
+
+    configurations.all {
         resolutionStrategy.dependencySubstitution {
             substitute module("org.codehaus.groovy:groovy-all") with module("org.codehaus.groovy:groovy:$groovyVersion")
         }
@@ -55,9 +61,8 @@ subprojects { project ->
     boolean isExample = project.name.startsWith("examples-")
 
     if (isExample) {
-
         boolean isGrails3Example = project.name.startsWith("examples-grails3")
-
+        apply plugin: 'groovy'
         if (isGrails3Example) {
             apply plugin:"org.grails.grails-web"
             apply plugin:"org.grails.grails-gsp"
@@ -77,22 +82,26 @@ subprojects { project ->
                 }
             }
 
-            apply plugin: "java"
+            //TODO: Remove the below {@code integrationTestCompile} logic once the Grails core version is updated.
+            dependencies {
+                integrationTestCompile configurations.testCompileClasspath
+                integrationTestRuntime configurations.testRuntimeClasspath
+            }
 
-        } else {
-            apply plugin:'groovy'
+            //TODO: Remove the below lines once the {@link org.grails.gradle.plugin.web.gsp.GroovyPageCompileTask} is updated with correct classpath settings.
+            compileGroovyPages.classpath += configurations.compileClasspath
         }
 
         dependencies {
-            testCompile "org.codehaus.groovy:groovy-test-junit5:$groovyVersion"
-            testCompile "org.spockframework:spock-core:$spockVersion", {
+            testImplementation "org.codehaus.groovy:groovy-test-junit5:$groovyVersion"
+            testImplementation "org.spockframework:spock-core:$spockVersion", {
                 exclude group: 'junit', module: 'junit-dep'
                 exclude group: 'org.codehaus.groovy', module: 'groovy-all'
                 exclude group: 'org.hamcrest', module: 'hamcrest-core'
                 transitive = false
             }
-            testCompile "org.junit.jupiter:junit-jupiter-api:5.6.0"
-            testCompile "org.junit.platform:junit-platform-runner:1.6.0"
+            testImplementation "org.junit.jupiter:junit-jupiter-api:5.6.0"
+            testImplementation "org.junit.platform:junit-platform-runner:1.6.0"
             testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.6.0"
         }
 
@@ -145,53 +154,35 @@ subprojects { project ->
         }         
     }
        
-    if(isPluginProject) {        
+    if (isPluginProject) {
         group "org.grails.plugins"
         version( rootProject.version - '.RELEASE' )
-    }
-    else {
+    } else {
         group "org.grails"
         version rootProject.version
     }
 
     configurations {
         documentation
-        all {
-            resolutionStrategy {
-                cacheDynamicVersionsFor 0, 'hours'
-                cacheChangingModulesFor 0, 'hours'
-            }
-        }        
-    }
-
-    if(isPluginProject) {
-        group "org.grails.plugins"
-    }
-    else {
-        group "org.grails"        
     }
 
     if(project.name == 'docs') {
         return
-    }       
+    }
+
+    apply plugin: "java-library"
+    apply plugin: 'maven-publish'
+    apply plugin: 'com.jfrog.bintray'
 
     if(isGrails3PluginProject) {
-        apply plugin: "org.grails.grails-plugin"       
-    }
-    else {
+        apply plugin: "org.grails.grails-plugin"
+    } else {
         apply plugin:"groovy"
         apply plugin: 'com.bmuschko.nexus'
         modifyPom {
             delegate.project pomInfo
         }
     }
-
-    apply plugin: 'maven-publish'
-    apply plugin: 'com.jfrog.bintray'
-    apply plugin: "io.github.groovylang.groovydoc"
-
-    groovydoc.jvmArgs "-Xmx512M"
-    groovydoc.classpath += configurations.documentation
 
     sourceCompatibility = "1.8"
     targetCompatibility = "1.8"
@@ -200,17 +191,20 @@ subprojects { project ->
         documentation "org.fusesource.jansi:jansi:1.11"
         documentation 'info.picocli:picocli:3.8.2'
         documentation "org.codehaus.groovy:groovy-dateutil:$groovyVersion"
-        testCompile "org.codehaus.groovy:groovy-test-junit5:$groovyVersion"
-        testCompile "org.spockframework:spock-core:$spockVersion", {
+        documentation "com.github.javaparser:javaparser-core:$javaParserCoreVersion"
+        testImplementation "org.codehaus.groovy:groovy-test-junit5:$groovyVersion"
+        testImplementation "org.spockframework:spock-core:$spockVersion", {
             exclude group: 'junit', module: 'junit-dep'
             exclude group: 'org.codehaus.groovy', module: 'groovy-all'
             exclude group: 'org.hamcrest', module: 'hamcrest-core'
             transitive = false
         }
-        testCompile "org.junit.jupiter:junit-jupiter-api:5.6.0"
-        testCompile "org.junit.platform:junit-platform-runner:1.6.0"
+        testImplementation "org.junit.jupiter:junit-jupiter-api:5.6.0"
+        testImplementation "org.junit.platform:junit-platform-runner:1.6.0"
         testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.6.0"
     }
+
+    groovydoc.classpath += configurations.documentation
 
     publishing {
 
