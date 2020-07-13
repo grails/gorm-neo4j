@@ -20,8 +20,8 @@ buildscript {
 }
 
 group "org.grails"
-//version "7.0.2.RELEASE"
-version "7.0.2.BUILD-SNAPSHOT"
+version "7.0.2.RELEASE"
+//version "7.0.2.BUILD-SNAPSHOT"
 println "GORM VERSION = ${project.datastoreVersion}"
 
 ext {
