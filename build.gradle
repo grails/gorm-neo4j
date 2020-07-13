@@ -26,7 +26,7 @@ println "GORM VERSION = ${project.datastoreVersion}"
 
 ext {
     isTravisBuild = System.getenv().get("TRAVIS") == 'true'
-    hibernatePluginVersion = "7.0.0"
+    hibernatePluginVersion = "7.0.4"
     
     isCiBuild = project.hasProperty("isCiBuild")
     isBuildSnapshot = version.endsWith("BUILD-SNAPSHOT")
