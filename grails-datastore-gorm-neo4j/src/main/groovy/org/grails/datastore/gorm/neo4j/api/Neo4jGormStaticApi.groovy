@@ -35,7 +35,6 @@ import org.neo4j.driver.QueryRunner
 import org.neo4j.driver.Value
 import org.neo4j.driver.summary.SummaryCounters
 import org.neo4j.driver.types.Node
-import org.neo4j.driver.util.Function
 import org.springframework.transaction.PlatformTransactionManager
 
 import java.util.function.Function
