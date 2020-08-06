@@ -7,13 +7,14 @@ buildscript {
         maven { url "https://repo.grails.org/grails/core" }
     }
     dependencies {
-        classpath "org.codehaus.groovy.modules.http-builder:http-builder:0.7.1"
-        classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4"
-        classpath 'com.bmuschko:gradle-nexus-plugin:2.3'
+        classpath "org.codehaus.groovy.modules.http-builder:http-builder:0.7.2"
+        classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.5"
+        classpath 'com.bmuschko:gradle-nexus-plugin:2.3.1'
         // classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.5.3"
         classpath "org.grails:grails-gradle-plugin:$grailsVersion"
-        classpath 'org.asciidoctor:asciidoctor-gradle-plugin:1.5.3'
+        classpath 'org.asciidoctor:asciidoctor-gradle-plugin:1.6.1'
         classpath "gradle.plugin.com.energizedwork.webdriver-binaries:webdriver-binaries-gradle-plugin:$webdriverBinariesVersion"
+        classpath "org.grails.plugins:views-gradle:2.0.2"
     }
 }
 
@@ -24,6 +25,8 @@ println "GORM VERSION = ${project.datastoreVersion}"
 
 ext {
     isTravisBuild = System.getenv().get("TRAVIS") == 'true'
+    hibernatePluginVersion = "7.1.0.BUILD-SNAPSHOT"
+    
     isCiBuild = project.hasProperty("isCiBuild")
     isBuildSnapshot = version.endsWith("BUILD-SNAPSHOT")
     nexusUsername = System.getenv("SONATYPE_USERNAME") ?: project.hasProperty("sonatypeOssUsername") ? project.sonatypeOssUsername : ''
@@ -188,8 +191,8 @@ subprojects { project ->
     targetCompatibility = "1.8"
 
     dependencies {
-        documentation "org.fusesource.jansi:jansi:1.11"
-        documentation 'info.picocli:picocli:3.8.2'
+        documentation "org.fusesource.jansi:jansi:1.18"
+        documentation 'info.picocli:picocli:4.4.0'
         documentation "org.codehaus.groovy:groovy-dateutil:$groovyVersion"
         documentation "com.github.javaparser:javaparser-core:$javaParserCoreVersion"
         testImplementation "org.codehaus.groovy:groovy-test-junit5:$groovyVersion"
