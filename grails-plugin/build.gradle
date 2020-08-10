@@ -3,7 +3,7 @@ targetCompatibility = 1.8
 
 dependencyManagement {
     imports {
-        mavenBom "org.grails:grails-bom:$grails3Version"
+        mavenBom "org.grails:grails-bom:$pluginGrailsVersion"
     }
     applyMavenExclusions false
 }
@@ -18,6 +18,10 @@ configurations.all {
         }
         if(details.requested.group == 'org.codehaus.groovy' && details.requested.name.startsWith('groovy')) {
             details.useVersion(groovyVersion)
+        }
+
+        if(details.requested.group == 'org.springframework') {
+            details.useVersion(springVersion)
         }
     }
 }
