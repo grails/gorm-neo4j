@@ -3,7 +3,7 @@ configurations.all { Configuration c ->
     c.exclude(group:'org.grails',module:'grails-datastore-simple')
 }
 
-ext['jetty.version'] = "9.4.11.v20180605"
+ext['jetty.version'] = "9.4.29.v20200521"
 
 dependencies {
     implementation "org.springframework.boot:spring-boot-starter-logging"
