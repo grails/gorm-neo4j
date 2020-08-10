@@ -45,7 +45,7 @@ class Neo4jGrailsPlugin extends Plugin {
     @CompileStatic
     Closure doWithSpring() {
         ConfigSupport.prepareConfig(config, (ConfigurableApplicationContext) applicationContext)
-        def initializer = new Neo4jDataStoreSpringInitializer(config as PropertyResolver, grailsApplication.getArtefacts(DomainClassArtefactHandler.TYPE).collect() { GrailsClass cls -> cls.clazz })
+        def initializer = new Neo4jDataStoreSpringInitializer((PropertyResolver) config, grailsApplication.getArtefacts(DomainClassArtefactHandler.TYPE).collect() { GrailsClass cls -> cls.clazz })
         initializer.registerApplicationIfNotPresent = false
         initializer.setSecondaryDatastore(hasHibernatePlugin())
         return initializer.getBeanDefinitions((BeanDefinitionRegistry)applicationContext)
