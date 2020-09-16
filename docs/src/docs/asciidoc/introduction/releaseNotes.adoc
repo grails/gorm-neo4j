@@ -1,6 +1,9 @@
 ==== 7.1.x
 
 * Support for Groovy 3
+* Autowire bean by type in the Data Service.
+* Update to H2 1.4.200
+* Grails 4.1.0.M2
 
 ==== 7.0.x
 
