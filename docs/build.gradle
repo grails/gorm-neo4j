@@ -28,7 +28,7 @@ configurations.all {
 }
 
 dependencies {
-    documentation "org.fusesource.jansi:jansi:1.18"
+    documentation "org.fusesource.jansi:jansi:$jansiVersion"
     documentation "org.codehaus.groovy:groovy-dateutil:$groovyVersion"
     documentation "com.github.javaparser:javaparser-core:$javaParserCoreVersion"
     for(p in coreProjects) {
@@ -89,7 +89,6 @@ task fetchSource {
 fetchSource.inputs.properties(branch:githubBranch)
 fetchSource.outputs.dir checkOutDir
 
-
 task copyDocs(type:Copy, dependsOn:asciidoctor) {
     from "${project.buildDir}/asciidoc/html5"
     into "${project.buildDir}/docs/manual"
@@ -123,6 +122,7 @@ task copyResources(type:Copy) {
     from 'src/docs/resources'
     into "${project.buildDir}/docs"
 }
+
 task docs(dependsOn:[asciidoctor, groovydoc, copyDocs, copyResources] +
         subprojects.findAll { project -> project.tasks.findByName('groovydoc')}
                 .collect { project -> project.tasks.groovydoc }

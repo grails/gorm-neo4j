@@ -9,8 +9,6 @@ buildscript {
 
 apply plugin: 'org.springframework.boot'
 
-ext['jetty.version'] = "9.4.29.v20200521"
-
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web:$springBootVersion")
     implementation project(":gorm-neo4j-spring-boot")
