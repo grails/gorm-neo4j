@@ -13,10 +13,24 @@ ext {
 version rootProject.version
 
 apply plugin: 'org.asciidoctor.convert'
+apply plugin: 'groovy'
+
+configurations {
+    documentation
+}
+
+configurations.all {
+    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+        if (details.requested.group == 'org.codehaus.groovy' && details.requested.name.startsWith('groovy')) {
+            details.useVersion(groovyVersion)
+        }
+    }
+}
 
 dependencies {
-    documentation "org.codehaus.groovy:groovy-all:$groovyVersion"
-    documentation 'org.fusesource.jansi:jansi:1.18'
+    documentation "org.fusesource.jansi:jansi:1.18"
+    documentation "org.codehaus.groovy:groovy-dateutil:$groovyVersion"
+    documentation "com.github.javaparser:javaparser-core:$javaParserCoreVersion"
     for(p in coreProjects) {
         documentation "org.grails:grails-datastore-$p:$datastoreVersion"
     }
@@ -81,7 +95,8 @@ task copyDocs(type:Copy, dependsOn:asciidoctor) {
     into "${project.buildDir}/docs/manual"
 }
 
-task groovydoc(type:Groovydoc, dependsOn:fetchSource) {
+tasks.withType(Groovydoc) {
+    dependsOn(fetchSource)
     docTitle = "GORM for Neo4j - ${project.version}"
     destinationDir = project.file("build/docs/api")
 
