@@ -443,7 +443,7 @@ RETURN DISTINCT(r), from, to$skip$limit"""
      */
     Result cypherStatic(CharSequence query) {
         execute({ Neo4jSession session ->
-            Map params = [:]
+            Map<String, ?> params = [:]
             String queryString
             if(query instanceof GString) {
                 queryString = buildNamedParameterQueryFromGString((GString) query, params)
