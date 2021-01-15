@@ -23,7 +23,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         with:
-          prerelease: true
+          prerelease: false
           name: 6.1.9
           tag: v6.1.9
           version: 6.1.9
