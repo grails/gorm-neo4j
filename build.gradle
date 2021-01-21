@@ -162,8 +162,10 @@ subprojects { project ->
         version rootProject.version
     }
 
-    configurations {
-        documentation
+    configurations.create('documentation') {
+        attributes {
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+        }
     }
 
     if(project.name == 'docs') {
