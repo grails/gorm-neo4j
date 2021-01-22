@@ -38,7 +38,9 @@ class BookController {
             return
         }
 
-        book.save flush:true
+        Book.withTransaction {
+            book.save flush:true
+        }
 
         request.withFormat {
             form multipartForm {
