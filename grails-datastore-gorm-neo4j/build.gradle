@@ -22,7 +22,7 @@ dependencies {
     testRuntimeOnly "org.springframework:spring-aop:$springVersion"
     testRuntimeOnly "ch.qos.logback:logback-classic:1.1.7"
     testRuntimeOnly "javax.el:javax.el-api:2.2.4"
-    testRuntimeOnly "org.glassfish.web:el-impl:2.2"
+    testRuntimeOnly "org.glassfish.web:el-impl:2.2.1-b05"
 
 }
 
