@@ -23,7 +23,7 @@ version project.projectVersion
 println "GORM VERSION = ${project.datastoreVersion}"
 
 ext {
-    isTravisBuild = System.getenv().get("TRAVIS") == 'true'
+    isCiBuild = System.getenv().get("TRAVIS") == 'true' || System.getenv().get("CI") as Boolean
     hibernatePluginVersion = project.hibernateDatastoreVersion
     
     isCiBuild = project.hasProperty("isCiBuild")
