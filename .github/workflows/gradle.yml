@@ -44,7 +44,7 @@ jobs:
           [ -f ./setup.sh ] && ./setup.sh || true
       - name: Compile and Run Tests
         run: |
-          (set -x; ./gradlew compileTestGroovy)ongo
+          (set -x; ./gradlew compileTestGroovy)
           (set -x; ./gradlew -Dgeb.env=chromeHeadless check --refresh-dependencies -x gorm-neo4j-spring-boot:test -no-daemon)
           (set -x; ./gradlew gorm-neo4j-spring-boot:test --refresh-dependencies -no-daemon)
       - name: Publish Test Report
