@@ -9,7 +9,6 @@ buildscript {
     }
     dependencies {
         classpath "org.codehaus.groovy.modules.http-builder:http-builder:0.7.2"
-        classpath 'com.bmuschko:gradle-nexus-plugin:2.3.1'
         classpath "io.github.gradle-nexus:publish-plugin:1.0.0"
         classpath "org.grails:grails-gradle-plugin:$grailsVersion"
         classpath 'org.asciidoctor:asciidoctor-gradle-plugin:1.6.1'
@@ -33,8 +32,8 @@ ext {
     nexusPassword = System.getenv("SONATYPE_PASSWORD") ?: project.hasProperty("sonatypeOssPassword") ? project.sonatypeOssPassword : ''
 }
 
-ext."signing.keyId" = project.hasProperty("signing.keyId") ? project.getProperty('signing.keyId') : System.getenv('SIGNING_KEY_ID')
-ext."signing.password" = project.hasProperty("signing.password") ? project.getProperty('signing.password') : System.getenv('SIGNING_PASSWORD')
+ext."signing.keyId" = project.hasProperty("signing.keyId") ? project.getProperty('signing.keyId') : System.getenv('SIGNING_KEY')
+ext."signing.password" = project.hasProperty("signing.password") ? project.getProperty('signing.password') : System.getenv('SIGNING_PASSPHRASE')
 ext."signing.secretKeyRingFile" = project.hasProperty("signing.secretKeyRingFile") ? project.getProperty('signing.secretKeyRingFile') : "${System.properties['user.home']}${File.separator}.gnupg${File.separator}secring.gpg"
 
 if (isReleaseVersion) {
@@ -203,10 +202,6 @@ subprojects { project ->
         apply plugin: "org.grails.grails-plugin"
     } else {
         apply plugin:"groovy"
-        apply plugin: 'com.bmuschko.nexus'
-        modifyPom {
-            delegate.project pomInfo
-        }
     }
 
     sourceCompatibility = "1.8"
@@ -253,6 +248,27 @@ subprojects { project ->
     }
 
     groovydoc.classpath += configurations.documentation
+
+    Task sourcesJar = project.tasks.findByName("sourcesJar")
+    if (!sourcesJar) {
+        sourcesJar = tasks.create("sourcesJar", Jar) {
+            classifier = 'sources'
+            group = BasePlugin.BUILD_GROUP
+            description = 'Assembles a jar archive containing the main sources of this project.'
+            from project.sourceSets.main.allSource
+        }
+    }
+
+    Task javadocJar = project.tasks.findByName("javadocJar")
+    if (!javadocJar) {
+        javadocJar = tasks.create("javadocJar", Jar) {
+            classifier = 'javadoc'
+            group = BasePlugin.BUILD_GROUP
+            description = 'Assembles a jar archive containing the generated Javadoc API documentation of this project.'
+            from project.plugins.hasPlugin(GroovyPlugin) ? project.tasks.getByName(GroovyPlugin.GROOVYDOC_TASK_NAME) : project.tasks.getByName(JavaPlugin.JAVADOC_TASK_NAME)
+        }
+    }
+    tasks.findByName("assemble").finalizedBy(sourcesJar, javadocJar)
 
     publishing {
 
@@ -304,7 +320,7 @@ subprojects { project ->
 
         afterEvaluate {
             signing {
-                required { isReleaseVersion && gradle.taskGraph.hasTask("publish") }
+                required { isReleaseVersion }
                 sign publishing.publications.maven
             }
         }
