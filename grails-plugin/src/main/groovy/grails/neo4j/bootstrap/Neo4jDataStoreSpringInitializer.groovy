@@ -111,7 +111,7 @@ class Neo4jDataStoreSpringInitializer extends AbstractDatastoreInitializer {
             }
 
             loadDataServices(secondaryDatastore ? 'neo4j': null).each {serviceName, serviceClass->
-                "$serviceName"(DatastoreServiceMethodInvokingFactoryBean) {
+                "$serviceName"(DatastoreServiceMethodInvokingFactoryBean, serviceClass) {
                     targetObject = ref("neo4jDatastore")
                     targetMethod = 'getService'
                     arguments = [serviceClass]
