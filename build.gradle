@@ -67,6 +67,7 @@ subprojects { project ->
     }
 
     ext['gorm.version'] = datastoreVersion
+    ext['gorm.hibernate5.version'] = hibernateDatastoreVersion
     ext['h2.version'] = h2Version
     ext['jetty.version'] = project.jettyVersion
     ext['spock.version'] = spockVersion
