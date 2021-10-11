@@ -179,7 +179,7 @@ subprojects { project ->
        
     if (isPluginProject) {
         group "org.grails.plugins"
-        version( rootProject.version - '.RELEASE' )
+        version( rootProject.version )
     } else {
         group "org.grails"
         version rootProject.version
