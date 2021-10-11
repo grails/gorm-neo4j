@@ -1,9 +1,10 @@
 ==== 7.1.x
 
-* Support for Groovy 3
-* Autowire bean by type in the Data Service.
-* Update to H2 1.4.200
-* Grails 4.1.0.M2
+* Support Apache Groovy 3, and Java 14
+* Neo4J Driver 4.3
+* Spring 5.3, Spring Boot 2.5
+* Autowire bean by-type in the Data Service
+* Compatible Only with Grails 5 or higher
 
 ==== 7.0.x
 

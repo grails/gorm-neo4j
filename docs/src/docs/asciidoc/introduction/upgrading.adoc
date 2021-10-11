@@ -1,4 +1,33 @@
-If you are upgrading from a previous version of the plugin to the {version}, you will need to take into account the following changes.
+==== Dependency Upgrades
+
+GORM 7.1 supports Apache Groovy 3, Java 14, Neo4J Driver 4.3 and Spring 5.3.x.
+
+Each of these underlying components may have changes that require altering your application. These changes are beyond the scope of this documentation.
+
+==== Default Autowire By Type inside GORM Data Services
+
+A Grails Service (or a bean) inside GORM DataService will default to autowire by-type, For example:
+
+_./grails-app/services/example/BookService.groovy_
+```
+package example
+
+import grails.gorm.services.Service
+
+@Service(Book)
+abstract class BookService {
+
+    TestService testRepo
+
+    abstract Book save(String title, String author)
+
+    void doSomething() {
+        assert testRepo != null
+    }
+}
+```
+
+Please note that with autowire by-type as the default, when multiple beans for same type are found the application with throw Exception. Use the Spring `@Qualifier annotation for https://docs.spring.io/spring-framework/docs/5.3.10/reference/html/core.html#beans-autowired-annotation-qualifiers[Fine-tuning Annotation Based Autowiring with Qualifiers].
 
 ==== Configuration Changes
 
@@ -21,4 +50,4 @@ org.neo4j.driver.v1.types.Relationship, org.neo4j.driver.types.Relationship
 org.neo4j.driver.v1.StatementResult, org.neo4j.driver.Result
 |===
 
-There may be other classes that you need to replace references too. The `org.neo4j.driver.v1` package has shed its `v1` package, however there are also other changes.
+There may be other classes that you need to replace references too. The `org.neo4j.driver.v1` package has shed its `v1` package, however there are also other changes.[.line-through]##
