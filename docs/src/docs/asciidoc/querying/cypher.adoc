@@ -30,7 +30,7 @@ Node myNode = ...
 
 TIP: This also works for `Relationship` and `Path` types
 
-You can also convert any http://neo4j.com/docs/api/java-driver/4.0/org/neo4j/driver/Result.html[org.neo4j.driver.Result] instance to a list of domain classes:
+You can also convert any https://neo4j.com/docs/api/java-driver/4.0/org/neo4j/driver/Result.html[org.neo4j.driver.Result] instance to a list of domain classes:
 
 [source,groovy]
 ----

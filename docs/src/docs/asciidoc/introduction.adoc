@@ -1,4 +1,4 @@
-http://www.neo4j.org[Neo4j] a Graph database that fits nicely in a Grails application.
+https://www.neo4j.org[Neo4j] a Graph database that fits nicely in a Grails application.
 
 The goal of GORM for Neo4j is to provide a 'as-complete-as-possible' GORM implementation that maps domain classes and instances to the Neo4j nodespace. The following features are supported:
 

@@ -1,8 +1,8 @@
 GORM for Neo4j supports all the different querying methods provided by GORM including:
 
-* http://grails.github.io/grails-doc/latest/guide/GORM.html#finders[Dynamic Finders]
-* http://grails.github.io/grails-doc/latest/guide/GORM.html#whereQueries[Where Queries]
-* http://grails.github.io/grails-doc/latest/guide/GORM.html#criteria[Criteria Queries]
+* https://grails.github.io/grails-doc/latest/guide/GORM.html#finders[Dynamic Finders]
+* https://grails.github.io/grails-doc/latest/guide/GORM.html#whereQueries[Where Queries]
+* https://grails.github.io/grails-doc/latest/guide/GORM.html#criteria[Criteria Queries]
 
 However, HQL queries are not supported, instead you can use Cypher directly if you so choose.
 

@@ -36,7 +36,7 @@ dependencies {
 ----
 
 
-NOTE: GORM for Neo4j requires Grails 2.5.x or above and Neo4j 3.0.x or above, if you wish to use Neo4j 2.3.x use the http://gorm.grails.org/5.0.x[5.x version] of GORM
+NOTE: GORM for Neo4j requires Grails 2.5.x or above and Neo4j 3.0.x or above, if you wish to use Neo4j 2.3.x use the https://gorm.grails.org/5.0.x[5.x version] of GORM
 
 
 To configure the plugin for Grails 2.x edit the `grails-app/conf/BuildConfig.groovy` file and add the following plugin definitions:

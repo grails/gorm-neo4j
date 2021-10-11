@@ -1,4 +1,4 @@
-Additional support for http://gorm.grails.org/6.1.x/hibernate/manual/index.html#dataServices[GORM Data Services] exists in GORM for Neo4j beyond what is already offered by GORM core.
+Additional support for https://gorm.grails.org/6.1.x/hibernate/manual/index.html#dataServices[GORM Data Services] exists in GORM for Neo4j beyond what is already offered by GORM core.
 
 For example if you declare a data service interface:
 
