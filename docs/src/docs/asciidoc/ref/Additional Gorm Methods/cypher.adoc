@@ -25,7 +25,7 @@ result.iterator().size() == 1
 ===== Description
 
 
-`cypher` is invoked on any domain instance and returns a http://neo4j.com/docs/api/java-driver/4.0/org/neo4j/driver/Result.html[org.neo4j.driver.Result]
+`cypher` is invoked on any domain instance and returns a https://neo4j.com/docs/api/java-driver/4.0/org/neo4j/driver/Result.html[org.neo4j.driver.Result]
 
 The parameters passed are:
 

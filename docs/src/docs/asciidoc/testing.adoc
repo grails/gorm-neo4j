@@ -6,7 +6,7 @@ It is relatively trivial to write unit tests that use GORM for Neo4j. If you wis
 testRuntime "org.neo4j.test:neo4j-harness:{neo4jVersion}"
 ----
 
-Then create a http://spockframework.org[Spock] specification and declare a `@Shared` field using the `Neo4jDatastore` constructor with the domain classes you wish to test:
+Then create a https://spockframework.org[Spock] specification and declare a `@Shared` field using the `Neo4jDatastore` constructor with the domain classes you wish to test:
 
 [source,groovy]
 ----
