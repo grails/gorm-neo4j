@@ -115,6 +115,8 @@ subprojects { project ->
                     details.useVersion(springVersion)
                 } else if (details.requested.group == 'org.springframework.boot') {
                     details.useVersion(springBootVersion)
+                } else if (details.requested.name in ['grails-testing-support', 'grails-web-testing-support', 'grails-gorm-testing-support']) {
+                    details.useVersion(testingSupportVersion)
                 }
             }
         }

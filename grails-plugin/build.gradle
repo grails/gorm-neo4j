@@ -27,7 +27,6 @@ configurations.all {
 dependencies {
     compileOnly "org.grails:grails-core"
     compileOnly "org.grails:grails-bootstrap"
-    compileOnly "javax.servlet:javax.servlet-api:$servletApiVersion"
     compileOnly "org.spockframework:spock-core:$spockVersion", {
         exclude group: "junit", module: "junit-dep"
         exclude group: 'org.codehaus.groovy', module: 'groovy-all'
@@ -62,3 +61,5 @@ dependencies {
     testImplementation "org.neo4j.test:neo4j-harness:$neo4jVersion"
 
 }
+
+springBoot.mainClass.set(Application.class.name)
