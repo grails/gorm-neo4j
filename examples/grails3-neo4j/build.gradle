@@ -20,6 +20,9 @@ dependencies {
     runtimeOnly "org.grails.plugins:scaffolding:$scaffoldingVersion"
     runtimeOnly "org.grails.plugins:fields:$fieldsVersion"
 
+    testImplementation ("org.grails:grails-testing-support:$testingSupportVersion") {
+        exclude group: "org.spockframework", module: "spock-core"
+    }
     testImplementation ("org.grails:grails-gorm-testing-support:$testingSupportVersion") {
         exclude group: "org.spockframework", module: "spock-core"
     }
