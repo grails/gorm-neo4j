@@ -62,4 +62,6 @@ dependencies {
 
 }
 
-springBoot.mainClass.set(Application.class.name)
+springBoot {
+    mainClass  = "grails.plugins.neo4j.Application"
+}
