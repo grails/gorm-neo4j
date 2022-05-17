@@ -21,7 +21,7 @@ class RelationshipMappingSpec extends GormDatastoreSpec{
     void "Test save an retrieve a relationship directly"() {
         when:"A new relationship is created"
         def keanu = new Celeb(name: "Keanu")
-        def theMatrix = new Movie(title: "The Matrix")
+        def theMatrix = new Movie(title: "The Matrix 1")
         new CastMember(from: new Celeb(name: "Carrie Anne"), to: theMatrix, roles: ["Trinity"]).save()
         def newCastMember = new CastMember(from: keanu, to: theMatrix, roles: ["Neo"])
         newCastMember.putAt("foo", "bar")
