@@ -141,7 +141,7 @@ class Neo4jAssociationQueryExecutor implements AssociationQueryExecutor<Serializ
                         for(Association association in associations) {
                             if(association.isBasic()) continue
 
-                            boolean isEager = association.mapping.mappedForm.isLazy()
+                            boolean isEager = ((Property) association.mapping.mappedForm).isLazy()
 
                             String r = "r${i++}"
 
@@ -221,8 +221,7 @@ class Neo4jAssociationQueryExecutor implements AssociationQueryExecutor<Serializ
         cypher.append(singleResult ? 'LIMIT 1' : '')
 
 
-        Map<String,Object> params = (Map<String,Object>)Collections.singletonMap(GormProperties.IDENTITY, primaryKey)
-
+        Map<String, Object> params = Collections.singletonMap(GormProperties.IDENTITY, (Object) primaryKey)
 
         log.debug("Lazy loading association [${association}] using relationship $relationship")
         log.debug("QUERY Cypher [$cypher] for params [$params]")

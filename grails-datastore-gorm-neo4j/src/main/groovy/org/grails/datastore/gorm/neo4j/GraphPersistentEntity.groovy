@@ -4,6 +4,7 @@ import grails.neo4j.Relationship
 import groovy.transform.CompileStatic
 import org.codehaus.groovy.runtime.HandleMetaClass
 import org.grails.datastore.gorm.neo4j.mapping.config.NodeConfig
+import org.grails.datastore.mapping.config.Property
 import org.grails.datastore.mapping.model.AbstractPersistentEntity
 import org.grails.datastore.mapping.model.ClassMapping
 import org.grails.datastore.mapping.model.DatastoreConfigurationException
@@ -83,7 +84,7 @@ class GraphPersistentEntity extends AbstractPersistentEntity<NodeConfig> {
             if(!isExternal()) {
                 PersistentProperty identity = getIdentity()
                 if(identity != null) {
-                    String generatorType = identity.getMapping().getMappedForm().getGenerator()
+                    String generatorType = ((Property) identity.getMapping().getMappedForm()).getGenerator()
                     this.idGenerator = createIdGenerator(generatorType)
                     if(identity.name != GormProperties.IDENTITY) {
                         Class clazz = getJavaClass()
@@ -116,7 +117,7 @@ class GraphPersistentEntity extends AbstractPersistentEntity<NodeConfig> {
                     return null
                 case IdGenerator.Type.ASSIGNED:
                     assignedId = true
-                    getIdentity().getMapping().getMappedForm().setUnique(true)
+                    ((Property) getIdentity().getMapping().getMappedForm()).setUnique(true)
                     return null
                 case IdGenerator.Type.SNOWFLAKE:
                     return ((Neo4jMappingContext)mappingContext).getSnowflakeIdGenerator()
