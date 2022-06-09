@@ -99,7 +99,7 @@ if (location.href.indexOf('is-external=true') == -1) {
 
             <dl>
                 <dt>All Implemented Interfaces and Traits:</dt>
-                <dd>org.springframework.beans.factory.BeanFactoryAware, <a href='../../../../../../../ResourceLoaderAware.html'>ResourceLoaderAware</a>, org.springframework.context.ApplicationContextAware</dd>
+                <dd>org.springframework.beans.factory.BeanFactoryAware, org.springframework.context.ResourceLoaderAware, org.springframework.context.ApplicationContextAware</dd>
             </dl>
     
 
@@ -113,7 +113,7 @@ if (location.href.indexOf('is-external=true') == -1) {
 @org.springframework.boot.autoconfigure.AutoConfigureBefore(value: DispatcherServletAutoConfiguration)
 class Neo4jAutoConfiguration
 extends java.lang.Object
-implements org.springframework.beans.factory.BeanFactoryAware, <a href='../../../../../../../ResourceLoaderAware.html'>ResourceLoaderAware</a>, org.springframework.context.ApplicationContextAware</pre>
+implements org.springframework.beans.factory.BeanFactoryAware, org.springframework.context.ResourceLoaderAware, org.springframework.context.ApplicationContextAware</pre>
 
     <p> Auto configuration for GORM for Hibernate <DL><DT><B>Authors:</B></DT><DD>Graeme Rocher</DD></DL><DL><DT><B>Since:</B></DT><DD>1.0</DD></DL></p>
 
@@ -223,7 +223,7 @@ implements org.springframework.beans.factory.BeanFactoryAware, <a href='../../..
                         <tr class="altColor">
                             <td class="colFirst"><code></code></td>
                             <td class="colLast"><code>void</code></td>
-                            <td class="colLast"><code><strong><a href="#setApplicationContext(ApplicationContext)">setApplicationContext</a></strong>(<a href='../../../../../../../ApplicationContext.html'>ApplicationContext</a> applicationContext)</code><br></td>
+                            <td class="colLast"><code><strong><a href="#setApplicationContext(org.springframework.context.ApplicationContext)">setApplicationContext</a></strong>(org.springframework.context.ApplicationContext applicationContext)</code><br></td>
                         </tr>
                         
                     </table>
@@ -346,11 +346,11 @@ implements org.springframework.beans.factory.BeanFactoryAware, <a href='../../..
                             </li>
                         </ul>
                     
-                        <a name="setApplicationContext(ApplicationContext)"><!-- --></a>
+                        <a name="setApplicationContext(org.springframework.context.ApplicationContext)"><!-- --></a>
                         <ul class="blockListLast">
                             <li class="blockList">
                                 <h4>@java.lang.Override
-void <strong>setApplicationContext</strong>(<a href='../../../../../../../ApplicationContext.html'>ApplicationContext</a> applicationContext)</h4>
+void <strong>setApplicationContext</strong>(org.springframework.context.ApplicationContext applicationContext)</h4>
                                 <p></p>
                             </li>
                         </ul>
