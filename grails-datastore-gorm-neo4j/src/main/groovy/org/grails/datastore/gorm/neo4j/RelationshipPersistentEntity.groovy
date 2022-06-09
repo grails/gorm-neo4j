@@ -5,6 +5,7 @@ import grails.neo4j.Relationship
 import groovy.transform.CompileStatic
 import org.grails.datastore.gorm.neo4j.mapping.config.NodeConfig
 import org.grails.datastore.gorm.neo4j.mapping.config.RelationshipConfig
+import org.grails.datastore.mapping.config.Property
 import org.grails.datastore.mapping.model.IllegalMappingException
 import org.grails.datastore.mapping.model.MappingContext
 import org.grails.datastore.mapping.model.PersistentProperty
@@ -63,8 +64,8 @@ class RelationshipPersistentEntity extends GraphPersistentEntity {
                 this.type = rc.type ?: type
                 this.direction = rc.direction
             }
-            getFrom().getMapping().getMappedForm().setLazy(true)
-            getTo().getMapping().getMappedForm().setLazy(true)
+            ((Property) getFrom().getMapping().getMappedForm()).setLazy(true)
+            ((Property) getTo().getMapping().getMappedForm()).setLazy(true)
         }
     }
 
