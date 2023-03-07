@@ -9,7 +9,7 @@ buildscript {
     }
     dependencies {
         classpath "org.codehaus.groovy.modules.http-builder:http-builder:0.7.2"
-        classpath "io.github.gradle-nexus:publish-plugin:1.1.0"
+        classpath "io.github.gradle-nexus:publish-plugin:1.3.0"
         classpath "org.grails:grails-gradle-plugin:$grailsGradlePluginVersion"
         classpath 'org.asciidoctor:asciidoctor-gradle-plugin:1.6.1'
         classpath "gradle.plugin.com.energizedwork.webdriver-binaries:webdriver-binaries-gradle-plugin:$webdriverBinariesVersion"
