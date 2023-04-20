@@ -192,7 +192,7 @@ subprojects { project ->
 
     dependencies {
         documentation "org.fusesource.jansi:jansi:1.18"
-        documentation 'info.picocli:picocli:4.6.1'
+        documentation 'info.picocli:picocli:4.7.3'
         documentation "org.codehaus.groovy:groovy-dateutil:$groovyVersion"
         testCompile "org.spockframework:spock-core:$spockVersion"
     }
