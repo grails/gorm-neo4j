@@ -139,7 +139,7 @@ def t = new Team1()
 t.trackChanges()
 t.club = null
 return t.hasChanged("club")
-''').newInstance().run()
+''').getDeclaredConstructor().newInstance().run()
         then:
         cls != null
     }
