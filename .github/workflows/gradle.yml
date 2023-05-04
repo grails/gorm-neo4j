@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java: ['8', '11', '14']
+        java: ['11', '14']
     env:
       WORKSPACE: ${{ github.workspace }}
       GRADLE_OPTS: -Xmx1500m -Dfile.encoding=UTF-8
@@ -41,6 +41,7 @@ jobs:
         with:
           arguments: check -Dgeb.env=chromeHeadless
         env:
+          GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
           GRADLE_ENTERPRISE_BUILD_CACHE_NODE_USER: ${{ secrets.GRADLE_ENTERPRISE_BUILD_CACHE_NODE_USER }}
           GRADLE_ENTERPRISE_BUILD_CACHE_NODE_KEY: ${{ secrets.GRADLE_ENTERPRISE_BUILD_CACHE_NODE_KEY }}      
       - name: Run Build
@@ -62,20 +63,27 @@ jobs:
       - name: Publish to repo.grails.org
         id: publish
         uses: gradle/gradle-build-action@v2
-        if: steps.build.outcome == 'success' && github.event_name == 'push' && matrix.java == '8'
+        if: steps.build.outcome == 'success' && github.event_name == 'push' && matrix.java == '11'
         env:
+          GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
+          GRADLE_ENTERPRISE_BUILD_CACHE_NODE_USER: ${{ secrets.GRADLE_ENTERPRISE_BUILD_CACHE_NODE_USER }}
+          GRADLE_ENTERPRISE_BUILD_CACHE_NODE_KEY: ${{ secrets.GRADLE_ENTERPRISE_BUILD_CACHE_NODE_KEY }}
           ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
           ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
         with:
           arguments: -Dorg.gradle.internal.publish.checksums.insecure=true publish
       - name: Build Docs
         id: docs
-        if: steps.build.outcome == 'success' && github.event_name == 'push' && matrix.java == '8'
+        if: steps.build.outcome == 'success' && github.event_name == 'push' && matrix.java == '11'
         uses: gradle/gradle-build-action@v2
+        env:
+          GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
+          GRADLE_ENTERPRISE_BUILD_CACHE_NODE_USER: ${{ secrets.GRADLE_ENTERPRISE_BUILD_CACHE_NODE_USER }}
+          GRADLE_ENTERPRISE_BUILD_CACHE_NODE_KEY: ${{ secrets.GRADLE_ENTERPRISE_BUILD_CACHE_NODE_KEY }}
         with:
           arguments: docs:docs
       - name: Determine docs target repository
-        if: steps.docs.outcome == 'success' && github.event_name == 'push' && matrix.java == '8'
+        if: steps.docs.outcome == 'success' && github.event_name == 'push' && matrix.java == '11'
         uses: haya14busa/action-cond@v1
         id: docs_target
         with:
@@ -83,7 +91,7 @@ jobs:
           if_true: "grails/grails-data-mapping"
           if_false: ${{ github.repository }}
       - name: Publish to Github Pages
-        if: steps.docs.outcome == 'success' && github.event_name == 'push' && matrix.java == '8'
+        if: steps.docs.outcome == 'success' && github.event_name == 'push' && matrix.java == '11'
         uses: micronaut-projects/github-pages-deploy-action@master
         env:
           TARGET_REPOSITORY: ${{ steps.docs_target.outputs.value }}
