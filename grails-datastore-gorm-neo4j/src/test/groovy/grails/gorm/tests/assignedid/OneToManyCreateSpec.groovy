@@ -11,7 +11,7 @@ import spock.lang.Specification
 /**
  * Created by graemerocher on 14/03/2017.
  */
-class OneToManyCreateSpec extends Specification{
+class OneToManyCreateSpec extends Specification {
     // tag::setup[]
     @Shared @AutoCleanup Neo4jDatastore datastore = new Neo4jDatastore(getClass().getPackage())
     // end::setup[]
@@ -19,19 +19,24 @@ class OneToManyCreateSpec extends Specification{
     @Rollback
     void "test save one-to-many"() {
         given:
+        List<Owner> deleteOwners = []
         // tag::save[]
-        new Owner(name:"Fred")
+        deleteOwners << new Owner(name:"Fred")
                 .addToPets(name: "Dino")
                 .addToPets(name: "Joe")
                 .save()
-        new Owner(name:"Barney")
+        deleteOwners << new Owner(name:"Barney")
                 .addToPets(name: "Hoppy")
                 .save(flush:true)
         // end::save[]
         Owner.withSession { it.clear() }
+
         expect:
         Owner.count == 2
         Owner.findByName("Fred").pets.size() == 2
         Owner.findByName("Barney").pets.size() == 1
+
+        cleanup:
+        Owner.deleteAll(deleteOwners)
     }
 }

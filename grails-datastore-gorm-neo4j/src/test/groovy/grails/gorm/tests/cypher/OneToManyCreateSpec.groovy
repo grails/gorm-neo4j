@@ -14,7 +14,7 @@ class OneToManyCreateSpec extends Specification {
     void "test save one-to-many"() {
         given:
         // tag::save[]
-        new Owner(name:"Fred")
+        Owner owner = new Owner(name:"David")
             .addToPets(name: "Dino")
             .save(flush:true)
             .discard()
@@ -22,13 +22,16 @@ class OneToManyCreateSpec extends Specification {
         expect:
         Owner.count == 1
         Owner.first().pets.size() == 1
+
+        cleanup:
+        Owner.deleteAll(owner)
     }
 
     @Rollback
     void "test save one-to-many with dynamic attributes"() {
 
         given:
-        def owner = new Owner(name: "Fred")
+        def owner = new Owner(name: "John")
                             .addToPets(name: "Dino")
         owner.age = 40
         owner
@@ -38,6 +41,10 @@ class OneToManyCreateSpec extends Specification {
         expect:
         Owner.count == 1
         Owner.first().pets.size() == 1
+        Owner.first().name == "John"
         Owner.first().age == 40
+
+        cleanup:
+        Owner.deleteAll(owner)
     }
 }
