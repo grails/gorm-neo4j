@@ -1443,11 +1443,11 @@ These have a couple of disadvantages that should encourage you to use an alterna
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="groovy"><span class="keyword">new</span> <span class="predefined-type">Owner</span>(<span class="key">name</span>:<span class="string"><span class="delimiter">&quot;</span><span class="content">Fred</span><span class="delimiter">&quot;</span></span>)
+<pre class="CodeRay highlight"><code data-lang="groovy">deleteOwners &lt;&lt; <span class="keyword">new</span> <span class="predefined-type">Owner</span>(<span class="key">name</span>:<span class="string"><span class="delimiter">&quot;</span><span class="content">Fred</span><span class="delimiter">&quot;</span></span>)
         .addToPets(<span class="key">name</span>: <span class="string"><span class="delimiter">&quot;</span><span class="content">Dino</span><span class="delimiter">&quot;</span></span>)
         .addToPets(<span class="key">name</span>: <span class="string"><span class="delimiter">&quot;</span><span class="content">Joe</span><span class="delimiter">&quot;</span></span>)
         .save()
-<span class="keyword">new</span> <span class="predefined-type">Owner</span>(<span class="key">name</span>:<span class="string"><span class="delimiter">&quot;</span><span class="content">Barney</span><span class="delimiter">&quot;</span></span>)
+deleteOwners &lt;&lt; <span class="keyword">new</span> <span class="predefined-type">Owner</span>(<span class="key">name</span>:<span class="string"><span class="delimiter">&quot;</span><span class="content">Barney</span><span class="delimiter">&quot;</span></span>)
         .addToPets(<span class="key">name</span>: <span class="string"><span class="delimiter">&quot;</span><span class="content">Hoppy</span><span class="delimiter">&quot;</span></span>)
         .save(<span class="key">flush</span>:<span class="predefined-constant">true</span>)</code></pre>
 </div>
@@ -1541,7 +1541,7 @@ FOREACH (pets IN row.pets |
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="groovy"><span class="keyword">new</span> <span class="predefined-type">Owner</span>(<span class="key">name</span>:<span class="string"><span class="delimiter">&quot;</span><span class="content">Fred</span><span class="delimiter">&quot;</span></span>)
+<pre class="CodeRay highlight"><code data-lang="groovy"><span class="predefined-type">Owner</span> owner = <span class="keyword">new</span> <span class="predefined-type">Owner</span>(<span class="key">name</span>:<span class="string"><span class="delimiter">&quot;</span><span class="content">David</span><span class="delimiter">&quot;</span></span>)
     .addToPets(<span class="key">name</span>: <span class="string"><span class="delimiter">&quot;</span><span class="content">Dino</span><span class="delimiter">&quot;</span></span>)
     .save(<span class="key">flush</span>:<span class="predefined-constant">true</span>)
     .discard()</code></pre>

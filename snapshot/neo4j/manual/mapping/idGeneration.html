@@ -500,11 +500,11 @@ class Pet {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-groovy" data-lang="groovy">new Owner(name:"Fred")
+<pre class="highlight"><code class="language-groovy" data-lang="groovy">deleteOwners &lt;&lt; new Owner(name:"Fred")
         .addToPets(name: "Dino")
         .addToPets(name: "Joe")
         .save()
-new Owner(name:"Barney")
+deleteOwners &lt;&lt; new Owner(name:"Barney")
         .addToPets(name: "Hoppy")
         .save(flush:true)</code></pre>
 </div>
