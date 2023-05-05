@@ -121,28 +121,27 @@ class OneToManyUpdateSpec extends GormDatastoreSpec {
     }
 
     void "test dirty checkable"() {
+        given:
+        Club c = new Club(name: "Manchester United").save(validate:false)
+        Team t = new Team(name: "First Team", club: c).save(flush:true, validate:false)
+        session.clear()
+
+        when:"A instance is retrieved"
+        t = Team.first()
+
+        then:"it isn't null"
+        t != null
+        t.club != null
+
         when:
-        def gcl = new GroovyClassLoader()
-        def cls = gcl.parseClass('''
+        t.trackChanges()
+        t.club = null
 
-@grails.gorm.annotation.Entity
-class Team1 {
-    Club club
-}
-
-@grails.gorm.annotation.Entity
-class Club {
-
-}
-
-def t = new Team1()
-t.trackChanges()
-t.club = null
-return t.hasChanged("club")
-''').getDeclaredConstructor().newInstance().run()
         then:
-        cls != null
+        t.hasChanged("club")
+
     }
+
     @Override
     List getDomainClasses() {
         [Tournament, Club, Team]
