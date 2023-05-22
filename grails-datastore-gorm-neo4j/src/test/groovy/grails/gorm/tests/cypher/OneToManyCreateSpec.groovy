@@ -37,12 +37,13 @@ class OneToManyCreateSpec extends Specification {
         owner
             .save(flush:true)
             .discard()
+        def result = Owner.first()
 
         expect:
         Owner.count == 1
-        Owner.first().pets.size() == 1
-        Owner.first().name == "John"
-        Owner.first().age == 40
+        result.pets.size() == 1
+        result.name == "John"
+        result.age == 40
 
         cleanup:
         Owner.deleteAll(owner)

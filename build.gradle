@@ -1,7 +1,3 @@
-import groovyx.net.http.RESTClient
-
-import static groovyx.net.http.ContentType.JSON
-
 buildscript {
     repositories {
         maven { url "https://repo.grails.org/grails/core" }
@@ -11,8 +7,8 @@ buildscript {
         classpath "org.codehaus.groovy.modules.http-builder:http-builder:0.7.2"
         classpath "io.github.gradle-nexus:publish-plugin:1.3.0"
         classpath "org.grails:grails-gradle-plugin:$grailsGradlePluginVersion"
-        classpath 'org.asciidoctor:asciidoctor-gradle-plugin:1.6.1'
-        classpath "gradle.plugin.com.energizedwork.webdriver-binaries:webdriver-binaries-gradle-plugin:$webdriverBinariesVersion"
+        classpath "org.asciidoctor:asciidoctor-gradle-jvm:4.0.0-alpha.1"
+        classpath "com.github.erdi:webdriver-binaries-gradle-plugin:3.0"
         classpath "org.grails.plugins:views-gradle:2.3.2"
         classpath "org.gradle:test-retry-gradle-plugin:1.5.2"
     }
@@ -56,7 +52,7 @@ if (isReleaseVersion) {
     }
 }
 
-subprojects { project ->
+subprojects { subproject ->
 
     repositories {
         maven { url "https://repo.grails.org/grails/core" }
@@ -71,7 +67,7 @@ subprojects { project ->
     ext['gorm.version'] = datastoreVersion
     ext['gorm.hibernate5.version'] = hibernateDatastoreVersion
     ext['h2.version'] = h2Version
-    ext['jetty.version'] = project.jettyVersion
+    ext['jetty.version'] = subproject.jettyVersion
     ext['spock.version'] = spockVersion
     ext['junit-jupiter.version'] = junitJupiterVersion
 
@@ -88,13 +84,13 @@ subprojects { project ->
         }
     }
 
-    boolean usesGeb = ["grails3-neo4j", "grails3-neo4j-hibernate"].any { projectName -> project.name.contains(projectName) }
-    boolean isPluginProject = project.name.endsWith("-plugin") && project.name.startsWith("grails")
-    boolean isGrails3PluginProject = project.name.endsWith("-plugin")
-    boolean isExample = project.name.startsWith("examples-")
+    boolean usesGeb = ["grails3-neo4j", "grails3-neo4j-hibernate"].any { projectName -> subproject.name.contains(projectName) }
+    boolean isPluginProject = subproject.name.endsWith("-plugin") && subproject.name.startsWith("grails")
+    boolean isGrails3PluginProject = subproject.name.endsWith("-plugin")
+    boolean isExample = subproject.name.startsWith("examples-")
 
     if (isExample) {
-        boolean isGrails3Example = project.name.startsWith("examples-grails3")
+        boolean isGrails3Example = subproject.name.startsWith("examples-grails3")
         apply plugin: 'groovy'
 
         if (isGrails3Example) {
@@ -102,9 +98,9 @@ subprojects { project ->
             apply plugin:"org.grails.grails-gsp"
 
             if (usesGeb) {
-                apply plugin:"com.energizedwork.webdriver-binaries"
+                apply plugin:"com.github.erdi.webdriver-binaries"
             }
-        } else if (project.name == "examples-test-data-service") {
+        } else if (subproject.name == "examples-test-data-service") {
             apply plugin:"org.grails.grails-web"
             apply plugin:"org.grails.plugins.views-json"
         }
@@ -140,11 +136,15 @@ subprojects { project ->
             }
         }
 
+        tasks.withType(Jar).configureEach {
+            duplicatesStrategy = DuplicatesStrategy.INCLUDE
+        }
+
         return
     }
 
     ext {
-        projectInfo = new PublishingConvention(project)
+        projectInfo = new PublishingConvention(subproject)
         pomInfo = {
             delegate.name projectInfo.projectName
             delegate.description projectInfo.projectDescription
@@ -153,7 +153,7 @@ subprojects { project ->
             delegate.licenses {
                 delegate.license {
                     delegate.name 'The Apache Software License, Version 2.0'
-                    delegate.url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    delegate.url 'https://www.apache.org/licenses/LICENSE-2.0.txt'
                     delegate.distribution 'repo'
                 }
             }
@@ -189,13 +189,7 @@ subprojects { project ->
         version rootProject.version
     }
 
-    configurations.create('documentation') {
-        attributes {
-            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
-        }
-    }
-
-    if(project.name == 'docs') {
+    if(subproject.name == 'docs') {
         return
     }
 
@@ -210,8 +204,13 @@ subprojects { project ->
         apply plugin:"groovy"
     }
 
-    sourceCompatibility = "1.8"
-    targetCompatibility = "1.8"
+    sourceCompatibility = "1.11"
+    targetCompatibility = "1.11"
+
+    java {
+        withJavadocJar()
+        withSourcesJar()
+    }
 
     configurations.all {
         resolutionStrategy.eachDependency { DependencyResolveDetails details ->
@@ -240,12 +239,6 @@ subprojects { project ->
 
     dependencies {
         api "org.codehaus.groovy:groovy:$groovyVersion"
-
-        documentation "org.fusesource.jansi:jansi:$jansiVersion"
-        documentation "info.picocli:picocli:$picocliVersion"
-        documentation "org.codehaus.groovy:groovy-dateutil:$groovyVersion"
-        documentation "com.github.javaparser:javaparser-core:$javaParserCoreVersion"
-
         testImplementation "org.codehaus.groovy:groovy-test-junit5:$groovyVersion"
         testImplementation "org.spockframework:spock-core:$spockVersion", { transitive = false }
         testImplementation "org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion"
@@ -263,37 +256,14 @@ subprojects { project ->
         }
     }
 
-    groovydoc.classpath += configurations.documentation
-
-    Task sourcesJar = project.tasks.findByName("sourcesJar")
-    if (!sourcesJar) {
-        sourcesJar = tasks.create("sourcesJar", Jar) {
-            classifier = 'sources'
-            group = BasePlugin.BUILD_GROUP
-            description = 'Assembles a jar archive containing the main sources of this project.'
-            from project.sourceSets.main.allSource
-        }
-    }
-
-    Task javadocJar = project.tasks.findByName("javadocJar")
-    if (!javadocJar) {
-        javadocJar = tasks.create("javadocJar", Jar) {
-            classifier = 'javadoc'
-            group = BasePlugin.BUILD_GROUP
-            description = 'Assembles a jar archive containing the generated Javadoc API documentation of this project.'
-            from project.plugins.hasPlugin(GroovyPlugin) ? project.tasks.getByName(GroovyPlugin.GROOVYDOC_TASK_NAME) : project.tasks.getByName(JavaPlugin.JAVADOC_TASK_NAME)
-        }
-    }
-    tasks.findByName("assemble").finalizedBy(sourcesJar, javadocJar)
-
     publishing {
 
         if (isBuildSnapshot) {
             repositories {
                 maven {
                     credentials {
-                        def u = System.getenv("ARTIFACTORY_USERNAME") ?: project.hasProperty("artifactoryPublishUsername") ? project.artifactoryPublishUsername : ''
-                        def p = System.getenv("ARTIFACTORY_PASSWORD") ?: project.hasProperty("artifactoryPublishPassword") ? project.artifactoryPublishPassword : ''
+                        def u = System.getenv("ARTIFACTORY_USERNAME") ?: subproject.hasProperty("artifactoryPublishUsername") ? subproject.artifactoryPublishUsername : ''
+                        def p = System.getenv("ARTIFACTORY_PASSWORD") ?: subproject.hasProperty("artifactoryPublishPassword") ? subproject.artifactoryPublishPassword : ''
                         username = u
                         password = p
                     }
@@ -308,14 +278,39 @@ subprojects { project ->
 
         publications {
             maven(MavenPublication) {
+
+                pom {
+                    name = projectInfo.projectName
+                    description = projectInfo.projectDescription
+                    url = projectInfo.projectURL
+
+                    licenses {
+                        license {
+                            name = 'The Apache Software License, Version 2.0'
+                            url = 'https://www.apache.org/licenses/LICENSE-2.0.txt'
+                            distribution = 'repo'
+                        }
+                    }
+
+                    scm {
+                        url = 'scm:git@github.com:grails/gorm-neo4j.git'
+                        connection = 'scm:git@github.com:grails/gorm-neo4j.git'
+                        developerConnection = 'scm:git@github.com:grails/gorm-neo4j.git'
+                    }
+
+                    developers {
+                        developer {
+                            id = 'puneetbehl'
+                            name = 'Puneet Behl'
+                            email = 'behlp@objectcomputing.com'
+                        }
+                    }
+                }
+
                 artifactId projectInfo.projectArtifactId
                 from components.java
 
                 afterEvaluate {
-                    artifact source: sourcesJar, classifier: "sources"
-                    artifact source: javadocJar, classifier: "javadoc"
-
-
                     if (isGrails3PluginProject) {
                         artifact source:"${sourceSets.main.groovy.outputDir}/META-INF/grails-plugin.xml",
                                 classifier:"plugin",
@@ -328,8 +323,6 @@ subprojects { project ->
                     def xml = asNode()
                     def dependency = xml.dependencies.find { dep -> dep.artifactId == 'slf4j-simple' }
                     dependency?.optional = true
-                    xml.children().last() + pomInfo
-
                 }
             }
         }
