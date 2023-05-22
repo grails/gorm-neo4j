@@ -140,6 +140,12 @@ extends <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPer
                             <td class="colLast"></td>
                         </tr>
                         
+                        <tr class="rowColor">
+                            <td class="colFirst"><code><strong>private&nbsp;static&nbsp;org.slf4j.Logger</strong></code>&nbsp;</td>
+                            <td class="colLast"><code><a href="#log">log</a></code></td>
+                            <td class="colLast"></td>
+                        </tr>
+                        
                     </table>
                    </ul>
                 </li>
@@ -154,7 +160,7 @@ extends <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPer
                         </tr>
                                                 <tr class="altColor">
                             <td class="colFirst"><strong><code>class <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html'>EntityPersister</a></code></strong></td>
-                            <td class="colLast"><code><a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#proxyFactory'>proxyFactory</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#publisher'>publisher</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#reflector'>reflector</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#session'>session</a></code></td>
+                            <td class="colLast"><code><a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#mappingContext'>mappingContext</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#persistentEntity'>persistentEntity</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#proxyFactory'>proxyFactory</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#publisher'>publisher</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#reflector'>reflector</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#session'>session</a></code></td>
                         </tr>
 
                     </table>
@@ -211,8 +217,32 @@ extends <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPer
                         
                         <tr class="altColor">
                             <td class="colFirst"><code></code></td>
+                            <td class="colLast"><code>private&nbsp;int</code></td>
+                            <td class="colLast"><code><strong><a href="#calcInheritenceChain(org.grails.datastore.mapping.model.PersistentEntity)">calcInheritenceChain</a></strong>(<a href='../../../../../../org/grails/datastore/mapping/model/PersistentEntity.html'>PersistentEntity</a> current)</code><br></td>
+                        </tr>
+                        
+                        <tr class="rowColor">
+                            <td class="colFirst"><code></code></td>
                             <td class="colLast"><code>public&nbsp;static&nbsp;long</code></td>
-                            <td class="colLast"><code><strong><a href="#countUpdates(org.neo4j.driver.Result)">countUpdates</a></strong>(<a href='../../../../../../org.neo4j.driver.Result.html'>Result</a> execute)</code><br></td>
+                            <td class="colLast"><code><strong><a href="#countUpdates(org.neo4j.driver.Result)">countUpdates</a></strong>(org.neo4j.driver.Result execute)</code><br></td>
+                        </tr>
+                        
+                        <tr class="altColor">
+                            <td class="colFirst"><code></code></td>
+                            <td class="colLast"><code>private&nbsp;java.util.Collection</code></td>
+                            <td class="colLast"><code><strong><a href="#createCollection(org.grails.datastore.mapping.model.types.Association)">createCollection</a></strong>(<a href='../../../../../../org/grails/datastore/mapping/model/types/Association.html'>Association</a> association)</code><br></td>
+                        </tr>
+                        
+                        <tr class="rowColor">
+                            <td class="colFirst"><code></code></td>
+                            <td class="colLast"><code>private&nbsp;java.util.Collection</code></td>
+                            <td class="colLast"><code><strong><a href="#createDirtyCheckableAwareCollection(org.grails.datastore.mapping.engine.EntityAccess, org.grails.datastore.mapping.model.types.Association, java.util.Collection)">createDirtyCheckableAwareCollection</a></strong>(<a href='../../../../../../org/grails/datastore/mapping/engine/EntityAccess.html'>EntityAccess</a> entityAccess, <a href='../../../../../../org/grails/datastore/mapping/model/types/Association.html'>Association</a> association, java.util.Collection delegate)</code><br></td>
+                        </tr>
+                        
+                        <tr class="altColor">
+                            <td class="colFirst"><code></code></td>
+                            <td class="colLast"><code>private&nbsp;<a href='../../../../../../org/grails/datastore/mapping/core/impl/PendingDeleteAdapter.html'>PendingDeleteAdapter</a></code></td>
+                            <td class="colLast"><code><strong><a href="#createPendingDeleteOne(org.grails.datastore.gorm.neo4j.Neo4jSession, org.grails.datastore.mapping.model.PersistentEntity, org.grails.datastore.mapping.engine.EntityAccess, java.lang.Object)">createPendingDeleteOne</a></strong>(<a href='../../../../../../org/grails/datastore/gorm/neo4j/Neo4jSession.html'>Neo4jSession</a> session, <a href='../../../../../../org/grails/datastore/mapping/model/PersistentEntity.html'>PersistentEntity</a> pe, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityAccess.html'>EntityAccess</a> entityAccess, java.lang.Object obj)</code><br></td>
                         </tr>
                         
                         <tr class="rowColor">
@@ -235,8 +265,8 @@ extends <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPer
                         
                         <tr class="altColor">
                             <td class="colFirst"><code></code></td>
-                            <td class="colLast"><code>public&nbsp;java.io.Serializable</code></td>
-                            <td class="colLast"><code><strong><a href="#getNativeKey()">getNativeKey</a></strong>()</code><br></td>
+                            <td class="colLast"><code>private&nbsp;<a href='../../../../../../org/grails/datastore/mapping/model/PersistentEntity.html'>PersistentEntity</a></code></td>
+                            <td class="colLast"><code><strong><a href="#findDerivedPersistentEntityWithLabel(org.grails.datastore.mapping.model.PersistentEntity, java.lang.String)">findDerivedPersistentEntityWithLabel</a></strong>(<a href='../../../../../../org/grails/datastore/mapping/model/PersistentEntity.html'>PersistentEntity</a> parent, java.lang.String label)</code><br></td>
                         </tr>
                         
                         <tr class="rowColor">
@@ -246,27 +276,63 @@ extends <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPer
                         </tr>
                         
                         <tr class="altColor">
+                            <td class="colFirst"><code></code></td>
+                            <td class="colLast"><code>public&nbsp;java.io.Serializable</code></td>
+                            <td class="colLast"><code><strong><a href="#getNativeKey()">getNativeKey</a></strong>()</code><br></td>
+                        </tr>
+                        
+                        <tr class="rowColor">
                             <td class="colFirst"><code></code></td>
                             <td class="colLast"><code>public&nbsp;<a href='../../../../../../org/grails/datastore/gorm/neo4j/Neo4jSession.html'>Neo4jSession</a></code></td>
                             <td class="colLast"><code><strong><a href="#getSession()">getSession</a></strong>()</code><br></td>
                         </tr>
                         
+                        <tr class="altColor">
+                            <td class="colFirst"><code></code></td>
+                            <td class="colLast"><code>private&nbsp;void</code></td>
+                            <td class="colLast"><code><strong><a href="#handleRelationshipSide(org.grails.datastore.mapping.model.PersistentEntity, Map, java.lang.Object, java.lang.String, org.grails.datastore.gorm.neo4j.collection.Neo4jResultList, org.grails.datastore.mapping.model.types.Association)">handleRelationshipSide</a></strong>(<a href='../../../../../../org/grails/datastore/mapping/model/PersistentEntity.html'>PersistentEntity</a> persistentEntity, java.util.Map&lt;java.lang.String, java.lang.Object&gt; resultData, java.lang.Object entity, java.lang.String associationNodesKey, <a href='../../../../../../org/grails/datastore/gorm/neo4j/collection/Neo4jResultList.html'>Neo4jResultList</a> resultSet, <a href='../../../../../../org/grails/datastore/mapping/model/types/Association.html'>Association</a> association)</code><br></td>
+                        </tr>
+                        
                         <tr class="rowColor">
+                            <td class="colFirst"><code></code></td>
+                            <td class="colLast"><code>private&nbsp;boolean</code></td>
+                            <td class="colLast"><code><strong><a href="#isInParentsChain(org.grails.datastore.mapping.model.PersistentEntity, org.grails.datastore.mapping.model.PersistentEntity)">isInParentsChain</a></strong>(<a href='../../../../../../org/grails/datastore/mapping/model/PersistentEntity.html'>PersistentEntity</a> parent, <a href='../../../../../../org/grails/datastore/mapping/model/PersistentEntity.html'>PersistentEntity</a> it)</code><br></td>
+                        </tr>
+                        
+                        <tr class="altColor">
+                            <td class="colFirst"><code></code></td>
+                            <td class="colLast"><code>private&nbsp;<a href='../../../../../../org/grails/datastore/mapping/model/PersistentEntity.html'>PersistentEntity</a></code></td>
+                            <td class="colLast"><code><strong><a href="#mostSpecificPersistentEntity(org.grails.datastore.mapping.model.PersistentEntity, Iterable)">mostSpecificPersistentEntity</a></strong>(<a href='../../../../../../org/grails/datastore/mapping/model/PersistentEntity.html'>PersistentEntity</a> pe, java.lang.Iterable&lt;java.lang.String&gt; labels)</code><br></td>
+                        </tr>
+                        
+                        <tr class="rowColor">
+                            <td class="colFirst"><code></code></td>
+                            <td class="colLast"><code>private&nbsp;void</code></td>
+                            <td class="colLast"><code><strong><a href="#persistAssociationsOfEntity(org.grails.datastore.gorm.neo4j.GraphPersistentEntity, org.grails.datastore.mapping.engine.EntityAccess, boolean)">persistAssociationsOfEntity</a></strong>(<a href='../../../../../../org/grails/datastore/gorm/neo4j/GraphPersistentEntity.html'>GraphPersistentEntity</a> graphEntity, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityAccess.html'>EntityAccess</a> entityAccess, boolean isUpdate)</code><br></td>
+                        </tr>
+                        
+                        <tr class="altColor">
                             <td class="colFirst"><code></code></td>
                             <td class="colLast"><code>protected&nbsp;java.util.List&lt;java.io.Serializable&gt;</code></td>
                             <td class="colLast"><code><strong><a href="#persistEntities(org.grails.datastore.mapping.model.PersistentEntity, java.lang.Iterable)">persistEntities</a></strong>(<a href='../../../../../../org/grails/datastore/mapping/model/PersistentEntity.html'>PersistentEntity</a> pe, java.lang.Iterable objs)</code><br></td>
                         </tr>
                         
-                        <tr class="altColor">
+                        <tr class="rowColor">
                             <td class="colFirst"><code></code></td>
                             <td class="colLast"><code>protected&nbsp;java.io.Serializable</code></td>
                             <td class="colLast"><code><strong><a href="#persistEntity(org.grails.datastore.mapping.model.PersistentEntity, java.lang.Object, boolean)">persistEntity</a></strong>(<a href='../../../../../../org/grails/datastore/mapping/model/PersistentEntity.html'>PersistentEntity</a> entity, java.lang.Object obj, boolean isInsert)</code><br></td>
                         </tr>
                         
-                        <tr class="rowColor">
+                        <tr class="altColor">
                             <td class="colFirst"><code></code></td>
                             <td class="colLast"><code>protected&nbsp;java.io.Serializable</code></td>
                             <td class="colLast"><code><strong><a href="#persistEntity(org.grails.datastore.mapping.model.PersistentEntity, java.lang.Object)">persistEntity</a></strong>(<a href='../../../../../../org/grails/datastore/mapping/model/PersistentEntity.html'>PersistentEntity</a> pe, java.lang.Object obj)</code><br></td>
+                        </tr>
+                        
+                        <tr class="rowColor">
+                            <td class="colFirst"><code></code></td>
+                            <td class="colLast"><code>private&nbsp;void</code></td>
+                            <td class="colLast"><code><strong><a href="#processDynamicAssociationRemoval(org.grails.datastore.gorm.neo4j.GraphPersistentEntity, org.grails.datastore.mapping.engine.EntityAccess, org.grails.datastore.gorm.neo4j.Neo4jSession, org.grails.datastore.mapping.model.MappingContext, java.lang.String, java.lang.Object)">processDynamicAssociationRemoval</a></strong>(<a href='../../../../../../org/grails/datastore/gorm/neo4j/GraphPersistentEntity.html'>GraphPersistentEntity</a> graphEntity, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityAccess.html'>EntityAccess</a> entityAccess, <a href='../../../../../../org/grails/datastore/gorm/neo4j/Neo4jSession.html'>Neo4jSession</a> neo4jSession, <a href='../../../../../../org/grails/datastore/mapping/model/MappingContext.html'>MappingContext</a> mappingContext, java.lang.String associationName, java.lang.Object originalValue)</code><br></td>
                         </tr>
                         
                         <tr class="altColor">
@@ -283,28 +349,28 @@ extends <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPer
                         
                         <tr class="altColor">
                             <td class="colFirst"><code></code></td>
+                            <td class="colLast"><code>private&nbsp;void</code></td>
+                            <td class="colLast"><code><strong><a href="#registerPendingUpdate(org.grails.datastore.gorm.neo4j.Neo4jSession, org.grails.datastore.mapping.model.PersistentEntity, org.grails.datastore.mapping.engine.EntityAccess, java.lang.Object, java.io.Serializable)">registerPendingUpdate</a></strong>(<a href='../../../../../../org/grails/datastore/gorm/neo4j/Neo4jSession.html'>Neo4jSession</a> session, <a href='../../../../../../org/grails/datastore/mapping/model/PersistentEntity.html'>PersistentEntity</a> pe, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityAccess.html'>EntityAccess</a> ea, java.lang.Object obj, java.io.Serializable identifier)</code><br></td>
+                        </tr>
+                        
+                        <tr class="rowColor">
+                            <td class="colFirst"><code></code></td>
                             <td class="colLast"><code>protected&nbsp;java.util.List&lt;java.lang.Object&gt;</code></td>
                             <td class="colLast"><code><strong><a href="#retrieveAllEntities(org.grails.datastore.mapping.model.PersistentEntity, java.io.Serializable)">retrieveAllEntities</a></strong>(<a href='../../../../../../org/grails/datastore/mapping/model/PersistentEntity.html'>PersistentEntity</a> pe, java.io.Serializable[] keys)</code><br></td>
                         </tr>
                         
-                        <tr class="rowColor">
+                        <tr class="altColor">
                             <td class="colFirst"><code></code></td>
                             <td class="colLast"><code>protected&nbsp;java.util.List&lt;java.lang.Object&gt;</code></td>
                             <td class="colLast"><code><strong><a href="#retrieveAllEntities(org.grails.datastore.mapping.model.PersistentEntity, Iterable)">retrieveAllEntities</a></strong>(<a href='../../../../../../org/grails/datastore/mapping/model/PersistentEntity.html'>PersistentEntity</a> pe, java.lang.Iterable&lt;java.io.Serializable&gt; keys)</code><br></td>
                         </tr>
                         
-                        <tr class="altColor">
+                        <tr class="rowColor">
                             <td class="colFirst"><code></code></td>
                             <td class="colLast"><code>protected&nbsp;java.lang.Object</code></td>
                             <td class="colLast"><code><strong><a href="#retrieveEntity(org.grails.datastore.mapping.model.PersistentEntity, java.io.Serializable)">retrieveEntity</a></strong>(<a href='../../../../../../org/grails/datastore/mapping/model/PersistentEntity.html'>PersistentEntity</a> pe, java.io.Serializable key)</code><br></td>
                         </tr>
                         
-                        <tr class="rowColor">
-                            <td class="colFirst"><code></code></td>
-                            <td class="colLast"><code>public&nbsp;void</code></td>
-                            <td class="colLast"><code><strong><a href="#run()">run</a></strong>()</code><br></td>
-                        </tr>
-                        
                         <tr class="altColor">
                             <td class="colFirst"><code></code></td>
                             <td class="colLast"><code>public&nbsp;void</code></td>
@@ -345,6 +411,18 @@ extends <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPer
                             <td class="colFirst"><code></code></td>
                             <td class="colLast"><code>public&nbsp;void</code></td>
                             <td class="colLast"><code><strong><a href="#run()">run</a></strong>()</code><br></td>
+                        </tr>
+                        
+                        <tr class="rowColor">
+                            <td class="colFirst"><code></code></td>
+                            <td class="colLast"><code>public&nbsp;void</code></td>
+                            <td class="colLast"><code><strong><a href="#run()">run</a></strong>()</code><br></td>
+                        </tr>
+                        
+                        <tr class="altColor">
+                            <td class="colFirst"><code></code></td>
+                            <td class="colLast"><code>private&nbsp;boolean</code></td>
+                            <td class="colLast"><code><strong><a href="#shouldIgnore(org.grails.datastore.gorm.neo4j.Neo4jSession, java.lang.Object)">shouldIgnore</a></strong>(<a href='../../../../../../org/grails/datastore/gorm/neo4j/Neo4jSession.html'>Neo4jSession</a> session, java.lang.Object obj)</code><br></td>
                         </tr>
                         
                         <tr class="rowColor">
@@ -362,31 +440,31 @@ extends <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPer
                         <tr class="rowColor">
                             <td class="colFirst"><code></code></td>
                             <td class="colLast"><code>public&nbsp;java.lang.Object</code></td>
-                            <td class="colLast"><code><strong><a href="#unmarshallOrFromCache(org.grails.datastore.mapping.model.PersistentEntity, groovy.util.Node)">unmarshallOrFromCache</a></strong>(<a href='../../../../../../org/grails/datastore/mapping/model/PersistentEntity.html'>PersistentEntity</a> defaultPersistentEntity, groovy.util.Node data)</code><br></td>
+                            <td class="colLast"><code><strong><a href="#unmarshallOrFromCache(org.grails.datastore.mapping.model.PersistentEntity, org.neo4j.driver.types.Node)">unmarshallOrFromCache</a></strong>(<a href='../../../../../../org/grails/datastore/mapping/model/PersistentEntity.html'>PersistentEntity</a> defaultPersistentEntity, org.neo4j.driver.types.Node data)</code><br></td>
                         </tr>
                         
                         <tr class="altColor">
                             <td class="colFirst"><code></code></td>
                             <td class="colLast"><code>public&nbsp;java.lang.Object</code></td>
-                            <td class="colLast"><code><strong><a href="#unmarshallOrFromCache(org.grails.datastore.mapping.model.PersistentEntity, groovy.util.Node, Map)">unmarshallOrFromCache</a></strong>(<a href='../../../../../../org/grails/datastore/mapping/model/PersistentEntity.html'>PersistentEntity</a> defaultPersistentEntity, groovy.util.Node data, java.util.Map&lt;java.lang.String, java.lang.Object&gt; resultData)</code><br></td>
+                            <td class="colLast"><code><strong><a href="#unmarshallOrFromCache(org.grails.datastore.mapping.model.PersistentEntity, org.neo4j.driver.types.Node, Map)">unmarshallOrFromCache</a></strong>(<a href='../../../../../../org/grails/datastore/mapping/model/PersistentEntity.html'>PersistentEntity</a> defaultPersistentEntity, org.neo4j.driver.types.Node data, java.util.Map&lt;java.lang.String, java.lang.Object&gt; resultData)</code><br></td>
                         </tr>
                         
                         <tr class="rowColor">
                             <td class="colFirst"><code></code></td>
                             <td class="colLast"><code>public&nbsp;java.lang.Object</code></td>
-                            <td class="colLast"><code><strong><a href="#unmarshallOrFromCache(org.grails.datastore.mapping.model.PersistentEntity, groovy.util.Node, Map, Map)">unmarshallOrFromCache</a></strong>(<a href='../../../../../../org/grails/datastore/mapping/model/PersistentEntity.html'>PersistentEntity</a> defaultPersistentEntity, groovy.util.Node data, java.util.Map&lt;java.lang.String, java.lang.Object&gt; resultData, java.util.Map&lt;<a href='../../../../../../org/grails/datastore/mapping/model/types/Association.html' title='Association'>Association</a>, java.lang.Object&gt; initializedAssociations)</code><br></td>
+                            <td class="colLast"><code><strong><a href="#unmarshallOrFromCache(org.grails.datastore.mapping.model.PersistentEntity, org.neo4j.driver.types.Node, Map, Map)">unmarshallOrFromCache</a></strong>(<a href='../../../../../../org/grails/datastore/mapping/model/PersistentEntity.html'>PersistentEntity</a> defaultPersistentEntity, org.neo4j.driver.types.Node data, java.util.Map&lt;java.lang.String, java.lang.Object&gt; resultData, java.util.Map&lt;<a href='../../../../../../org/grails/datastore/mapping/model/types/Association.html' title='Association'>Association</a>, java.lang.Object&gt; initializedAssociations)</code><br></td>
                         </tr>
                         
                         <tr class="altColor">
                             <td class="colFirst"><code></code></td>
                             <td class="colLast"><code>public&nbsp;java.lang.Object</code></td>
-                            <td class="colLast"><code><strong><a href="#unmarshallOrFromCache(org.grails.datastore.mapping.model.PersistentEntity, groovy.util.Node, Map, Map, javax.persistence.LockModeType)">unmarshallOrFromCache</a></strong>(<a href='../../../../../../org/grails/datastore/mapping/model/PersistentEntity.html'>PersistentEntity</a> defaultPersistentEntity, groovy.util.Node data, java.util.Map&lt;java.lang.String, java.lang.Object&gt; resultData, java.util.Map&lt;<a href='../../../../../../org/grails/datastore/mapping/model/types/Association.html' title='Association'>Association</a>, java.lang.Object&gt; initializedAssociations, javax.persistence.LockModeType lockModeType)</code><br></td>
+                            <td class="colLast"><code><strong><a href="#unmarshallOrFromCache(org.grails.datastore.mapping.model.PersistentEntity, org.neo4j.driver.types.Node, Map, Map, javax.persistence.LockModeType)">unmarshallOrFromCache</a></strong>(<a href='../../../../../../org/grails/datastore/mapping/model/PersistentEntity.html'>PersistentEntity</a> defaultPersistentEntity, org.neo4j.driver.types.Node data, java.util.Map&lt;java.lang.String, java.lang.Object&gt; resultData, java.util.Map&lt;<a href='../../../../../../org/grails/datastore/mapping/model/types/Association.html' title='Association'>Association</a>, java.lang.Object&gt; initializedAssociations, javax.persistence.LockModeType lockModeType)</code><br></td>
                         </tr>
                         
                         <tr class="rowColor">
                             <td class="colFirst"><code></code></td>
                             <td class="colLast"><code>public&nbsp;java.lang.Object</code></td>
-                            <td class="colLast"><code><strong><a href="#unmarshallOrFromCache(org.grails.datastore.mapping.model.PersistentEntity, org.neo4j.driver.types.Relationship, Map, Map)">unmarshallOrFromCache</a></strong>(<a href='../../../../../../org/grails/datastore/mapping/model/PersistentEntity.html'>PersistentEntity</a> entity, <a href='../../../../../../org.neo4j.driver.types.Relationship.html'>Relationship</a> data, java.util.Map&lt;<a href='../../../../../../org/grails/datastore/mapping/model/types/Association.html' title='Association'>Association</a>, java.lang.Object&gt; initializedAssociations, java.util.Map&lt;java.io.Serializable, groovy.util.Node&gt; initializedNodes)</code><br></td>
+                            <td class="colLast"><code><strong><a href="#unmarshallOrFromCache(org.grails.datastore.mapping.model.PersistentEntity, org.neo4j.driver.types.Relationship, Map, Map)">unmarshallOrFromCache</a></strong>(<a href='../../../../../../org/grails/datastore/mapping/model/PersistentEntity.html'>PersistentEntity</a> entity, org.neo4j.driver.types.Relationship data, java.util.Map&lt;<a href='../../../../../../org/grails/datastore/mapping/model/types/Association.html' title='Association'>Association</a>, java.lang.Object&gt; initializedAssociations, java.util.Map&lt;java.io.Serializable, org.neo4j.driver.types.Node&gt; initializedNodes)</code><br></td>
                         </tr>
                         
                         <tr class="altColor">
@@ -411,7 +489,7 @@ extends <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPer
                         
                         <tr class="altColor">
                             <td class="colFirst"><code>class <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html'>EntityPersister</a></code></td>
-                            <td class="colLast"><code><a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#cancelDelete(org.grails.datastore.mapping.model.PersistentEntity, org.grails.datastore.mapping.engine.EntityAccess)'>cancelDelete</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#cancelInsert(org.grails.datastore.mapping.model.PersistentEntity, org.grails.datastore.mapping.engine.EntityAccess)'>cancelInsert</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#cancelLoad(org.grails.datastore.mapping.model.PersistentEntity, org.grails.datastore.mapping.engine.EntityAccess)'>cancelLoad</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#cancelUpdate(org.grails.datastore.mapping.model.PersistentEntity, org.grails.datastore.mapping.engine.EntityAccess)'>cancelUpdate</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#createEntityAccess(org.grails.datastore.mapping.model.PersistentEntity, java.lang.Object)'>createEntityAccess</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#delete(java.lang.Iterable)'>delete</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#delete(java.lang.Object)'>delete</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#deleteEntities(org.grails.datastore.mapping.model.PersistentEntity, java.lang.Iterable)'>deleteEntities</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#deleteEntity(org.grails.datastore.mapping.model.PersistentEntity, java.lang.Object)'>deleteEntity</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#firePostDeleteEvent(org.grails.datastore.mapping.model.PersistentEntity, org.grails.datastore.mapping.engine.EntityAccess)'>firePostDeleteEvent</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#firePostInsertEvent(org.grails.datastore.mapping.model.PersistentEntity, org.grails.datastore.mapping.engine.EntityAccess)'>firePostInsertEvent</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#firePostLoadEvent(org.grails.datastore.mapping.model.PersistentEntity, org.grails.datastore.mapping.engine.EntityAccess)'>firePostLoadEvent</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#firePostUpdateEvent(org.grails.datastore.mapping.model.PersistentEntity, org.grails.datastore.mapping.engine.EntityAccess)'>firePostUpdateEvent</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#firePreLoadEvent(org.grails.datastore.mapping.model.PersistentEntity, org.grails.datastore.mapping.engine.EntityAccess)'>firePreLoadEvent</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#getCurrentVersion(org.grails.datastore.mapping.engine.EntityAccess)'>getCurrentVersion</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#getMappingContext()'>getMappingContext</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#getObjectIdentifier(java.lang.Object)'>getObjectIdentifier</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#getPersistentEntity()'>getPersistentEntity</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#getProxyFactory()'>getProxyFactory</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#getSession()'>getSession</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#getType()'>getType</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#incrementEntityVersion(org.grails.datastore.mapping.engine.EntityAccess)'>incrementEntityVersion</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#incrementVersion(org.grails.datastore.mapping.engine.EntityAccess)'>incrementVersion</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#insert(java.lang.Object)'>insert</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#isAssignedId(org.grails.datastore.mapping.model.PersistentEntity)'>isAssignedId</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#isVersioned(org.grails.datastore.mapping.engine.EntityAccess)'>isVersioned</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#newEntityInstance(org.grails.datastore.mapping.model.PersistentEntity)'>newEntityInstance</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#persist(java.lang.Object)'>persist</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#persist(java.lang.Iterable)'>persist</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#persistEntities(org.grails.datastore.mapping.model.PersistentEntity, java.lang.Iterable)'>persistEntities</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#persistEntity(org.grails.datastore.mapping.model.PersistentEntity, java.lang.Object, boolean)'>persistEntity</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#persistEntity(org.grails.datastore.mapping.model.PersistentEntity, java.lang.Object)'>persistEntity</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#proxy(java.io.Serializable)'>proxy</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#retrieve(java.io.Serializable)'>retrieve</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#retrieveAll(Iterable)'>retrieveAll</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#retrieveAll(java.io.Serializable)'>retrieveAll</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#retrieveAllEntities(org.grails.datastore.mapping.model.PersistentEntity, java.io.Serializable)'>retrieveAllEntities</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#retrieveAllEntities(org.grails.datastore.mapping.model.PersistentEntity, Iterable)'>retrieveAllEntities</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#retrieveEntity(org.grails.datastore.mapping.model.PersistentEntity, java.io.Serializable)'>retrieveEntity</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#setDateVersion(org.grails.datastore.mapping.engine.EntityAccess)'>setDateVersion</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#setObjectIdentifier(java.lang.Object, java.io.Serializable)'>setObjectIdentifier</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#setVersion(org.grails.datastore.mapping.engine.EntityAccess)'>setVersion</a></code></td>
+                            <td class="colLast"><code><a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#cancelDelete(org.grails.datastore.mapping.model.PersistentEntity, org.grails.datastore.mapping.engine.EntityAccess)'>cancelDelete</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#cancelInsert(org.grails.datastore.mapping.model.PersistentEntity, org.grails.datastore.mapping.engine.EntityAccess)'>cancelInsert</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#cancelLoad(org.grails.datastore.mapping.model.PersistentEntity, org.grails.datastore.mapping.engine.EntityAccess)'>cancelLoad</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#cancelUpdate(org.grails.datastore.mapping.model.PersistentEntity, org.grails.datastore.mapping.engine.EntityAccess)'>cancelUpdate</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#createEntityAccess(org.grails.datastore.mapping.model.PersistentEntity, java.lang.Object)'>createEntityAccess</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#delete(java.lang.Iterable)'>delete</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#delete(java.lang.Object)'>delete</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#deleteEntities(org.grails.datastore.mapping.model.PersistentEntity, java.lang.Iterable)'>deleteEntities</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#deleteEntity(org.grails.datastore.mapping.model.PersistentEntity, java.lang.Object)'>deleteEntity</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#firePostDeleteEvent(org.grails.datastore.mapping.model.PersistentEntity, org.grails.datastore.mapping.engine.EntityAccess)'>firePostDeleteEvent</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#firePostInsertEvent(org.grails.datastore.mapping.model.PersistentEntity, org.grails.datastore.mapping.engine.EntityAccess)'>firePostInsertEvent</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#firePostLoadEvent(org.grails.datastore.mapping.model.PersistentEntity, org.grails.datastore.mapping.engine.EntityAccess)'>firePostLoadEvent</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#firePostUpdateEvent(org.grails.datastore.mapping.model.PersistentEntity, org.grails.datastore.mapping.engine.EntityAccess)'>firePostUpdateEvent</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#firePreLoadEvent(org.grails.datastore.mapping.model.PersistentEntity, org.grails.datastore.mapping.engine.EntityAccess)'>firePreLoadEvent</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#getCurrentVersion(org.grails.datastore.mapping.engine.EntityAccess)'>getCurrentVersion</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#getMappingContext()'>getMappingContext</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#getObjectIdentifier(java.lang.Object)'>getObjectIdentifier</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#getPersistentEntity()'>getPersistentEntity</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#getProxyFactory()'>getProxyFactory</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#getSession()'>getSession</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#getType()'>getType</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#incrementEntityVersion(org.grails.datastore.mapping.engine.EntityAccess)'>incrementEntityVersion</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#incrementVersion(org.grails.datastore.mapping.engine.EntityAccess)'>incrementVersion</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#insert(java.lang.Object)'>insert</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#isAssignedId(org.grails.datastore.mapping.model.PersistentEntity)'>isAssignedId</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#isVersioned(org.grails.datastore.mapping.engine.EntityAccess)'>isVersioned</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#newEntityInstance(org.grails.datastore.mapping.model.PersistentEntity)'>newEntityInstance</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#persist(java.lang.Object)'>persist</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#persist(java.lang.Iterable)'>persist</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#persistEntities(org.grails.datastore.mapping.model.PersistentEntity, java.lang.Iterable)'>persistEntities</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#persistEntity(org.grails.datastore.mapping.model.PersistentEntity, java.lang.Object, boolean)'>persistEntity</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#persistEntity(org.grails.datastore.mapping.model.PersistentEntity, java.lang.Object)'>persistEntity</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#proxy(java.io.Serializable)'>proxy</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#retrieve(java.io.Serializable)'>retrieve</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#retrieveAll(Iterable)'>retrieveAll</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#retrieveAll(java.io.Serializable)'>retrieveAll</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#retrieveAllEntities(org.grails.datastore.mapping.model.PersistentEntity, java.io.Serializable)'>retrieveAllEntities</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#retrieveAllEntities(org.grails.datastore.mapping.model.PersistentEntity, Iterable)'>retrieveAllEntities</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#retrieveEntity(org.grails.datastore.mapping.model.PersistentEntity, java.io.Serializable)'>retrieveEntity</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#setDateVersion(org.grails.datastore.mapping.engine.EntityAccess)'>setDateVersion</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#setDateVersionInternal(java.lang.String, org.grails.datastore.mapping.engine.EntityAccess)'>setDateVersionInternal</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#setObjectIdentifier(java.lang.Object, java.io.Serializable)'>setObjectIdentifier</a>, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPersister.html#setVersion(org.grails.datastore.mapping.engine.EntityAccess)'>setVersion</a></code></td>
                         </tr>
                     </table>
                    </ul>
@@ -440,6 +518,14 @@ extends <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPer
                         <ul class="blockListLast">
                             <li class="blockList">
                                 <h4>public&nbsp;static&nbsp;final&nbsp;java.lang.String <strong>DYNAMIC_ASSOCIATION_PARAM</strong></h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
+                        <a name="log"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;static&nbsp;org.slf4j.Logger <strong>log</strong></h4>
                                 <p></p>
                             </li>
                         </ul>
@@ -481,10 +567,43 @@ extends <a href='../../../../../../org/grails/datastore/mapping/engine/EntityPer
                 </a>
                     <h3>Method Detail</h3>
                     
+                        <a name="calcInheritenceChain(org.grails.datastore.mapping.model.PersistentEntity)"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;int <strong>calcInheritenceChain</strong>(<a href='../../../../../../org/grails/datastore/mapping/model/PersistentEntity.html'>PersistentEntity</a> current)</h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
                         <a name="countUpdates(org.neo4j.driver.Result)"><!-- --></a>
                         <ul class="blockListLast">
                             <li class="blockList">
-                                <h4>public&nbsp;static&nbsp;long <strong>countUpdates</strong>(<a href='../../../../../../org.neo4j.driver.Result.html'>Result</a> execute)</h4>
+                                <h4>public&nbsp;static&nbsp;long <strong>countUpdates</strong>(org.neo4j.driver.Result execute)</h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
+                        <a name="createCollection(org.grails.datastore.mapping.model.types.Association)"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;java.util.Collection <strong>createCollection</strong>(<a href='../../../../../../org/grails/datastore/mapping/model/types/Association.html'>Association</a> association)</h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
+                        <a name="createDirtyCheckableAwareCollection(org.grails.datastore.mapping.engine.EntityAccess, org.grails.datastore.mapping.model.types.Association, java.util.Collection)"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;java.util.Collection <strong>createDirtyCheckableAwareCollection</strong>(<a href='../../../../../../org/grails/datastore/mapping/engine/EntityAccess.html'>EntityAccess</a> entityAccess, <a href='../../../../../../org/grails/datastore/mapping/model/types/Association.html'>Association</a> association, java.util.Collection delegate)</h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
+                        <a name="createPendingDeleteOne(org.grails.datastore.gorm.neo4j.Neo4jSession, org.grails.datastore.mapping.model.PersistentEntity, org.grails.datastore.mapping.engine.EntityAccess, java.lang.Object)"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>@java.lang.SuppressWarnings("unchecked")
+private&nbsp;<a href='../../../../../../org/grails/datastore/mapping/core/impl/PendingDeleteAdapter.html'>PendingDeleteAdapter</a> <strong>createPendingDeleteOne</strong>(<a href='../../../../../../org/grails/datastore/gorm/neo4j/Neo4jSession.html'>Neo4jSession</a> session, <a href='../../../../../../org/grails/datastore/mapping/model/PersistentEntity.html'>PersistentEntity</a> pe, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityAccess.html'>EntityAccess</a> entityAccess, java.lang.Object obj)</h4>
                                 <p></p>
                             </li>
                         </ul>
@@ -516,6 +635,14 @@ protected&nbsp;void <strong>deleteEntity</strong>(<a href='../../../../../../org
                             </li>
                         </ul>
                     
+                        <a name="findDerivedPersistentEntityWithLabel(org.grails.datastore.mapping.model.PersistentEntity, java.lang.String)"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;<a href='../../../../../../org/grails/datastore/mapping/model/PersistentEntity.html'>PersistentEntity</a> <strong>findDerivedPersistentEntityWithLabel</strong>(<a href='../../../../../../org/grails/datastore/mapping/model/PersistentEntity.html'>PersistentEntity</a> parent, java.lang.String label)</h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
                         <a name="getNativeKey()"><!-- --></a>
                         <ul class="blockListLast">
                             <li class="blockList">
@@ -539,6 +666,38 @@ public&nbsp;java.io.Serializable <strong>getNativeKey</strong>()</h4>
                             <li class="blockList">
                                 <h4>@java.lang.Override
 public&nbsp;<a href='../../../../../../org/grails/datastore/gorm/neo4j/Neo4jSession.html'>Neo4jSession</a> <strong>getSession</strong>()</h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
+                        <a name="handleRelationshipSide(org.grails.datastore.mapping.model.PersistentEntity, Map, java.lang.Object, java.lang.String, org.grails.datastore.gorm.neo4j.collection.Neo4jResultList, org.grails.datastore.mapping.model.types.Association)"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;void <strong>handleRelationshipSide</strong>(<a href='../../../../../../org/grails/datastore/mapping/model/PersistentEntity.html'>PersistentEntity</a> persistentEntity, java.util.Map&lt;java.lang.String, java.lang.Object&gt; resultData, java.lang.Object entity, java.lang.String associationNodesKey, <a href='../../../../../../org/grails/datastore/gorm/neo4j/collection/Neo4jResultList.html'>Neo4jResultList</a> resultSet, <a href='../../../../../../org/grails/datastore/mapping/model/types/Association.html'>Association</a> association)</h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
+                        <a name="isInParentsChain(org.grails.datastore.mapping.model.PersistentEntity, org.grails.datastore.mapping.model.PersistentEntity)"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;boolean <strong>isInParentsChain</strong>(<a href='../../../../../../org/grails/datastore/mapping/model/PersistentEntity.html'>PersistentEntity</a> parent, <a href='../../../../../../org/grails/datastore/mapping/model/PersistentEntity.html'>PersistentEntity</a> it)</h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
+                        <a name="mostSpecificPersistentEntity(org.grails.datastore.mapping.model.PersistentEntity, Iterable)"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;<a href='../../../../../../org/grails/datastore/mapping/model/PersistentEntity.html'>PersistentEntity</a> <strong>mostSpecificPersistentEntity</strong>(<a href='../../../../../../org/grails/datastore/mapping/model/PersistentEntity.html'>PersistentEntity</a> pe, java.lang.Iterable&lt;java.lang.String&gt; labels)</h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
+                        <a name="persistAssociationsOfEntity(org.grails.datastore.gorm.neo4j.GraphPersistentEntity, org.grails.datastore.mapping.engine.EntityAccess, boolean)"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;void <strong>persistAssociationsOfEntity</strong>(<a href='../../../../../../org/grails/datastore/gorm/neo4j/GraphPersistentEntity.html'>GraphPersistentEntity</a> graphEntity, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityAccess.html'>EntityAccess</a> entityAccess, boolean isUpdate)</h4>
                                 <p></p>
                             </li>
                         </ul>
@@ -570,6 +729,14 @@ protected&nbsp;java.io.Serializable <strong>persistEntity</strong>(<a href='../.
                             </li>
                         </ul>
                     
+                        <a name="processDynamicAssociationRemoval(org.grails.datastore.gorm.neo4j.GraphPersistentEntity, org.grails.datastore.mapping.engine.EntityAccess, org.grails.datastore.gorm.neo4j.Neo4jSession, org.grails.datastore.mapping.model.MappingContext, java.lang.String, java.lang.Object)"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;void <strong>processDynamicAssociationRemoval</strong>(<a href='../../../../../../org/grails/datastore/gorm/neo4j/GraphPersistentEntity.html'>GraphPersistentEntity</a> graphEntity, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityAccess.html'>EntityAccess</a> entityAccess, <a href='../../../../../../org/grails/datastore/gorm/neo4j/Neo4jSession.html'>Neo4jSession</a> neo4jSession, <a href='../../../../../../org/grails/datastore/mapping/model/MappingContext.html'>MappingContext</a> mappingContext, java.lang.String associationName, java.lang.Object originalValue)</h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
                         <a name="processDynamicAssociations(org.grails.datastore.gorm.neo4j.GraphPersistentEntity, org.grails.datastore.mapping.engine.EntityAccess, org.grails.datastore.gorm.neo4j.Neo4jMappingContext, Map, List, boolean)"><!-- --></a>
                         <ul class="blockListLast">
                             <li class="blockList">
@@ -583,6 +750,14 @@ protected&nbsp;java.io.Serializable <strong>persistEntity</strong>(<a href='../.
                             <li class="blockList">
                                 <h4>@java.lang.Override
 public&nbsp;java.io.Serializable <strong>refresh</strong>(java.lang.Object o)</h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
+                        <a name="registerPendingUpdate(org.grails.datastore.gorm.neo4j.Neo4jSession, org.grails.datastore.mapping.model.PersistentEntity, org.grails.datastore.mapping.engine.EntityAccess, java.lang.Object, java.io.Serializable)"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;void <strong>registerPendingUpdate</strong>(<a href='../../../../../../org/grails/datastore/gorm/neo4j/Neo4jSession.html'>Neo4jSession</a> session, <a href='../../../../../../org/grails/datastore/mapping/model/PersistentEntity.html'>PersistentEntity</a> pe, <a href='../../../../../../org/grails/datastore/mapping/engine/EntityAccess.html'>EntityAccess</a> ea, java.lang.Object obj, java.io.Serializable identifier)</h4>
                                 <p></p>
                             </li>
                         </ul>
@@ -686,6 +861,14 @@ public&nbsp;void <strong>run</strong>()</h4>
                             </li>
                         </ul>
                     
+                        <a name="shouldIgnore(org.grails.datastore.gorm.neo4j.Neo4jSession, java.lang.Object)"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;boolean <strong>shouldIgnore</strong>(<a href='../../../../../../org/grails/datastore/gorm/neo4j/Neo4jSession.html'>Neo4jSession</a> session, java.lang.Object obj)</h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
                         <a name="unmarshall(org.grails.datastore.mapping.model.PersistentEntity, java.io.Serializable, grails.gorm.Entity, Map, Map)"><!-- --></a>
                         <ul class="blockListLast">
                             <li class="blockList">
@@ -702,34 +885,34 @@ public&nbsp;void <strong>run</strong>()</h4>
                             </li>
                         </ul>
                     
-                        <a name="unmarshallOrFromCache(org.grails.datastore.mapping.model.PersistentEntity, groovy.util.Node)"><!-- --></a>
+                        <a name="unmarshallOrFromCache(org.grails.datastore.mapping.model.PersistentEntity, org.neo4j.driver.types.Node)"><!-- --></a>
                         <ul class="blockListLast">
                             <li class="blockList">
-                                <h4>public&nbsp;java.lang.Object <strong>unmarshallOrFromCache</strong>(<a href='../../../../../../org/grails/datastore/mapping/model/PersistentEntity.html'>PersistentEntity</a> defaultPersistentEntity, groovy.util.Node data)</h4>
+                                <h4>public&nbsp;java.lang.Object <strong>unmarshallOrFromCache</strong>(<a href='../../../../../../org/grails/datastore/mapping/model/PersistentEntity.html'>PersistentEntity</a> defaultPersistentEntity, org.neo4j.driver.types.Node data)</h4>
                                 <p></p>
                             </li>
                         </ul>
                     
-                        <a name="unmarshallOrFromCache(org.grails.datastore.mapping.model.PersistentEntity, groovy.util.Node, Map)"><!-- --></a>
+                        <a name="unmarshallOrFromCache(org.grails.datastore.mapping.model.PersistentEntity, org.neo4j.driver.types.Node, Map)"><!-- --></a>
                         <ul class="blockListLast">
                             <li class="blockList">
-                                <h4>public&nbsp;java.lang.Object <strong>unmarshallOrFromCache</strong>(<a href='../../../../../../org/grails/datastore/mapping/model/PersistentEntity.html'>PersistentEntity</a> defaultPersistentEntity, groovy.util.Node data, java.util.Map&lt;java.lang.String, java.lang.Object&gt; resultData)</h4>
+                                <h4>public&nbsp;java.lang.Object <strong>unmarshallOrFromCache</strong>(<a href='../../../../../../org/grails/datastore/mapping/model/PersistentEntity.html'>PersistentEntity</a> defaultPersistentEntity, org.neo4j.driver.types.Node data, java.util.Map&lt;java.lang.String, java.lang.Object&gt; resultData)</h4>
                                 <p></p>
                             </li>
                         </ul>
                     
-                        <a name="unmarshallOrFromCache(org.grails.datastore.mapping.model.PersistentEntity, groovy.util.Node, Map, Map)"><!-- --></a>
+                        <a name="unmarshallOrFromCache(org.grails.datastore.mapping.model.PersistentEntity, org.neo4j.driver.types.Node, Map, Map)"><!-- --></a>
                         <ul class="blockListLast">
                             <li class="blockList">
-                                <h4>public&nbsp;java.lang.Object <strong>unmarshallOrFromCache</strong>(<a href='../../../../../../org/grails/datastore/mapping/model/PersistentEntity.html'>PersistentEntity</a> defaultPersistentEntity, groovy.util.Node data, java.util.Map&lt;java.lang.String, java.lang.Object&gt; resultData, java.util.Map&lt;<a href='../../../../../../org/grails/datastore/mapping/model/types/Association.html' title='Association'>Association</a>, java.lang.Object&gt; initializedAssociations)</h4>
+                                <h4>public&nbsp;java.lang.Object <strong>unmarshallOrFromCache</strong>(<a href='../../../../../../org/grails/datastore/mapping/model/PersistentEntity.html'>PersistentEntity</a> defaultPersistentEntity, org.neo4j.driver.types.Node data, java.util.Map&lt;java.lang.String, java.lang.Object&gt; resultData, java.util.Map&lt;<a href='../../../../../../org/grails/datastore/mapping/model/types/Association.html' title='Association'>Association</a>, java.lang.Object&gt; initializedAssociations)</h4>
                                 <p></p>
                             </li>
                         </ul>
                     
-                        <a name="unmarshallOrFromCache(org.grails.datastore.mapping.model.PersistentEntity, groovy.util.Node, Map, Map, javax.persistence.LockModeType)"><!-- --></a>
+                        <a name="unmarshallOrFromCache(org.grails.datastore.mapping.model.PersistentEntity, org.neo4j.driver.types.Node, Map, Map, javax.persistence.LockModeType)"><!-- --></a>
                         <ul class="blockListLast">
                             <li class="blockList">
-                                <h4>public&nbsp;java.lang.Object <strong>unmarshallOrFromCache</strong>(<a href='../../../../../../org/grails/datastore/mapping/model/PersistentEntity.html'>PersistentEntity</a> defaultPersistentEntity, groovy.util.Node data, java.util.Map&lt;java.lang.String, java.lang.Object&gt; resultData, java.util.Map&lt;<a href='../../../../../../org/grails/datastore/mapping/model/types/Association.html' title='Association'>Association</a>, java.lang.Object&gt; initializedAssociations, javax.persistence.LockModeType lockModeType)</h4>
+                                <h4>public&nbsp;java.lang.Object <strong>unmarshallOrFromCache</strong>(<a href='../../../../../../org/grails/datastore/mapping/model/PersistentEntity.html'>PersistentEntity</a> defaultPersistentEntity, org.neo4j.driver.types.Node data, java.util.Map&lt;java.lang.String, java.lang.Object&gt; resultData, java.util.Map&lt;<a href='../../../../../../org/grails/datastore/mapping/model/types/Association.html' title='Association'>Association</a>, java.lang.Object&gt; initializedAssociations, javax.persistence.LockModeType lockModeType)</h4>
                                 <p></p>
                             </li>
                         </ul>
@@ -737,7 +920,7 @@ public&nbsp;void <strong>run</strong>()</h4>
                         <a name="unmarshallOrFromCache(org.grails.datastore.mapping.model.PersistentEntity, org.neo4j.driver.types.Relationship, Map, Map)"><!-- --></a>
                         <ul class="blockListLast">
                             <li class="blockList">
-                                <h4>public&nbsp;java.lang.Object <strong>unmarshallOrFromCache</strong>(<a href='../../../../../../org/grails/datastore/mapping/model/PersistentEntity.html'>PersistentEntity</a> entity, <a href='../../../../../../org.neo4j.driver.types.Relationship.html'>Relationship</a> data, java.util.Map&lt;<a href='../../../../../../org/grails/datastore/mapping/model/types/Association.html' title='Association'>Association</a>, java.lang.Object&gt; initializedAssociations, java.util.Map&lt;java.io.Serializable, groovy.util.Node&gt; initializedNodes)</h4>
+                                <h4>public&nbsp;java.lang.Object <strong>unmarshallOrFromCache</strong>(<a href='../../../../../../org/grails/datastore/mapping/model/PersistentEntity.html'>PersistentEntity</a> entity, org.neo4j.driver.types.Relationship data, java.util.Map&lt;<a href='../../../../../../org/grails/datastore/mapping/model/types/Association.html' title='Association'>Association</a>, java.lang.Object&gt; initializedAssociations, java.util.Map&lt;java.io.Serializable, org.neo4j.driver.types.Node&gt; initializedNodes)</h4>
                                 <p></p>
                             </li>
                         </ul>

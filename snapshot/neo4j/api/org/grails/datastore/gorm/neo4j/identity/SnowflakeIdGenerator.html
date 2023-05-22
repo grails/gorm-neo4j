@@ -70,11 +70,11 @@ if (location.href.indexOf('is-external=true') == -1) {
     <div>
         <ul class="subNavList">
             <li>Summary:&nbsp;</li>
-            Nested&nbsp;&nbsp;&nbsp;Field&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<li><a href="#constructor_summary">Constructor</a></li>&nbsp;&nbsp;&nbsp;<li><a href="#method_summary">Method</a></li>&nbsp;&nbsp;&nbsp;
+            Nested&nbsp;&nbsp;&nbsp;<li><a href="#field_summary">Field</a></li>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<li><a href="#constructor_summary">Constructor</a></li>&nbsp;&nbsp;&nbsp;<li><a href="#method_summary">Method</a></li>&nbsp;&nbsp;&nbsp;
         </ul>
         <ul class="subNavList">
             <li>&nbsp;|&nbsp;Detail:&nbsp;</li>
-            Field&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<li><a href="#constructor_detail">Constructor</a></li>&nbsp;&nbsp;&nbsp;<li><a href="#method_detail">Method</a></li>&nbsp;&nbsp;&nbsp;
+            <li><a href="#field_detail">Field</a></li>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<li><a href="#constructor_detail">Constructor</a></li>&nbsp;&nbsp;&nbsp;<li><a href="#method_detail">Method</a></li>&nbsp;&nbsp;&nbsp;
         </ul>
     </div>
     <a name="skip-navbar_top">
@@ -107,7 +107,9 @@ if (location.href.indexOf('is-external=true') == -1) {
             <hr>
             <br>
 
-<pre>public&nbsp;class SnowflakeIdGenerator</pre>
+<pre>public&nbsp;class SnowflakeIdGenerator
+extends java.lang.Object
+implements <a href='../../../../../../org/grails/datastore/gorm/neo4j/IdGenerator.html'>IdGenerator</a></pre>
 
           </li>
     </ul>
@@ -122,6 +124,90 @@ if (location.href.indexOf('is-external=true') == -1) {
         <!-- =========== ENUM CONSTANT SUMMARY =========== -->
         
         <!-- =========== FIELD SUMMARY =========== -->
+        
+            <ul class="blockList">
+                <li class="blockList"><a name="field_summary"><!--   --></a>
+                    <h3>Field Summary</h3>
+                    <ul class="blockList">
+                    <table class="overviewSummary" border="0" cellpadding="3" cellspacing="0" summary="Enum constants summary table">
+                        <caption><span>Fields</span><span class="tabEnd">&nbsp;</span></caption>
+                        <tr>
+                            <th class="colFirst" scope="col">Modifiers</th>
+                            <th class="colLast" scope="col">Name</th>
+                            <th class="colLast" scope="col">Description</th>
+                        </tr>
+                        
+                        <tr class="altColor">
+                            <td class="colFirst"><code><strong>private&nbsp;long</strong></code>&nbsp;</td>
+                            <td class="colLast"><code><a href="#datacenterId">datacenterId</a></code></td>
+                            <td class="colLast"></td>
+                        </tr>
+                        
+                        <tr class="rowColor">
+                            <td class="colFirst"><code><strong>private&nbsp;long</strong></code>&nbsp;</td>
+                            <td class="colLast"><code><a href="#datacenterIdBits">datacenterIdBits</a></code></td>
+                            <td class="colLast"></td>
+                        </tr>
+                        
+                        <tr class="altColor">
+                            <td class="colFirst"><code><strong>private&nbsp;long</strong></code>&nbsp;</td>
+                            <td class="colLast"><code><a href="#datacenterIdShift">datacenterIdShift</a></code></td>
+                            <td class="colLast"></td>
+                        </tr>
+                        
+                        <tr class="rowColor">
+                            <td class="colFirst"><code><strong>private&nbsp;long</strong></code>&nbsp;</td>
+                            <td class="colLast"><code><a href="#lastTimestamp">lastTimestamp</a></code></td>
+                            <td class="colLast"></td>
+                        </tr>
+                        
+                        <tr class="altColor">
+                            <td class="colFirst"><code><strong>private&nbsp;static&nbsp;org.slf4j.Logger</strong></code>&nbsp;</td>
+                            <td class="colLast"><code><a href="#log">log</a></code></td>
+                            <td class="colLast"></td>
+                        </tr>
+                        
+                        <tr class="rowColor">
+                            <td class="colFirst"><code><strong>private&nbsp;long</strong></code>&nbsp;</td>
+                            <td class="colLast"><code><a href="#maxDatacenterId">maxDatacenterId</a></code></td>
+                            <td class="colLast"></td>
+                        </tr>
+                        
+                        <tr class="altColor">
+                            <td class="colFirst"><code><strong>private&nbsp;long</strong></code>&nbsp;</td>
+                            <td class="colLast"><code><a href="#sequence">sequence</a></code></td>
+                            <td class="colLast"></td>
+                        </tr>
+                        
+                        <tr class="rowColor">
+                            <td class="colFirst"><code><strong>private&nbsp;long</strong></code>&nbsp;</td>
+                            <td class="colLast"><code><a href="#sequenceMax">sequenceMax</a></code></td>
+                            <td class="colLast"></td>
+                        </tr>
+                        
+                        <tr class="altColor">
+                            <td class="colFirst"><code><strong>private&nbsp;long</strong></code>&nbsp;</td>
+                            <td class="colLast"><code><a href="#timestampBits">timestampBits</a></code></td>
+                            <td class="colLast"></td>
+                        </tr>
+                        
+                        <tr class="rowColor">
+                            <td class="colFirst"><code><strong>private&nbsp;long</strong></code>&nbsp;</td>
+                            <td class="colLast"><code><a href="#timestampLeftShift">timestampLeftShift</a></code></td>
+                            <td class="colLast"></td>
+                        </tr>
+                        
+                        <tr class="altColor">
+                            <td class="colFirst"><code><strong>private&nbsp;long</strong></code>&nbsp;</td>
+                            <td class="colLast"><code><a href="#twepoch">twepoch</a></code></td>
+                            <td class="colLast"></td>
+                        </tr>
+                        
+                    </table>
+                   </ul>
+                </li>
+                
+            </ul>
         
 
         <!-- =========== PROPERTY SUMMARY =========== -->
@@ -177,11 +263,17 @@ if (location.href.indexOf('is-external=true') == -1) {
                         
                         <tr class="rowColor">
                             <td class="colFirst"><code></code></td>
+                            <td class="colLast"><code>private&nbsp;boolean</code></td>
+                            <td class="colLast"><code><strong><a href="#isInvalidHardwareAddress(byte[])">isInvalidHardwareAddress</a></strong>(byte[] hardwareAddress)</code><br></td>
+                        </tr>
+                        
+                        <tr class="altColor">
+                            <td class="colFirst"><code></code></td>
                             <td class="colLast"><code>public&nbsp;java.io.Serializable</code></td>
                             <td class="colLast"><code><strong><a href="#nextId()">nextId</a></strong>()</code><br></td>
                         </tr>
                         
-                        <tr class="altColor">
+                        <tr class="rowColor">
                             <td class="colFirst"><code></code></td>
                             <td class="colLast"><code>protected&nbsp;long</code></td>
                             <td class="colLast"><code><strong><a href="#tilNextMillis(long)">tilNextMillis</a></strong>(long lastTimestamp)</code><br></td>
@@ -203,7 +295,7 @@ if (location.href.indexOf('is-external=true') == -1) {
                         
                         <tr class="altColor">
                             <td class="colFirst"><code>class java.lang.Object</code></td>
-                            <td class="colLast"><code>java.lang.Object#wait(long, int), java.lang.Object#wait(long), java.lang.Object#wait(), java.lang.Object#equals(java.lang.Object), java.lang.Object#toString(), java.lang.Object#hashCode(), java.lang.Object#getClass(), java.lang.Object#notify(), java.lang.Object#notifyAll()</code></td>
+                            <td class="colLast"><code>java.lang.Object#wait(long), java.lang.Object#wait(long, int), java.lang.Object#wait(), java.lang.Object#equals(java.lang.Object), java.lang.Object#toString(), java.lang.Object#hashCode(), java.lang.Object#getClass(), java.lang.Object#notify(), java.lang.Object#notifyAll()</code></td>
                         </tr>
                     </table>
                    </ul>
@@ -220,6 +312,104 @@ if (location.href.indexOf('is-external=true') == -1) {
         <li class="blockList">
            
 
+            
+            <!-- =========== FIELD DETAIL =========== -->
+            <ul class="blockList">
+                <li class="blockList"><a name="field_detail">
+                    <!--   -->
+                </a>
+                    <h3>Field Detail</h3>
+                    
+                        <a name="datacenterId"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;final&nbsp;long <strong>datacenterId</strong></h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
+                        <a name="datacenterIdBits"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;final&nbsp;long <strong>datacenterIdBits</strong></h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
+                        <a name="datacenterIdShift"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;final&nbsp;long <strong>datacenterIdShift</strong></h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
+                        <a name="lastTimestamp"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;long <strong>lastTimestamp</strong></h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
+                        <a name="log"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;static&nbsp;org.slf4j.Logger <strong>log</strong></h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
+                        <a name="maxDatacenterId"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;final&nbsp;long <strong>maxDatacenterId</strong></h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
+                        <a name="sequence"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;long <strong>sequence</strong></h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
+                        <a name="sequenceMax"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;final&nbsp;long <strong>sequenceMax</strong></h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
+                        <a name="timestampBits"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;final&nbsp;long <strong>timestampBits</strong></h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
+                        <a name="timestampLeftShift"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;final&nbsp;long <strong>timestampLeftShift</strong></h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
+                        <a name="twepoch"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;final&nbsp;long <strong>twepoch</strong></h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
+                </li>
+            </ul>
             
 
             
@@ -259,6 +449,14 @@ if (location.href.indexOf('is-external=true') == -1) {
                         <ul class="blockListLast">
                             <li class="blockList">
                                 <h4>protected&nbsp;long <strong>getDatacenterId</strong>()</h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
+                        <a name="isInvalidHardwareAddress(byte[])"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;boolean <strong>isInvalidHardwareAddress</strong>(byte[] hardwareAddress)</h4>
                                 <p></p>
                             </li>
                         </ul>
@@ -314,11 +512,11 @@ public&nbsp;java.io.Serializable <strong>nextId</strong>()</h4>
     <div>
         <ul class="subNavList">
             <li>Summary:&nbsp;</li>
-            Nested&nbsp;&nbsp;&nbsp;Field&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<li><a href="#constructor_summary">Constructor</a></li>&nbsp;&nbsp;&nbsp;<li><a href="#method_summary">Method</a></li>&nbsp;&nbsp;&nbsp;
+            Nested&nbsp;&nbsp;&nbsp;<li><a href="#field_summary">Field</a></li>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<li><a href="#constructor_summary">Constructor</a></li>&nbsp;&nbsp;&nbsp;<li><a href="#method_summary">Method</a></li>&nbsp;&nbsp;&nbsp;
         </ul>
         <ul class="subNavList">
             <li>&nbsp;|&nbsp;Detail:&nbsp;</li>
-            Field&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<li><a href="#constructor_detail">Constructor</a></li>&nbsp;&nbsp;&nbsp;<li><a href="#method_detail">Method</a></li>&nbsp;&nbsp;&nbsp;
+            <li><a href="#field_detail">Field</a></li>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<li><a href="#constructor_detail">Constructor</a></li>&nbsp;&nbsp;&nbsp;<li><a href="#method_detail">Method</a></li>&nbsp;&nbsp;&nbsp;
         </ul>
     </div>
     <p>Groovy Documentation</p>

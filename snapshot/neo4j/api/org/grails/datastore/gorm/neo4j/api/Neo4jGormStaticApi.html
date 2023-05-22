@@ -178,7 +178,7 @@ extends <a href='../../../../../../org/grails/datastore/gorm/GormStaticApi.html'
                         <tr class="altColor">
                             <td class="colFirst"><code></code></td>
                             <td class="colLast"><code>protected&nbsp;java.util.List</code></td>
-                            <td class="colLast"><code><strong><a href="#adaptResults(org.neo4j.driver.Result)">adaptResults</a></strong>(<a href='../../../../../../org.neo4j.driver.Result.html'>Result</a> result)</code><br></td>
+                            <td class="colLast"><code><strong><a href="#adaptResults(org.neo4j.driver.Result)">adaptResults</a></strong>(org.neo4j.driver.Result result)</code><br></td>
                         </tr>
                         
                         <tr class="rowColor">
@@ -189,19 +189,19 @@ extends <a href='../../../../../../org/grails/datastore/gorm/GormStaticApi.html'
                         
                         <tr class="altColor">
                             <td class="colFirst"><code></code></td>
-                            <td class="colLast"><code><a href='../../../../../../org.neo4j.driver.Result.html'>Result</a></code></td>
+                            <td class="colLast"><code>org.neo4j.driver.Result</code></td>
                             <td class="colLast"><code><strong><a href="#cypherStatic(java.lang.CharSequence, java.util.List)">cypherStatic</a></strong>(java.lang.CharSequence query, java.util.List params)</code><br>perform a cypher query</td>
                         </tr>
                         
                         <tr class="rowColor">
                             <td class="colFirst"><code></code></td>
-                            <td class="colLast"><code><a href='../../../../../../org.neo4j.driver.Result.html'>Result</a></code></td>
+                            <td class="colLast"><code>org.neo4j.driver.Result</code></td>
                             <td class="colLast"><code><strong><a href="#cypherStatic(java.lang.CharSequence, java.util.Map)">cypherStatic</a></strong>(java.lang.CharSequence query, java.util.Map params)</code><br>perform a cypher query</td>
                         </tr>
                         
                         <tr class="altColor">
                             <td class="colFirst"><code></code></td>
-                            <td class="colLast"><code><a href='../../../../../../org.neo4j.driver.Result.html'>Result</a></code></td>
+                            <td class="colLast"><code>org.neo4j.driver.Result</code></td>
                             <td class="colLast"><code><strong><a href="#cypherStatic(java.lang.CharSequence)">cypherStatic</a></strong>(java.lang.CharSequence query)</code><br>perform a cypher query</td>
                         </tr>
                         
@@ -255,38 +255,50 @@ extends <a href='../../../../../../org/grails/datastore/gorm/GormStaticApi.html'
                         
                         <tr class="rowColor">
                             <td class="colFirst"><code></code></td>
-                            <td class="colLast"><code><a href='../../../../../../grails.neo4j.Path.html'>Path</a></code></td>
+                            <td class="colLast"><code>grails.neo4j.Path</code></td>
                             <td class="colLast"><code><strong><a href="#findPath(java.lang.CharSequence, java.util.Map)">findPath</a></strong>(java.lang.CharSequence query, java.util.Map params)</code><br></td>
                         </tr>
                         
                         <tr class="altColor">
                             <td class="colFirst"><code></code></td>
-                            <td class="colLast"><code><a href='../../../../../../grails.neo4j.Path.html'>Path</a></code></td>
+                            <td class="colLast"><code>grails.neo4j.Path</code></td>
                             <td class="colLast"><code><strong><a href="#findPathTo(java.lang.Class, java.lang.CharSequence, java.util.Map)">findPathTo</a></strong>(java.lang.Class type, java.lang.CharSequence query, java.util.Map params)</code><br></td>
                         </tr>
                         
                         <tr class="rowColor">
                             <td class="colFirst"><code>&lt;F extends GormEntity, T extends GormEntity&gt;</code></td>
-                            <td class="colLast"><code>Relationship&lt;F, T&gt;</code></td>
+                            <td class="colLast"><code><a href='../../../../../../grails/neo4j/Relationship.html' title='Relationship'>Relationship</a>&lt;F, T&gt;</code></td>
                             <td class="colLast"><code><strong><a href="#findRelationship(F, T)">findRelationship</a></strong>(F from, T to)</code><br></td>
                         </tr>
                         
                         <tr class="altColor">
                             <td class="colFirst"><code>&lt;F extends GormEntity, T extends GormEntity&gt;</code></td>
-                            <td class="colLast"><code>java.util.List&lt;Relationship&lt;F, T&gt;&gt;</code></td>
+                            <td class="colLast"><code>java.util.List&lt;<a href='../../../../../../grails/neo4j/Relationship.html' title='Relationship'>Relationship</a>&lt;F, T&gt;&gt;</code></td>
                             <td class="colLast"><code><strong><a href="#findRelationships(F, T, java.util.Map)">findRelationships</a></strong>(F from, T to, java.util.Map params)</code><br></td>
                         </tr>
                         
                         <tr class="rowColor">
                             <td class="colFirst"><code>&lt;F extends GormEntity, T extends GormEntity&gt;</code></td>
-                            <td class="colLast"><code>java.util.List&lt;Relationship&lt;F, T&gt;&gt;</code></td>
+                            <td class="colLast"><code>java.util.List&lt;<a href='../../../../../../grails/neo4j/Relationship.html' title='Relationship'>Relationship</a>&lt;F, T&gt;&gt;</code></td>
                             <td class="colLast"><code><strong><a href="#findRelationships(Class, Class, java.util.Map)">findRelationships</a></strong>(java.lang.Class&lt;F&gt; from, java.lang.Class&lt;T&gt; to, java.util.Map params)</code><br></td>
                         </tr>
                         
                         <tr class="altColor">
                             <td class="colFirst"><code>&lt;F, T&gt;</code></td>
-                            <td class="colLast"><code>Path&lt;F, T&gt;</code></td>
+                            <td class="colLast"><code>grails.neo4j.Path&lt;F, T&gt;</code></td>
                             <td class="colLast"><code><strong><a href="#findShortestPath(F, T, int)">findShortestPath</a></strong>(F from, T to, int maxDistance)</code><br></td>
+                        </tr>
+                        
+                        <tr class="rowColor">
+                            <td class="colFirst"><code></code></td>
+                            <td class="colLast"><code>private&nbsp;org.neo4j.driver.QueryRunner</code></td>
+                            <td class="colLast"><code><strong><a href="#getStatementRunner(org.grails.datastore.gorm.neo4j.Neo4jSession)">getStatementRunner</a></strong>(<a href='../../../../../../org/grails/datastore/gorm/neo4j/Neo4jSession.html'>Neo4jSession</a> session)</code><br></td>
+                        </tr>
+                        
+                        <tr class="altColor">
+                            <td class="colFirst"><code></code></td>
+                            <td class="colLast"><code>private&nbsp;void</code></td>
+                            <td class="colLast"><code><strong><a href="#includeTenantIdIfNecessary(org.grails.datastore.gorm.neo4j.Neo4jSession, java.lang.String, Map)">includeTenantIdIfNecessary</a></strong>(<a href='../../../../../../org/grails/datastore/gorm/neo4j/Neo4jSession.html'>Neo4jSession</a> session, java.lang.String queryString, java.util.Map&lt;java.lang.String, java.lang.Object&gt; paramsMap)</code><br></td>
                         </tr>
                         
                     </table>
@@ -350,7 +362,7 @@ extends <a href='../../../../../../org/grails/datastore/gorm/GormStaticApi.html'
                         <a name="adaptResults(org.neo4j.driver.Result)"><!-- --></a>
                         <ul class="blockListLast">
                             <li class="blockList">
-                                <h4>protected&nbsp;java.util.List <strong>adaptResults</strong>(<a href='../../../../../../org.neo4j.driver.Result.html'>Result</a> result)</h4>
+                                <h4>protected&nbsp;java.util.List <strong>adaptResults</strong>(org.neo4j.driver.Result result)</h4>
                                 <p></p>
                             </li>
                         </ul>
@@ -366,7 +378,7 @@ extends <a href='../../../../../../org/grails/datastore/gorm/GormStaticApi.html'
                         <a name="cypherStatic(java.lang.CharSequence, java.util.List)"><!-- --></a>
                         <ul class="blockListLast">
                             <li class="blockList">
-                                <h4><a href='../../../../../../org.neo4j.driver.Result.html'>Result</a> <strong>cypherStatic</strong>(java.lang.CharSequence query, java.util.List params)</h4>
+                                <h4>org.neo4j.driver.Result <strong>cypherStatic</strong>(java.lang.CharSequence query, java.util.List params)</h4>
                                 <p> perform a cypher query
  @return <DL><DT><B>Parameters:</B></DT><DD>query</DD></DL></p>
                             </li>
@@ -375,7 +387,7 @@ extends <a href='../../../../../../org/grails/datastore/gorm/GormStaticApi.html'
                         <a name="cypherStatic(java.lang.CharSequence, java.util.Map)"><!-- --></a>
                         <ul class="blockListLast">
                             <li class="blockList">
-                                <h4><a href='../../../../../../org.neo4j.driver.Result.html'>Result</a> <strong>cypherStatic</strong>(java.lang.CharSequence query, java.util.Map params)</h4>
+                                <h4>org.neo4j.driver.Result <strong>cypherStatic</strong>(java.lang.CharSequence query, java.util.Map params)</h4>
                                 <p> perform a cypher query
  @return <DL><DT><B>Parameters:</B></DT><DD>query</DD></DL></p>
                             </li>
@@ -384,7 +396,7 @@ extends <a href='../../../../../../org/grails/datastore/gorm/GormStaticApi.html'
                         <a name="cypherStatic(java.lang.CharSequence)"><!-- --></a>
                         <ul class="blockListLast">
                             <li class="blockList">
-                                <h4><a href='../../../../../../org.neo4j.driver.Result.html'>Result</a> <strong>cypherStatic</strong>(java.lang.CharSequence query)</h4>
+                                <h4>org.neo4j.driver.Result <strong>cypherStatic</strong>(java.lang.CharSequence query)</h4>
                                 <p> perform a cypher query
  @return <DL><DT><B>Parameters:</B></DT><DD>query</DD></DL></p>
                             </li>
@@ -465,7 +477,7 @@ java.util.List&lt;D&gt; <strong>findAll</strong>(java.lang.CharSequence query, j
                         <a name="findPath(java.lang.CharSequence, java.util.Map)"><!-- --></a>
                         <ul class="blockListLast">
                             <li class="blockList">
-                                <h4><a href='../../../../../../grails.neo4j.Path.html'>Path</a> <strong>findPath</strong>(java.lang.CharSequence query, java.util.Map params)</h4>
+                                <h4>grails.neo4j.Path <strong>findPath</strong>(java.lang.CharSequence query, java.util.Map params)</h4>
                                 <p></p>
                             </li>
                         </ul>
@@ -473,7 +485,7 @@ java.util.List&lt;D&gt; <strong>findAll</strong>(java.lang.CharSequence query, j
                         <a name="findPathTo(java.lang.Class, java.lang.CharSequence, java.util.Map)"><!-- --></a>
                         <ul class="blockListLast">
                             <li class="blockList">
-                                <h4><a href='../../../../../../grails.neo4j.Path.html'>Path</a> <strong>findPathTo</strong>(java.lang.Class type, java.lang.CharSequence query, java.util.Map params)</h4>
+                                <h4>grails.neo4j.Path <strong>findPathTo</strong>(java.lang.Class type, java.lang.CharSequence query, java.util.Map params)</h4>
                                 <p></p>
                             </li>
                         </ul>
@@ -481,7 +493,7 @@ java.util.List&lt;D&gt; <strong>findAll</strong>(java.lang.CharSequence query, j
                         <a name="findRelationship(F, T)"><!-- --></a>
                         <ul class="blockListLast">
                             <li class="blockList">
-                                <h4>&lt;F extends GormEntity, T extends GormEntity&gt; Relationship&lt;F, T&gt; <strong>findRelationship</strong>(F from, T to)</h4>
+                                <h4>&lt;F extends GormEntity, T extends GormEntity&gt; <a href='../../../../../../grails/neo4j/Relationship.html' title='Relationship'>Relationship</a>&lt;F, T&gt; <strong>findRelationship</strong>(F from, T to)</h4>
                                 <p></p>
                             </li>
                         </ul>
@@ -489,7 +501,7 @@ java.util.List&lt;D&gt; <strong>findAll</strong>(java.lang.CharSequence query, j
                         <a name="findRelationships(F, T, java.util.Map)"><!-- --></a>
                         <ul class="blockListLast">
                             <li class="blockList">
-                                <h4>&lt;F extends GormEntity, T extends GormEntity&gt; java.util.List&lt;Relationship&lt;F, T&gt;&gt; <strong>findRelationships</strong>(F from, T to, java.util.Map params)</h4>
+                                <h4>&lt;F extends GormEntity, T extends GormEntity&gt; java.util.List&lt;<a href='../../../../../../grails/neo4j/Relationship.html' title='Relationship'>Relationship</a>&lt;F, T&gt;&gt; <strong>findRelationships</strong>(F from, T to, java.util.Map params)</h4>
                                 <p></p>
                             </li>
                         </ul>
@@ -497,7 +509,7 @@ java.util.List&lt;D&gt; <strong>findAll</strong>(java.lang.CharSequence query, j
                         <a name="findRelationships(Class, Class, java.util.Map)"><!-- --></a>
                         <ul class="blockListLast">
                             <li class="blockList">
-                                <h4>&lt;F extends GormEntity, T extends GormEntity&gt; java.util.List&lt;Relationship&lt;F, T&gt;&gt; <strong>findRelationships</strong>(java.lang.Class&lt;F&gt; from, java.lang.Class&lt;T&gt; to, java.util.Map params)</h4>
+                                <h4>&lt;F extends GormEntity, T extends GormEntity&gt; java.util.List&lt;<a href='../../../../../../grails/neo4j/Relationship.html' title='Relationship'>Relationship</a>&lt;F, T&gt;&gt; <strong>findRelationships</strong>(java.lang.Class&lt;F&gt; from, java.lang.Class&lt;T&gt; to, java.util.Map params)</h4>
                                 <p></p>
                             </li>
                         </ul>
@@ -505,7 +517,23 @@ java.util.List&lt;D&gt; <strong>findAll</strong>(java.lang.CharSequence query, j
                         <a name="findShortestPath(F, T, int)"><!-- --></a>
                         <ul class="blockListLast">
                             <li class="blockList">
-                                <h4>&lt;F, T&gt; Path&lt;F, T&gt; <strong>findShortestPath</strong>(F from, T to, int maxDistance)</h4>
+                                <h4>&lt;F, T&gt; grails.neo4j.Path&lt;F, T&gt; <strong>findShortestPath</strong>(F from, T to, int maxDistance)</h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
+                        <a name="getStatementRunner(org.grails.datastore.gorm.neo4j.Neo4jSession)"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;org.neo4j.driver.QueryRunner <strong>getStatementRunner</strong>(<a href='../../../../../../org/grails/datastore/gorm/neo4j/Neo4jSession.html'>Neo4jSession</a> session)</h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
+                        <a name="includeTenantIdIfNecessary(org.grails.datastore.gorm.neo4j.Neo4jSession, java.lang.String, Map)"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;void <strong>includeTenantIdIfNecessary</strong>(<a href='../../../../../../org/grails/datastore/gorm/neo4j/Neo4jSession.html'>Neo4jSession</a> session, java.lang.String queryString, java.util.Map&lt;java.lang.String, java.lang.Object&gt; paramsMap)</h4>
                                 <p></p>
                             </li>
                         </ul>

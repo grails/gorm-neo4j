@@ -327,14 +327,44 @@ extends <a href='../../../../../../org/grails/datastore/mapping/query/Query.html
                         </tr>
                         
                         <tr class="altColor">
+                            <td class="colFirst"><code><strong>private&nbsp;static&nbsp;java.lang.String</strong></code>&nbsp;</td>
+                            <td class="colLast"><code><a href="#BLANK">BLANK</a></code></td>
+                            <td class="colLast"></td>
+                        </tr>
+                        
+                        <tr class="rowColor">
+                            <td class="colFirst"><code><strong>private&nbsp;static&nbsp;java.util.Map&lt;java.lang.Class&lt;? extends Query.PropertyComparisonCriterion&gt;, java.lang.String&gt;</strong></code>&nbsp;</td>
+                            <td class="colLast"><code><a href="#COMPARISON_OPERATORS">COMPARISON_OPERATORS</a></code></td>
+                            <td class="colLast"></td>
+                        </tr>
+                        
+                        <tr class="altColor">
                             <td class="colFirst"><code><strong>static&nbsp;java.util.Map&lt;java.lang.Class&lt;? extends Query.Criterion&gt;, CriterionHandler&lt;? extends Criterion&gt;&gt;</strong></code>&nbsp;</td>
                             <td class="colLast"><code><a href="#CRITERION_HANDLERS">CRITERION_HANDLERS</a></code></td>
                             <td class="colLast"></td>
                         </tr>
                         
                         <tr class="rowColor">
+                            <td class="colFirst"><code><strong>private&nbsp;static&nbsp;java.lang.String</strong></code>&nbsp;</td>
+                            <td class="colLast"><code><a href="#ORDER_BY_CLAUSE">ORDER_BY_CLAUSE</a></code></td>
+                            <td class="colLast"></td>
+                        </tr>
+                        
+                        <tr class="altColor">
                             <td class="colFirst"><code><strong>protected&nbsp;static&nbsp;java.util.Map&lt;java.lang.Class&lt;? extends Query.Projection&gt;, ProjectionHandler&lt;? extends Projection&gt;&gt;</strong></code>&nbsp;</td>
                             <td class="colLast"><code><a href="#PROJECT_HANDLERS">PROJECT_HANDLERS</a></code></td>
+                            <td class="colLast"></td>
+                        </tr>
+                        
+                        <tr class="rowColor">
+                            <td class="colFirst"><code><strong>private&nbsp;boolean</strong></code>&nbsp;</td>
+                            <td class="colLast"><code><a href="#isRelationshipEntity">isRelationshipEntity</a></code></td>
+                            <td class="colLast"></td>
+                        </tr>
+                        
+                        <tr class="altColor">
+                            <td class="colFirst"><code><strong>private&nbsp;<a href='../../../../../../org/grails/datastore/gorm/neo4j/engine/Neo4jEntityPersister.html'>Neo4jEntityPersister</a></strong></code>&nbsp;</td>
+                            <td class="colLast"><code><a href="#neo4jEntityPersister">neo4jEntityPersister</a></code></td>
                             <td class="colLast"></td>
                         </tr>
                         
@@ -435,6 +465,18 @@ extends <a href='../../../../../../org/grails/datastore/mapping/query/Query.html
                         
                         <tr class="altColor">
                             <td class="colFirst"><code></code></td>
+                            <td class="colLast"><code>private&nbsp;static&nbsp;int</code></td>
+                            <td class="colLast"><code><strong><a href="#addBuildParameterForCriterion(org.grails.datastore.gorm.neo4j.CypherBuilder, org.grails.datastore.mapping.model.PersistentEntity, org.grails.datastore.mapping.query.Query.PropertyCriterion)">addBuildParameterForCriterion</a></strong>(<a href='../../../../../../org/grails/datastore/gorm/neo4j/CypherBuilder.html'>CypherBuilder</a> builder, <a href='../../../../../../org/grails/datastore/mapping/model/PersistentEntity.html'>PersistentEntity</a> entity, <a href='../../../../../../org/grails/datastore/mapping/query/Query.PropertyCriterion.html'>PropertyCriterion</a> criterion)</code><br></td>
+                        </tr>
+                        
+                        <tr class="rowColor">
+                            <td class="colFirst"><code></code></td>
+                            <td class="colLast"><code>private&nbsp;java.lang.String</code></td>
+                            <td class="colLast"><code><strong><a href="#applyOrderAndLimits(org.grails.datastore.gorm.neo4j.CypherBuilder)">applyOrderAndLimits</a></strong>(<a href='../../../../../../org/grails/datastore/gorm/neo4j/CypherBuilder.html'>CypherBuilder</a> cypherBuilder)</code><br></td>
+                        </tr>
+                        
+                        <tr class="altColor">
+                            <td class="colFirst"><code></code></td>
                             <td class="colLast"><code>protected&nbsp;<a href='../../../../../../org/grails/datastore/gorm/neo4j/CypherBuilder.html'>CypherBuilder</a></code></td>
                             <td class="colLast"><code><strong><a href="#buildBaseQuery(org.grails.datastore.mapping.model.PersistentEntity, org.grails.datastore.mapping.query.Query.Junction)">buildBaseQuery</a></strong>(<a href='../../../../../../org/grails/datastore/mapping/model/PersistentEntity.html'>PersistentEntity</a> persistentEntity, <a href='../../../../../../org/grails/datastore/mapping/query/Query.Junction.html'>Junction</a> criteria)</code><br></td>
                         </tr>
@@ -453,35 +495,41 @@ extends <a href='../../../../../../org/grails/datastore/mapping/query/Query.html
                         
                         <tr class="rowColor">
                             <td class="colFirst"><code></code></td>
+                            <td class="colLast"><code>private&nbsp;static&nbsp;java.util.Collection</code></td>
+                            <td class="colLast"><code><strong><a href="#convertEnumsInList(java.util.Collection)">convertEnumsInList</a></strong>(java.util.Collection collection)</code><br></td>
+                        </tr>
+                        
+                        <tr class="altColor">
+                            <td class="colFirst"><code></code></td>
                             <td class="colLast"><code>protected&nbsp;java.util.List</code></td>
                             <td class="colLast"><code><strong><a href="#executeQuery(org.grails.datastore.mapping.model.PersistentEntity, org.grails.datastore.mapping.query.Query.Junction)">executeQuery</a></strong>(<a href='../../../../../../org/grails/datastore/mapping/model/PersistentEntity.html'>PersistentEntity</a> persistentEntity, <a href='../../../../../../org/grails/datastore/mapping/query/Query.Junction.html'>Junction</a> criteria)</code><br></td>
                         </tr>
                         
-                        <tr class="altColor">
+                        <tr class="rowColor">
                             <td class="colFirst"><code></code></td>
                             <td class="colLast"><code><a href='../../../../../../org/grails/datastore/gorm/neo4j/CypherBuilder.html'>CypherBuilder</a></code></td>
                             <td class="colLast"><code><strong><a href="#getBaseQuery()">getBaseQuery</a></strong>()</code><br>Obtains the root query for this Neo4jQuery instance without any RETURN statements, projections or limits applied</td>
                         </tr>
                         
-                        <tr class="rowColor">
+                        <tr class="altColor">
                             <td class="colFirst"><code></code></td>
-                            <td class="colLast"><code><a href='../../../../../../org.neo4j.driver.Session.html'>Session</a></code></td>
+                            <td class="colLast"><code>org.neo4j.driver.Session</code></td>
                             <td class="colLast"><code><strong><a href="#getBoltSession()">getBoltSession</a></strong>()</code><br></td>
                         </tr>
                         
-                        <tr class="altColor">
+                        <tr class="rowColor">
                             <td class="colFirst"><code></code></td>
                             <td class="colLast"><code><a href='../../../../../../org/grails/datastore/gorm/neo4j/Neo4jSession.html'>Neo4jSession</a></code></td>
                             <td class="colLast"><code><strong><a href="#getSession()">getSession</a></strong>()</code><br></td>
                         </tr>
                         
-                        <tr class="rowColor">
+                        <tr class="altColor">
                             <td class="colFirst"><code></code></td>
                             <td class="colLast"><code>protected&nbsp;static&nbsp;java.lang.String</code></td>
                             <td class="colLast"><code><strong><a href="#handleLike(org.grails.datastore.mapping.query.Query.PropertyCriterion, org.grails.datastore.gorm.neo4j.CypherBuilder, int, boolean)">handleLike</a></strong>(<a href='../../../../../../org/grails/datastore/mapping/query/Query.PropertyCriterion.html'>PropertyCriterion</a> criterion, <a href='../../../../../../org/grails/datastore/gorm/neo4j/CypherBuilder.html'>CypherBuilder</a> builder, int paramNumber, boolean caseSensitive)</code><br></td>
                         </tr>
                         
-                        <tr class="altColor">
+                        <tr class="rowColor">
                             <td class="colFirst"><code></code></td>
                             <td class="colLast"><code>static&nbsp;java.lang.String</code></td>
                             <td class="colLast"><code><strong><a href="#matchForAssociation(org.grails.datastore.mapping.model.types.Association, java.lang.String, Map)">matchForAssociation</a></strong>(<a href='../../../../../../org/grails/datastore/mapping/model/types/Association.html'>Association</a> association, java.lang.String var, java.util.Map&lt;java.lang.String, java.lang.String&gt; attributes)</code><br></td>
@@ -503,7 +551,7 @@ extends <a href='../../../../../../org/grails/datastore/mapping/query/Query.html
                         
                         <tr class="altColor">
                             <td class="colFirst"><code>class <a href='../../../../../../org/grails/datastore/mapping/query/Query.html'>Query</a></code></td>
-                            <td class="colLast"><code><a href='../../../../../../org/grails/datastore/mapping/query/Query.html#add(org.grails.datastore.mapping.query.Query.Criterion)'>add</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#add(Junction, org.grails.datastore.mapping.query.Query.Criterion)'>add</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#allEq(Map)'>allEq</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#and(org.grails.datastore.mapping.query.Query.Criterion, org.grails.datastore.mapping.query.Query.Criterion)'>and</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#between(java.lang.String, java.lang.Object, java.lang.Object)'>between</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#cache(boolean)'>cache</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#clone()'>clone</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#conjunction()'>conjunction</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#createQuery(java.lang.String)'>createQuery</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#disjunction()'>disjunction</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#eq(java.lang.String, java.lang.Object)'>eq</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#executeQuery(org.grails.datastore.mapping.model.PersistentEntity, Junction)'>executeQuery</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#fetchStrategy(java.lang.String)'>fetchStrategy</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#firstResult(int)'>firstResult</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#flushBeforeQuery()'>flushBeforeQuery</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#ge(java.lang.String, java.lang.Object)'>ge</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#getCriteria()'>getCriteria</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#getEntity()'>getEntity</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#getOrderBy()'>getOrderBy</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#getSession()'>getSession</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#gt(java.lang.String, java.lang.Object)'>gt</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#gte(java.lang.String, java.lang.Object)'>gte</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#idEq(java.lang.Object)'>idEq</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#ilike(java.lang.String, java.lang.String)'>ilike</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#in(java.lang.String, java.util.List)'>in</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#isEmpty(java.lang.String)'>isEmpty</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#isNotEmpty(java.lang.String)'>isNotEmpty</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#isNotNull(java.lang.String)'>isNotNull</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#isNull(java.lang.String)'>isNull</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#join(java.lang.String)'>join</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#join(java.lang.String, javax.persistence.criteria.JoinType)'>join</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#le(java.lang.String, java.lang.Object)'>le</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#like(java.lang.String, java.lang.String)'>like</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#list()'>list</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#lock(boolean)'>lock</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#lock(javax.persistence.LockModeType)'>lock</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#lt(java.lang.String, java.lang.Object)'>lt</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#lte(java.lang.String, java.lang.Object)'>lte</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#max(int)'>max</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#maxResults(int)'>maxResults</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#negation()'>negation</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#offset(int)'>offset</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#or(org.grails.datastore.mapping.query.Query.Criterion, org.grails.datastore.mapping.query.Query.Criterion)'>or</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#order(Order)'>order</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#patternToRegex(java.lang.Object)'>patternToRegex</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#projections()'>projections</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#resolveIdIfEntity(java.lang.Object)'>resolveIdIfEntity</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#rlike(java.lang.String, java.lang.String)'>rlike</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#select(java.lang.String)'>select</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#setUniqueResult(boolean)'>setUniqueResult</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#singleResult()'>singleResult</a></code></td>
+                            <td class="colLast"><code><a href='../../../../../../org/grails/datastore/mapping/query/Query.html#add(org.grails.datastore.mapping.query.Query.Criterion)'>add</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#add(Junction, org.grails.datastore.mapping.query.Query.Criterion)'>add</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#addToJunction(Junction, org.grails.datastore.mapping.query.Query.Criterion)'>addToJunction</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#allEq(Map)'>allEq</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#and(org.grails.datastore.mapping.query.Query.Criterion, org.grails.datastore.mapping.query.Query.Criterion)'>and</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#between(java.lang.String, java.lang.Object, java.lang.Object)'>between</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#cache(boolean)'>cache</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#clone()'>clone</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#conjunction()'>conjunction</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#conjunction(Junction)'>conjunction</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#createQuery(java.lang.String)'>createQuery</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#disjunction()'>disjunction</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#disjunction(Junction)'>disjunction</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#doList()'>doList</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#eq(java.lang.String, java.lang.Object)'>eq</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#executeQuery(org.grails.datastore.mapping.model.PersistentEntity, Junction)'>executeQuery</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#fetchStrategy(java.lang.String)'>fetchStrategy</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#findInstanceId(java.lang.Object)'>findInstanceId</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#firstResult(int)'>firstResult</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#flushBeforeQuery()'>flushBeforeQuery</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#ge(java.lang.String, java.lang.Object)'>ge</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#getCriteria()'>getCriteria</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#getEntity()'>getEntity</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#getOrderBy()'>getOrderBy</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#getSession()'>getSession</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#gt(java.lang.String, java.lang.Object)'>gt</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#gte(java.lang.String, java.lang.Object)'>gte</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#idEq(java.lang.Object)'>idEq</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#ilike(java.lang.String, java.lang.String)'>ilike</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#in(java.lang.String, java.util.List)'>in</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#isEmpty(java.lang.String)'>isEmpty</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#isNotEmpty(java.lang.String)'>isNotEmpty</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#isNotNull(java.lang.String)'>isNotNull</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#isNull(java.lang.String)'>isNull</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#join(java.lang.String)'>join</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#join(java.lang.String, javax.persistence.criteria.JoinType)'>join</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#le(java.lang.String, java.lang.Object)'>le</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#like(java.lang.String, java.lang.String)'>like</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#list()'>list</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#lock(boolean)'>lock</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#lock(javax.persistence.LockModeType)'>lock</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#lt(java.lang.String, java.lang.Object)'>lt</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#lte(java.lang.String, java.lang.Object)'>lte</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#max(int)'>max</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#maxResults(int)'>maxResults</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#negation()'>negation</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#negation(Junction)'>negation</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#offset(int)'>offset</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#or(org.grails.datastore.mapping.query.Query.Criterion, org.grails.datastore.mapping.query.Query.Criterion)'>or</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#order(Order)'>order</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#patternToRegex(java.lang.Object)'>patternToRegex</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#projections()'>projections</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#resolveIdIfEntity(java.lang.Object)'>resolveIdIfEntity</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#resolvePropertyValue(org.grails.datastore.mapping.model.PersistentEntity, java.lang.String, java.lang.Object)'>resolvePropertyValue</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#rlike(java.lang.String, java.lang.String)'>rlike</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#select(java.lang.String)'>select</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#setUniqueResult(boolean)'>setUniqueResult</a>, <a href='../../../../../../org/grails/datastore/mapping/query/Query.html#singleResult()'>singleResult</a></code></td>
                         </tr>
                     </table>
                    </ul>
@@ -528,6 +576,22 @@ extends <a href='../../../../../../org/grails/datastore/mapping/query/Query.html
                 </a>
                     <h3>Field Detail</h3>
                     
+                        <a name="BLANK"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;static&nbsp;final&nbsp;java.lang.String <strong>BLANK</strong></h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
+                        <a name="COMPARISON_OPERATORS"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;static&nbsp;java.util.Map&lt;java.lang.Class&lt;? extends Query.PropertyComparisonCriterion&gt;, java.lang.String&gt; <strong>COMPARISON_OPERATORS</strong></h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
                         <a name="CRITERION_HANDLERS"><!-- --></a>
                         <ul class="blockListLast">
                             <li class="blockList">
@@ -536,10 +600,34 @@ extends <a href='../../../../../../org/grails/datastore/mapping/query/Query.html
                             </li>
                         </ul>
                     
+                        <a name="ORDER_BY_CLAUSE"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;static&nbsp;final&nbsp;java.lang.String <strong>ORDER_BY_CLAUSE</strong></h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
                         <a name="PROJECT_HANDLERS"><!-- --></a>
                         <ul class="blockListLast">
                             <li class="blockList">
                                 <h4>protected&nbsp;static&nbsp;java.util.Map&lt;java.lang.Class&lt;? extends Query.Projection&gt;, ProjectionHandler&lt;? extends Projection&gt;&gt; <strong>PROJECT_HANDLERS</strong></h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
+                        <a name="isRelationshipEntity"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;final&nbsp;boolean <strong>isRelationshipEntity</strong></h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
+                        <a name="neo4jEntityPersister"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;final&nbsp;<a href='../../../../../../org/grails/datastore/gorm/neo4j/engine/Neo4jEntityPersister.html'>Neo4jEntityPersister</a> <strong>neo4jEntityPersister</strong></h4>
                                 <p></p>
                             </li>
                         </ul>
@@ -607,6 +695,22 @@ extends <a href='../../../../../../org/grails/datastore/mapping/query/Query.html
                 </a>
                     <h3>Method Detail</h3>
                     
+                        <a name="addBuildParameterForCriterion(org.grails.datastore.gorm.neo4j.CypherBuilder, org.grails.datastore.mapping.model.PersistentEntity, org.grails.datastore.mapping.query.Query.PropertyCriterion)"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;static&nbsp;int <strong>addBuildParameterForCriterion</strong>(<a href='../../../../../../org/grails/datastore/gorm/neo4j/CypherBuilder.html'>CypherBuilder</a> builder, <a href='../../../../../../org/grails/datastore/mapping/model/PersistentEntity.html'>PersistentEntity</a> entity, <a href='../../../../../../org/grails/datastore/mapping/query/Query.PropertyCriterion.html'>PropertyCriterion</a> criterion)</h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
+                        <a name="applyOrderAndLimits(org.grails.datastore.gorm.neo4j.CypherBuilder)"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;java.lang.String <strong>applyOrderAndLimits</strong>(<a href='../../../../../../org/grails/datastore/gorm/neo4j/CypherBuilder.html'>CypherBuilder</a> cypherBuilder)</h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
                         <a name="buildBaseQuery(org.grails.datastore.mapping.model.PersistentEntity, org.grails.datastore.mapping.query.Query.Junction)"><!-- --></a>
                         <ul class="blockListLast">
                             <li class="blockList">
@@ -631,6 +735,14 @@ extends <a href='../../../../../../org/grails/datastore/mapping/query/Query.html
                             </li>
                         </ul>
                     
+                        <a name="convertEnumsInList(java.util.Collection)"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;static&nbsp;java.util.Collection <strong>convertEnumsInList</strong>(java.util.Collection collection)</h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
                         <a name="executeQuery(org.grails.datastore.mapping.model.PersistentEntity, org.grails.datastore.mapping.query.Query.Junction)"><!-- --></a>
                         <ul class="blockListLast">
                             <li class="blockList">
@@ -651,7 +763,7 @@ protected&nbsp;java.util.List <strong>executeQuery</strong>(<a href='../../../..
                         <a name="getBoltSession()"><!-- --></a>
                         <ul class="blockListLast">
                             <li class="blockList">
-                                <h4><a href='../../../../../../org.neo4j.driver.Session.html'>Session</a> <strong>getBoltSession</strong>()</h4>
+                                <h4>org.neo4j.driver.Session <strong>getBoltSession</strong>()</h4>
                                 <p></p>
                             </li>
                         </ul>

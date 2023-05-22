@@ -102,7 +102,8 @@ if (location.href.indexOf('is-external=true') == -1) {
             <hr>
             <br>
 
-<pre>public&nbsp;class CypherBuilder</pre>
+<pre>public&nbsp;class CypherBuilder
+extends java.lang.Object</pre>
 
     <p> A builder for Cypher queries
 
@@ -155,6 +156,18 @@ if (location.href.indexOf('is-external=true') == -1) {
                         <tr class="rowColor">
                             <td class="colFirst"><code><strong>static&nbsp;java.lang.String</strong></code>&nbsp;</td>
                             <td class="colLast"><code><a href="#CYPHER_MATCH_ID">CYPHER_MATCH_ID</a></code></td>
+                            <td class="colLast"></td>
+                        </tr>
+                        
+                        <tr class="altColor">
+                            <td class="colFirst"><code><strong>private&nbsp;static&nbsp;java.lang.String</strong></code>&nbsp;</td>
+                            <td class="colLast"><code><a href="#CYPHER_RELATIONSHIP">CYPHER_RELATIONSHIP</a></code></td>
+                            <td class="colLast"></td>
+                        </tr>
+                        
+                        <tr class="rowColor">
+                            <td class="colFirst"><code><strong>private&nbsp;static&nbsp;java.lang.String</strong></code>&nbsp;</td>
+                            <td class="colLast"><code><a href="#CYPHER_RELATIONSHIP_MATCH">CYPHER_RELATIONSHIP_MATCH</a></code></td>
                             <td class="colLast"></td>
                         </tr>
                         
@@ -281,6 +294,84 @@ if (location.href.indexOf('is-external=true') == -1) {
                         <tr class="altColor">
                             <td class="colFirst"><code><strong>static&nbsp;java.lang.String</strong></code>&nbsp;</td>
                             <td class="colLast"><code><a href="#WHERE">WHERE</a></code></td>
+                            <td class="colLast"></td>
+                        </tr>
+                        
+                        <tr class="rowColor">
+                            <td class="colFirst"><code><strong>private&nbsp;java.lang.String</strong></code>&nbsp;</td>
+                            <td class="colLast"><code><a href="#conditions">conditions</a></code></td>
+                            <td class="colLast"></td>
+                        </tr>
+                        
+                        <tr class="altColor">
+                            <td class="colFirst"><code><strong>private&nbsp;java.lang.String</strong></code>&nbsp;</td>
+                            <td class="colLast"><code><a href="#defaultReturnStatement">defaultReturnStatement</a></code></td>
+                            <td class="colLast"></td>
+                        </tr>
+                        
+                        <tr class="rowColor">
+                            <td class="colFirst"><code><strong>private&nbsp;java.util.List&lt;java.lang.String&gt;</strong></code>&nbsp;</td>
+                            <td class="colLast"><code><a href="#deleteColumns">deleteColumns</a></code></td>
+                            <td class="colLast"></td>
+                        </tr>
+                        
+                        <tr class="altColor">
+                            <td class="colFirst"><code><strong>private&nbsp;java.lang.String</strong></code>&nbsp;</td>
+                            <td class="colLast"><code><a href="#forLabels">forLabels</a></code></td>
+                            <td class="colLast"></td>
+                        </tr>
+                        
+                        <tr class="rowColor">
+                            <td class="colFirst"><code><strong>private&nbsp;java.util.List&lt;java.lang.String&gt;</strong></code>&nbsp;</td>
+                            <td class="colLast"><code><a href="#matches">matches</a></code></td>
+                            <td class="colLast"></td>
+                        </tr>
+                        
+                        <tr class="altColor">
+                            <td class="colFirst"><code><strong>private&nbsp;java.util.List&lt;java.lang.String&gt;</strong></code>&nbsp;</td>
+                            <td class="colLast"><code><a href="#optionalMatches">optionalMatches</a></code></td>
+                            <td class="colLast"></td>
+                        </tr>
+                        
+                        <tr class="rowColor">
+                            <td class="colFirst"><code><strong>private&nbsp;java.lang.String</strong></code>&nbsp;</td>
+                            <td class="colLast"><code><a href="#orderAndLimits">orderAndLimits</a></code></td>
+                            <td class="colLast"></td>
+                        </tr>
+                        
+                        <tr class="altColor">
+                            <td class="colFirst"><code><strong>private&nbsp;java.util.Map&lt;java.lang.String, java.lang.Object&gt;</strong></code>&nbsp;</td>
+                            <td class="colLast"><code><a href="#params">params</a></code></td>
+                            <td class="colLast"></td>
+                        </tr>
+                        
+                        <tr class="rowColor">
+                            <td class="colFirst"><code><strong>private&nbsp;java.util.List&lt;java.lang.String&gt;</strong></code>&nbsp;</td>
+                            <td class="colLast"><code><a href="#relationshipMatches">relationshipMatches</a></code></td>
+                            <td class="colLast"></td>
+                        </tr>
+                        
+                        <tr class="altColor">
+                            <td class="colFirst"><code><strong>private&nbsp;java.util.List&lt;java.lang.String&gt;</strong></code>&nbsp;</td>
+                            <td class="colLast"><code><a href="#returnColumns">returnColumns</a></code></td>
+                            <td class="colLast"></td>
+                        </tr>
+                        
+                        <tr class="rowColor">
+                            <td class="colFirst"><code><strong>private&nbsp;int</strong></code>&nbsp;</td>
+                            <td class="colLast"><code><a href="#setIndex">setIndex</a></code></td>
+                            <td class="colLast"></td>
+                        </tr>
+                        
+                        <tr class="altColor">
+                            <td class="colFirst"><code><strong>private&nbsp;java.util.Map&lt;java.lang.String, java.lang.Object&gt;</strong></code>&nbsp;</td>
+                            <td class="colLast"><code><a href="#sets">sets</a></code></td>
+                            <td class="colLast"></td>
+                        </tr>
+                        
+                        <tr class="rowColor">
+                            <td class="colFirst"><code><strong>private&nbsp;java.lang.String</strong></code>&nbsp;</td>
+                            <td class="colLast"><code><a href="#startNode">startNode</a></code></td>
                             <td class="colLast"></td>
                         </tr>
                         
@@ -460,7 +551,7 @@ if (location.href.indexOf('is-external=true') == -1) {
                         
                         <tr class="altColor">
                             <td class="colFirst"><code>class java.lang.Object</code></td>
-                            <td class="colLast"><code>java.lang.Object#wait(long, int), java.lang.Object#wait(long), java.lang.Object#wait(), java.lang.Object#equals(java.lang.Object), java.lang.Object#toString(), java.lang.Object#hashCode(), java.lang.Object#getClass(), java.lang.Object#notify(), java.lang.Object#notifyAll()</code></td>
+                            <td class="colLast"><code>java.lang.Object#wait(long), java.lang.Object#wait(long, int), java.lang.Object#wait(), java.lang.Object#equals(java.lang.Object), java.lang.Object#toString(), java.lang.Object#hashCode(), java.lang.Object#getClass(), java.lang.Object#notify(), java.lang.Object#notifyAll()</code></td>
                         </tr>
                     </table>
                    </ul>
@@ -513,6 +604,22 @@ if (location.href.indexOf('is-external=true') == -1) {
                         <ul class="blockListLast">
                             <li class="blockList">
                                 <h4>public&nbsp;static&nbsp;final&nbsp;java.lang.String <strong>CYPHER_MATCH_ID</strong></h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
+                        <a name="CYPHER_RELATIONSHIP"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;static&nbsp;final&nbsp;java.lang.String <strong>CYPHER_RELATIONSHIP</strong></h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
+                        <a name="CYPHER_RELATIONSHIP_MATCH"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;static&nbsp;final&nbsp;java.lang.String <strong>CYPHER_RELATIONSHIP_MATCH</strong></h4>
                                 <p></p>
                             </li>
                         </ul>
@@ -681,6 +788,110 @@ if (location.href.indexOf('is-external=true') == -1) {
                         <ul class="blockListLast">
                             <li class="blockList">
                                 <h4>public&nbsp;static&nbsp;final&nbsp;java.lang.String <strong>WHERE</strong></h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
+                        <a name="conditions"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;java.lang.String <strong>conditions</strong></h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
+                        <a name="defaultReturnStatement"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;java.lang.String <strong>defaultReturnStatement</strong></h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
+                        <a name="deleteColumns"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;java.util.List&lt;java.lang.String&gt; <strong>deleteColumns</strong></h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
+                        <a name="forLabels"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;java.lang.String <strong>forLabels</strong></h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
+                        <a name="matches"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;java.util.List&lt;java.lang.String&gt; <strong>matches</strong></h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
+                        <a name="optionalMatches"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;java.util.List&lt;java.lang.String&gt; <strong>optionalMatches</strong></h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
+                        <a name="orderAndLimits"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;java.lang.String <strong>orderAndLimits</strong></h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
+                        <a name="params"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;java.util.Map&lt;java.lang.String, java.lang.Object&gt; <strong>params</strong></h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
+                        <a name="relationshipMatches"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;java.util.List&lt;java.lang.String&gt; <strong>relationshipMatches</strong></h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
+                        <a name="returnColumns"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;java.util.List&lt;java.lang.String&gt; <strong>returnColumns</strong></h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
+                        <a name="setIndex"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;int <strong>setIndex</strong></h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
+                        <a name="sets"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;java.util.Map&lt;java.lang.String, java.lang.Object&gt; <strong>sets</strong></h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
+                        <a name="startNode"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;java.lang.String <strong>startNode</strong></h4>
                                 <p></p>
                             </li>
                         </ul>

@@ -102,7 +102,8 @@ if (location.href.indexOf('is-external=true') == -1) {
             <hr>
             <br>
 
-<pre>public&nbsp;class EmbeddedNeo4jServer</pre>
+<pre>public&nbsp;class EmbeddedNeo4jServer
+extends java.lang.Object</pre>
 
     <p> Helper class for starting a Neo4j 3.x embedded server
   <DL><DT><B>Authors:</B></DT><DD>Graeme Rocher</DD></DL><DL><DT><B>Since:</B></DT><DD>6.0</DD></DL></p>
@@ -147,71 +148,77 @@ if (location.href.indexOf('is-external=true') == -1) {
                         
                         <tr class="altColor">
                             <td class="colFirst"><code></code></td>
+                            <td class="colLast"><code>private&nbsp;static&nbsp;<a href='../../../../../../org.neo4j.harness.ServerControls.html'>ServerControls</a></code></td>
+                            <td class="colLast"><code><strong><a href="#attemptStartServer(int, java.io.File, Map)">attemptStartServer</a></strong>(int retryCount, java.io.File dataLocation, java.util.Map&lt;java.lang.String, java.lang.Object&gt; options)</code><br></td>
+                        </tr>
+                        
+                        <tr class="rowColor">
+                            <td class="colFirst"><code></code></td>
                             <td class="colLast"><code>public&nbsp;static&nbsp;boolean</code></td>
                             <td class="colLast"><code><strong><a href="#isAvailable()">isAvailable</a></strong>()</code><br> <DL><DT><B>Returns:</B></DT><DD>Whether the embedded server capability is available or not</DD></DL></td>
                         </tr>
                         
-                        <tr class="rowColor">
+                        <tr class="altColor">
                             <td class="colFirst"><code></code></td>
                             <td class="colLast"><code>public&nbsp;static&nbsp;<a href='../../../../../../org.neo4j.harness.ServerControls.html'>ServerControls</a></code></td>
                             <td class="colLast"><code><strong><a href="#start(java.io.File)">start</a></strong>(java.io.File dataLocation)</code><br>Start a server on a random free port</td>
                         </tr>
                         
-                        <tr class="altColor">
+                        <tr class="rowColor">
                             <td class="colFirst"><code></code></td>
                             <td class="colLast"><code>public&nbsp;static&nbsp;<a href='../../../../../../org.neo4j.harness.ServerControls.html'>ServerControls</a></code></td>
                             <td class="colLast"><code><strong><a href="#start(java.io.File, Map)">start</a></strong>(java.io.File dataLocation, java.util.Map&lt;java.lang.String, java.lang.Object&gt; options)</code><br>Start a server on a random free port</td>
                         </tr>
                         
-                        <tr class="rowColor">
+                        <tr class="altColor">
                             <td class="colFirst"><code></code></td>
                             <td class="colLast"><code>public&nbsp;static&nbsp;<a href='../../../../../../org.neo4j.harness.ServerControls.html'>ServerControls</a></code></td>
                             <td class="colLast"><code><strong><a href="#start(java.net.InetSocketAddress)">start</a></strong>(java.net.InetSocketAddress inetAddr)</code><br>Start a server on the given address</td>
                         </tr>
                         
-                        <tr class="altColor">
+                        <tr class="rowColor">
                             <td class="colFirst"><code></code></td>
                             <td class="colLast"><code>public&nbsp;static&nbsp;<a href='../../../../../../org.neo4j.harness.ServerControls.html'>ServerControls</a></code></td>
                             <td class="colLast"><code><strong><a href="#start(java.net.InetSocketAddress, java.io.File)">start</a></strong>(java.net.InetSocketAddress inetAddr, java.io.File dataLocation)</code><br>Start a server on the given address</td>
                         </tr>
                         
-                        <tr class="rowColor">
+                        <tr class="altColor">
                             <td class="colFirst"><code></code></td>
                             <td class="colLast"><code>public&nbsp;static&nbsp;<a href='../../../../../../org.neo4j.harness.ServerControls.html'>ServerControls</a></code></td>
                             <td class="colLast"><code><strong><a href="#start(java.net.InetSocketAddress, java.io.File, Map)">start</a></strong>(java.net.InetSocketAddress inetAddr, java.io.File dataLocation, java.util.Map&lt;java.lang.String, java.lang.Object&gt; options)</code><br>Start a server on the given address</td>
                         </tr>
                         
-                        <tr class="altColor">
+                        <tr class="rowColor">
                             <td class="colFirst"><code></code></td>
                             <td class="colLast"><code>public&nbsp;static&nbsp;<a href='../../../../../../org.neo4j.harness.ServerControls.html'>ServerControls</a></code></td>
                             <td class="colLast"><code><strong><a href="#start(java.lang.String)">start</a></strong>(java.lang.String address)</code><br>Start a server on the given address</td>
                         </tr>
                         
-                        <tr class="rowColor">
+                        <tr class="altColor">
                             <td class="colFirst"><code></code></td>
                             <td class="colLast"><code>public&nbsp;static&nbsp;<a href='../../../../../../org.neo4j.harness.ServerControls.html'>ServerControls</a></code></td>
                             <td class="colLast"><code><strong><a href="#start(java.lang.String, java.io.File)">start</a></strong>(java.lang.String address, java.io.File dataLocation)</code><br>Start a server on the given address</td>
                         </tr>
                         
-                        <tr class="altColor">
+                        <tr class="rowColor">
                             <td class="colFirst"><code></code></td>
                             <td class="colLast"><code>public&nbsp;static&nbsp;<a href='../../../../../../org.neo4j.harness.ServerControls.html'>ServerControls</a></code></td>
                             <td class="colLast"><code><strong><a href="#start(java.lang.String, java.io.File, Map)">start</a></strong>(java.lang.String address, java.io.File dataLocation, java.util.Map&lt;java.lang.String, java.lang.Object&gt; options)</code><br>Start a server on the given address</td>
                         </tr>
                         
-                        <tr class="rowColor">
+                        <tr class="altColor">
                             <td class="colFirst"><code></code></td>
                             <td class="colLast"><code>public&nbsp;static&nbsp;<a href='../../../../../../org.neo4j.harness.ServerControls.html'>ServerControls</a></code></td>
                             <td class="colLast"><code><strong><a href="#start(java.lang.String, int)">start</a></strong>(java.lang.String host, int port)</code><br>Start a server on the given address</td>
                         </tr>
                         
-                        <tr class="altColor">
+                        <tr class="rowColor">
                             <td class="colFirst"><code></code></td>
                             <td class="colLast"><code>public&nbsp;static&nbsp;<a href='../../../../../../org.neo4j.harness.ServerControls.html'>ServerControls</a></code></td>
                             <td class="colLast"><code><strong><a href="#start(java.lang.String, int, java.io.File)">start</a></strong>(java.lang.String host, int port, java.io.File dataLocation)</code><br>Start a server on the given address</td>
                         </tr>
                         
-                        <tr class="rowColor">
+                        <tr class="altColor">
                             <td class="colFirst"><code></code></td>
                             <td class="colLast"><code>public&nbsp;static&nbsp;<a href='../../../../../../org.neo4j.harness.ServerControls.html'>ServerControls</a></code></td>
                             <td class="colLast"><code><strong><a href="#start(java.lang.String, int, java.io.File, Map)">start</a></strong>(java.lang.String host, int port, java.io.File dataLocation, java.util.Map&lt;java.lang.String, java.lang.Object&gt; options)</code><br>Start a server on the given address</td>
@@ -233,7 +240,7 @@ if (location.href.indexOf('is-external=true') == -1) {
                         
                         <tr class="altColor">
                             <td class="colFirst"><code>class java.lang.Object</code></td>
-                            <td class="colLast"><code>java.lang.Object#wait(long, int), java.lang.Object#wait(long), java.lang.Object#wait(), java.lang.Object#equals(java.lang.Object), java.lang.Object#toString(), java.lang.Object#hashCode(), java.lang.Object#getClass(), java.lang.Object#notify(), java.lang.Object#notifyAll()</code></td>
+                            <td class="colLast"><code>java.lang.Object#wait(long), java.lang.Object#wait(long, int), java.lang.Object#wait(), java.lang.Object#equals(java.lang.Object), java.lang.Object#toString(), java.lang.Object#hashCode(), java.lang.Object#getClass(), java.lang.Object#notify(), java.lang.Object#notifyAll()</code></td>
                         </tr>
                     </table>
                    </ul>
@@ -266,6 +273,14 @@ if (location.href.indexOf('is-external=true') == -1) {
                     <!--   -->
                 </a>
                     <h3>Method Detail</h3>
+                    
+                        <a name="attemptStartServer(int, java.io.File, Map)"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;static&nbsp;<a href='../../../../../../org.neo4j.harness.ServerControls.html'>ServerControls</a> <strong>attemptStartServer</strong>(int retryCount, java.io.File dataLocation, java.util.Map&lt;java.lang.String, java.lang.Object&gt; options)</h4>
+                                <p></p>
+                            </li>
+                        </ul>
                     
                         <a name="isAvailable()"><!-- --></a>
                         <ul class="blockListLast">

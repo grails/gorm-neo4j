@@ -159,6 +159,42 @@ extends <a href='../../../../../../org/grails/datastore/mapping/core/impl/Pendin
                             <td class="colLast">The name of the to property</td>
                         </tr>
                         
+                        <tr class="altColor">
+                            <td class="colFirst"><code><strong>private&nbsp;<a href='../../../../../../org/grails/datastore/mapping/model/types/Association.html'>Association</a></strong></code>&nbsp;</td>
+                            <td class="colLast"><code><a href="#association">association</a></code></td>
+                            <td class="colLast"></td>
+                        </tr>
+                        
+                        <tr class="rowColor">
+                            <td class="colFirst"><code><strong>private&nbsp;<a href='../../../../../../org/grails/datastore/mapping/transactions/Transaction.html'>Transaction</a></strong></code>&nbsp;</td>
+                            <td class="colLast"><code><a href="#boltTransaction">boltTransaction</a></code></td>
+                            <td class="colLast"></td>
+                        </tr>
+                        
+                        <tr class="altColor">
+                            <td class="colFirst"><code><strong>private&nbsp;boolean</strong></code>&nbsp;</td>
+                            <td class="colLast"><code><a href="#isUpdate">isUpdate</a></code></td>
+                            <td class="colLast"></td>
+                        </tr>
+                        
+                        <tr class="rowColor">
+                            <td class="colFirst"><code><strong>private&nbsp;static&nbsp;org.slf4j.Logger</strong></code>&nbsp;</td>
+                            <td class="colLast"><code><a href="#log">log</a></code></td>
+                            <td class="colLast"></td>
+                        </tr>
+                        
+                        <tr class="altColor">
+                            <td class="colFirst"><code><strong>private&nbsp;<a href='../../../../../../org/grails/datastore/gorm/neo4j/Neo4jSession.html'>Neo4jSession</a></strong></code>&nbsp;</td>
+                            <td class="colLast"><code><a href="#session">session</a></code></td>
+                            <td class="colLast"></td>
+                        </tr>
+                        
+                        <tr class="rowColor">
+                            <td class="colFirst"><code><strong>private&nbsp;java.util.Collection&lt;java.io.Serializable&gt;</strong></code>&nbsp;</td>
+                            <td class="colLast"><code><a href="#targetIdentifiers">targetIdentifiers</a></code></td>
+                            <td class="colLast"></td>
+                        </tr>
+                        
                     </table>
                    </ul>
                 </li>
@@ -172,8 +208,12 @@ extends <a href='../../../../../../org/grails/datastore/mapping/core/impl/Pendin
                             <th class="colLast" scope="col">Fields</th>
                         </tr>
                                                 <tr class="altColor">
+                            <td class="colFirst"><strong><code>class <a href='../../../../../../org/grails/datastore/mapping/core/impl/PendingInsertAdapter.html'>PendingInsertAdapter</a></code></strong></td>
+                            <td class="colLast"><code><a href='../../../../../../org/grails/datastore/mapping/core/impl/PendingInsertAdapter.html#entityAccess'>entityAccess</a>, <a href='../../../../../../org/grails/datastore/mapping/core/impl/PendingInsertAdapter.html#vetoed'>vetoed</a></code></td>
+                        </tr>
+                        <tr class="altColor">
                             <td class="colFirst"><strong><code>class <a href='../../../../../../org/grails/datastore/mapping/core/impl/PendingOperationAdapter.html'>PendingOperationAdapter</a></code></strong></td>
-                            <td class="colLast"><code><a href='../../../../../../org/grails/datastore/mapping/core/impl/PendingOperationAdapter.html#entity'>entity</a>, <a href='../../../../../../org/grails/datastore/mapping/core/impl/PendingOperationAdapter.html#executed'>executed</a>, <a href='../../../../../../org/grails/datastore/mapping/core/impl/PendingOperationAdapter.html#nativeEntry'>nativeEntry</a>, <a href='../../../../../../org/grails/datastore/mapping/core/impl/PendingOperationAdapter.html#nativeKey'>nativeKey</a></code></td>
+                            <td class="colLast"><code><a href='../../../../../../org/grails/datastore/mapping/core/impl/PendingOperationAdapter.html#entity'>entity</a>, <a href='../../../../../../org/grails/datastore/mapping/core/impl/PendingOperationAdapter.html#executed'>executed</a>, <a href='../../../../../../org/grails/datastore/mapping/core/impl/PendingOperationAdapter.html#nativeEntry'>nativeEntry</a>, <a href='../../../../../../org/grails/datastore/mapping/core/impl/PendingOperationAdapter.html#nativeKey'>nativeKey</a>, <a href='../../../../../../org/grails/datastore/mapping/core/impl/PendingOperationAdapter.html#pendingOperations'>pendingOperations</a>, <a href='../../../../../../org/grails/datastore/mapping/core/impl/PendingOperationAdapter.html#preOperations'>preOperations</a>, <a href='../../../../../../org/grails/datastore/mapping/core/impl/PendingOperationAdapter.html#vetoed'>vetoed</a></code></td>
                         </tr>
 
                     </table>
@@ -310,6 +350,54 @@ extends <a href='../../../../../../org/grails/datastore/mapping/core/impl/Pendin
                                 <h4>public&nbsp;static&nbsp;final&nbsp;java.lang.String <strong>TO</strong></h4>
                                 <p> The name of the to property
      </p>
+                            </li>
+                        </ul>
+                    
+                        <a name="association"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;final&nbsp;<a href='../../../../../../org/grails/datastore/mapping/model/types/Association.html'>Association</a> <strong>association</strong></h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
+                        <a name="boltTransaction"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;final&nbsp;<a href='../../../../../../org/grails/datastore/mapping/transactions/Transaction.html'>Transaction</a> <strong>boltTransaction</strong></h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
+                        <a name="isUpdate"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;final&nbsp;boolean <strong>isUpdate</strong></h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
+                        <a name="log"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;static&nbsp;org.slf4j.Logger <strong>log</strong></h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
+                        <a name="session"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;final&nbsp;<a href='../../../../../../org/grails/datastore/gorm/neo4j/Neo4jSession.html'>Neo4jSession</a> <strong>session</strong></h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
+                        <a name="targetIdentifiers"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;final&nbsp;java.util.Collection&lt;java.io.Serializable&gt; <strong>targetIdentifiers</strong></h4>
+                                <p></p>
                             </li>
                         </ul>
                     

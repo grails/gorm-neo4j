@@ -70,11 +70,11 @@ if (location.href.indexOf('is-external=true') == -1) {
     <div>
         <ul class="subNavList">
             <li>Summary:&nbsp;</li>
-            Nested&nbsp;&nbsp;&nbsp;Field&nbsp;&nbsp;&nbsp;<li><a href="#property_summary">Property</a></li>&nbsp;&nbsp;&nbsp;<li><a href="#constructor_summary">Constructor</a></li>&nbsp;&nbsp;&nbsp;<li><a href="#method_summary">Method</a></li>&nbsp;&nbsp;&nbsp;
+            Nested&nbsp;&nbsp;&nbsp;<li><a href="#field_summary">Field</a></li>&nbsp;&nbsp;&nbsp;<li><a href="#property_summary">Property</a></li>&nbsp;&nbsp;&nbsp;<li><a href="#constructor_summary">Constructor</a></li>&nbsp;&nbsp;&nbsp;<li><a href="#method_summary">Method</a></li>&nbsp;&nbsp;&nbsp;
         </ul>
         <ul class="subNavList">
             <li>&nbsp;|&nbsp;Detail:&nbsp;</li>
-            Field&nbsp;&nbsp;&nbsp;<li><a href="#prop_detail">Property</a></li>&nbsp;&nbsp;&nbsp;<li><a href="#constructor_detail">Constructor</a></li>&nbsp;&nbsp;&nbsp;<li><a href="#method_detail">Method</a></li>&nbsp;&nbsp;&nbsp;
+            <li><a href="#field_detail">Field</a></li>&nbsp;&nbsp;&nbsp;<li><a href="#prop_detail">Property</a></li>&nbsp;&nbsp;&nbsp;<li><a href="#constructor_detail">Constructor</a></li>&nbsp;&nbsp;&nbsp;<li><a href="#method_detail">Method</a></li>&nbsp;&nbsp;&nbsp;
         </ul>
     </div>
     <a name="skip-navbar_top">
@@ -122,6 +122,42 @@ extends <a href='../../../../../../../org/grails/datastore/mapping/config/Entity
         <!-- =========== ENUM CONSTANT SUMMARY =========== -->
         
         <!-- =========== FIELD SUMMARY =========== -->
+        
+            <ul class="blockList">
+                <li class="blockList"><a name="field_summary"><!--   --></a>
+                    <h3>Field Summary</h3>
+                    <ul class="blockList">
+                    <table class="overviewSummary" border="0" cellpadding="3" cellspacing="0" summary="Enum constants summary table">
+                        <caption><span>Fields</span><span class="tabEnd">&nbsp;</span></caption>
+                        <tr>
+                            <th class="colFirst" scope="col">Modifiers</th>
+                            <th class="colLast" scope="col">Name</th>
+                            <th class="colLast" scope="col">Description</th>
+                        </tr>
+                        
+                        <tr class="altColor">
+                            <td class="colFirst"><code><strong>private&nbsp;java.lang.Boolean</strong></code>&nbsp;</td>
+                            <td class="colLast"><code><a href="#autoLabel">autoLabel</a></code></td>
+                            <td class="colLast"></td>
+                        </tr>
+                        
+                        <tr class="rowColor">
+                            <td class="colFirst"><code><strong>private&nbsp;boolean</strong></code>&nbsp;</td>
+                            <td class="colLast"><code><a href="#dynamicAssociations">dynamicAssociations</a></code></td>
+                            <td class="colLast">Whether this entity supports dynamic associations. </td>
+                        </tr>
+                        
+                        <tr class="altColor">
+                            <td class="colFirst"><code><strong>private&nbsp;java.lang.Object</strong></code>&nbsp;</td>
+                            <td class="colLast"><code><a href="#labels">labels</a></code></td>
+                            <td class="colLast"> <DL><DT><B>Returns:</B></DT><DD>The label definitions for the entity</DD></DL></td>
+                        </tr>
+                        
+                    </table>
+                   </ul>
+                </li>
+                
+            </ul>
         
 
         <!-- =========== PROPERTY SUMMARY =========== -->
@@ -221,6 +257,42 @@ extends <a href='../../../../../../../org/grails/datastore/mapping/config/Entity
         <li class="blockList">
            
 
+            
+            <!-- =========== FIELD DETAIL =========== -->
+            <ul class="blockList">
+                <li class="blockList"><a name="field_detail">
+                    <!--   -->
+                </a>
+                    <h3>Field Detail</h3>
+                    
+                        <a name="autoLabel"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;java.lang.Boolean <strong>autoLabel</strong></h4>
+                                <p></p>
+                            </li>
+                        </ul>
+                    
+                        <a name="dynamicAssociations"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;boolean <strong>dynamicAssociations</strong></h4>
+                                <p> Whether this entity supports dynamic associations. The default is false. Setting this to true will allow Grails to load dynamic relationships, however
+ at the cost of N+1. For each loaded entity Grails has to execute a separate query to establish the associations. This is contrary to non-dynamic associations
+ which can be loaded using an OPTIONAL MATCH <DL><DT><B>Returns:</B></DT><DD>True if the entity supports dynamic associations</DD></DL></p>
+                            </li>
+                        </ul>
+                    
+                        <a name="labels"><!-- --></a>
+                        <ul class="blockListLast">
+                            <li class="blockList">
+                                <h4>private&nbsp;java.lang.Object <strong>labels</strong></h4>
+                                <p> <DL><DT><B>Returns:</B></DT><DD>The label definitions for the entity</DD></DL></p>
+                            </li>
+                        </ul>
+                    
+                </li>
+            </ul>
             
 
             
@@ -335,11 +407,11 @@ protected&nbsp;<a href='../../../../../../../org/grails/datastore/gorm/neo4j/map
     <div>
         <ul class="subNavList">
             <li>Summary:&nbsp;</li>
-            Nested&nbsp;&nbsp;&nbsp;Field&nbsp;&nbsp;&nbsp;<li><a href="#property_summary">Property</a></li>&nbsp;&nbsp;&nbsp;<li><a href="#constructor_summary">Constructor</a></li>&nbsp;&nbsp;&nbsp;<li><a href="#method_summary">Method</a></li>&nbsp;&nbsp;&nbsp;
+            Nested&nbsp;&nbsp;&nbsp;<li><a href="#field_summary">Field</a></li>&nbsp;&nbsp;&nbsp;<li><a href="#property_summary">Property</a></li>&nbsp;&nbsp;&nbsp;<li><a href="#constructor_summary">Constructor</a></li>&nbsp;&nbsp;&nbsp;<li><a href="#method_summary">Method</a></li>&nbsp;&nbsp;&nbsp;
         </ul>
         <ul class="subNavList">
             <li>&nbsp;|&nbsp;Detail:&nbsp;</li>
-            Field&nbsp;&nbsp;&nbsp;<li><a href="#prop_detail">Property</a></li>&nbsp;&nbsp;&nbsp;<li><a href="#constructor_detail">Constructor</a></li>&nbsp;&nbsp;&nbsp;<li><a href="#method_detail">Method</a></li>&nbsp;&nbsp;&nbsp;
+            <li><a href="#field_detail">Field</a></li>&nbsp;&nbsp;&nbsp;<li><a href="#prop_detail">Property</a></li>&nbsp;&nbsp;&nbsp;<li><a href="#constructor_detail">Constructor</a></li>&nbsp;&nbsp;&nbsp;<li><a href="#method_detail">Method</a></li>&nbsp;&nbsp;&nbsp;
         </ul>
     </div>
     <p>Groovy Documentation</p>
