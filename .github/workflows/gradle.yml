@@ -60,7 +60,7 @@ jobs:
       - name: Publish to repo.grails.org
         id: publish
         uses: gradle/gradle-build-action@v2
-        if: steps.build.outcome == 'success' && github.event_name == 'push' && matrix.java == '11'
+        if: steps.build.outcome == 'success' && github.event_name == 'push' 
         env:
           GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
           GRADLE_ENTERPRISE_BUILD_CACHE_NODE_USER: ${{ secrets.GRADLE_ENTERPRISE_BUILD_CACHE_NODE_USER }}
@@ -71,7 +71,7 @@ jobs:
           arguments: -Dorg.gradle.internal.publish.checksums.insecure=true publish
       - name: Build Docs
         id: docs
-        if: steps.build.outcome == 'success' && github.event_name == 'push' && matrix.java == '11'
+        if: steps.build.outcome == 'success' && github.event_name == 'push' 
         uses: gradle/gradle-build-action@v2
         env:
           GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
@@ -80,7 +80,7 @@ jobs:
         with:
           arguments: docs:docs
       - name: Determine docs target repository
-        if: steps.docs.outcome == 'success' && github.event_name == 'push' && matrix.java == '11'
+        if: steps.docs.outcome == 'success' && github.event_name == 'push' 
         uses: haya14busa/action-cond@v1
         id: docs_target
         with:
@@ -88,8 +88,8 @@ jobs:
           if_true: "grails/grails-data-mapping"
           if_false: ${{ github.repository }}
       - name: Publish to Github Pages
-        if: steps.docs.outcome == 'success' && github.event_name == 'push' && matrix.java == '11'
-        uses: micronaut-projects/github-pages-deploy-action@master
+        if: steps.docs.outcome == 'success' && github.event_name == 'push' 
+        uses: micronaut-projects/github-pages-deploy-action@grails
         env:
           TARGET_REPOSITORY: ${{ steps.docs_target.outputs.value }}
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
