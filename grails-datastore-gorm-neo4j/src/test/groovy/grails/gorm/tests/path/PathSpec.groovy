@@ -163,7 +163,7 @@ class PathSpec extends Specification {
         Person.withSession { it.clear() }
 
         when:
-        Path<Person, Person> path = Person.findPath('MATCH (from:Person),(to:Person), p = shortestPath((from)-[*..15]-(to)) WHERE from.name = {from} AND to.name = {to} RETURN p', [from:"Fred", to:"Joe"])
+        Path<Person, Person> path = Person.findPath('MATCH (from:Person),(to:Person), p = shortestPath((from)-[*..15]-(to)) WHERE from.name = \$from AND to.name = \$to RETURN p', [from:"Fred", to:"Joe"])
         for(Path.Segment<Person, Person> segment in path) {
             println segment.start().name
             println segment.end().name

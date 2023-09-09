@@ -227,7 +227,7 @@ class ManyToManySpec extends GormDatastoreSpec {
         fetchedFelix.friends.size() == 100
 
         when: "we have 100 relationships"
-        def result = session.transaction.nativeTransaction.run("MATCH (:BidirectionalFriends {name:{1}})<-[:FRIENDS]-(o) return count(o) as c", ["1":"felix"])
+        def result = session.transaction.nativeTransaction.run("MATCH (:BidirectionalFriends {name:\$1})<-[:FRIENDS]-(o) return count(o) as c", ["1":"felix"])
 
         then:
         IteratorUtil.single(result)["c"].asNumber() == 100

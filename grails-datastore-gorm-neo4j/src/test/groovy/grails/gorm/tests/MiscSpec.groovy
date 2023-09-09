@@ -174,7 +174,7 @@ class MiscSpec extends GormDatastoreSpec {
                 def session = boltDriver.session()
                 def tx = session.beginTransaction()
 
-                tx.run("CREATE (n1:Team {props})", [props:[name:"Team $count".toString()]])
+                tx.run("CREATE (n1:Team \$props)", [props:[name:"Team $count".toString()]])
                 tx.commit()
                 session.close()
             }
@@ -342,18 +342,18 @@ class MiscSpec extends GormDatastoreSpec {
         when:
             def pet = new Pet(birthDate: new Date(), name: 'Cosima').save(flush: true)
         then:
-            IteratorUtil.single(session.transaction.nativeTransaction.run("MATCH (p:Pet {name:{1}}) RETURN p.birthDate as birthDate", ["1":'Cosima'])).birthDate.asNumber() instanceof Long
+            IteratorUtil.single(session.transaction.nativeTransaction.run("MATCH (p:Pet {name:\$1}) RETURN p.birthDate as birthDate", ["1":'Cosima'])).birthDate.asNumber() instanceof Long
     }
 
     @Issue("https://github.com/SpringSource/grails-data-mapping/issues/52")
-    @IgnoreIf({System.getenv('TRAVIS')}) // fails randomly on Travis
+    @IgnoreIf({System.getenv('CI')}) // fails randomly on Travis
     def "verify backward compatibility, check that date properties stored as string can be read"() {
         setup: "create a instance with a date property and manually assign a string to it"
             def date = new Date()
             def pet = new Pet(birthDate: date, name:'Cosima').save(flush: true)
 
         when: "write birthDate as a String"
-            session.transaction.nativeTransaction.run("MATCH (p:Pet {name:{1}}) SET p.birthDate={2}",
+            session.transaction.nativeTransaction.run("MATCH (p:Pet {name:\$1}) SET p.birthDate=\$2",
                 ['1':'Cosima', '2':date.time.toString()])
             pet = Pet.get(pet.id)
         then: "the string stored date gets parsed correctly"
@@ -365,7 +365,7 @@ class MiscSpec extends GormDatastoreSpec {
         when:
         def team = new Team(name: 'name', binaryData: 'abc'.bytes)
         team.save(flush: true)
-        def value = IteratorUtil.single(session.transaction.nativeTransaction.run("MATCH (p:Team {name:{1}}) RETURN p.binaryData as binaryData",
+        def value = IteratorUtil.single(session.transaction.nativeTransaction.run("MATCH (p:Team {name:\$1}) RETURN p.binaryData as binaryData",
             ["1":'name'])).binaryData
 
         then:

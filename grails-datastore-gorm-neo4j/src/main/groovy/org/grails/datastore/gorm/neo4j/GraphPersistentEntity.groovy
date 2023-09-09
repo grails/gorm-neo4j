@@ -36,7 +36,7 @@ class GraphPersistentEntity extends AbstractPersistentEntity<NodeConfig> {
 
     public static final String LABEL_SEPARATOR = ':'
     protected static final String MATCH = "MATCH %s"
-    protected static final String MATCH_ID = "$MATCH WHERE %s = {id}"
+    protected static final String MATCH_ID = "$MATCH WHERE %s = \$id"
     protected final NodeConfig mappedForm
     protected final Collection<String> staticLabels = []
     protected Collection<Object> labelObjects
@@ -183,7 +183,7 @@ class GraphPersistentEntity extends AbstractPersistentEntity<NodeConfig> {
      */
     String getBatchCreateStatement() {
         if(this.batchCreateStatement == null) {
-            this.batchCreateStatement = formatBatchCreate("{${batchId}}")
+            this.batchCreateStatement = formatBatchCreate("\$${batchId}")
         }
         return batchCreateStatement
     }
@@ -215,10 +215,10 @@ class GraphPersistentEntity extends AbstractPersistentEntity<NodeConfig> {
     /**
      * Formats a dynamic association query
      * @param variable The variable to use
-     * @return The query which accepts an {id} argument
+     * @return The query which accepts an $id argument
      */
     String formatDynamicAssociationQuery(String variable = CypherBuilder.NODE_VAR) {
-        """${formatMatch(variable)}-[r]-(o) WHERE ${formatId(variable)} = {${GormProperties.IDENTITY}} RETURN type(r) as relType, startNode(r) = $variable as out, r.sourceType as sourceType, r.targetType as targetType, {ids: collect(${formatId("o")}), labels: collect(labels(o))} as values"""
+        """${formatMatch(variable)}-[r]-(o) WHERE ${formatId(variable)} = \$${GormProperties.IDENTITY} RETURN type(r) as relType, startNode(r) = $variable as out, r.sourceType as sourceType, r.targetType as targetType, {ids: collect(${formatId("o")}), labels: collect(labels(o))} as values"""
     }
 
     /**
@@ -300,9 +300,9 @@ class GraphPersistentEntity extends AbstractPersistentEntity<NodeConfig> {
         StringBuilder builder = new StringBuilder( formatMatchId(variable) )
         Class clazz = Long
         if(isVersioned() && hasProperty(GormProperties.VERSION, clazz)) {
-            builder.append(" AND ${variable}.version={version}")
+            builder.append(" AND ${variable}.version=\$version")
         }
-        builder.append(" SET ").append(variable).append(" +={props}")
+        builder.append(" SET ").append(variable).append(" +=\$props")
         Set keysToRemove = []
         for(key in props.keySet()) {
             Object v = props.get(key)

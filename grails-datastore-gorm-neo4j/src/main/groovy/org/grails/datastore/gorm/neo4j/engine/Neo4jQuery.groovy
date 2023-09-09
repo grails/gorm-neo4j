@@ -243,7 +243,7 @@ class Neo4jQuery extends Query {
                         }
                     }
 
-                    return new CypherExpression(lhs, "{$paramNumber}", CriterionHandler.OPERATOR_EQUALS)
+                    return new CypherExpression(lhs, "\$$paramNumber", CriterionHandler.OPERATOR_EQUALS)
                 }
 
             },
@@ -252,7 +252,7 @@ class Neo4jQuery extends Query {
                 @CompileStatic
                 CypherExpression handle(GraphPersistentEntity entity, Query.IdEquals criterion, CypherBuilder builder, String prefix) {
                     int paramNumber = addBuildParameterForCriterion(builder, entity, criterion)
-                    return new CypherExpression(entity.formatId(prefix), "{$paramNumber}", CriterionHandler.OPERATOR_EQUALS)
+                    return new CypherExpression(entity.formatId(prefix), "\$$paramNumber", CriterionHandler.OPERATOR_EQUALS)
                 }
             },
             (Query.Like): new CriterionHandler<Query.Like>() {
@@ -261,7 +261,7 @@ class Neo4jQuery extends Query {
                 CypherExpression handle(GraphPersistentEntity entity, Query.Like criterion, CypherBuilder builder, String prefix) {
                     int paramNumber = addBuildParameterForCriterion(builder, entity, criterion)
                     String operator = handleLike(criterion, builder, paramNumber, false)
-                    return new CypherExpression(entity.formatProperty(prefix, criterion.property), "{$paramNumber}", operator)
+                    return new CypherExpression(entity.formatProperty(prefix, criterion.property), "\$$paramNumber", operator)
                 }
             },
             (Query.ILike): new CriterionHandler<Query.ILike>() {
@@ -271,7 +271,7 @@ class Neo4jQuery extends Query {
                     int paramNumber = addBuildParameterForCriterion(builder, entity, criterion)
                     String operator = handleLike(criterion, builder, paramNumber, true)
                     String propertyRef = entity.formatProperty(prefix, criterion.property)
-                    String parameterRef = "{$paramNumber}"
+                    String parameterRef = "\$$paramNumber"
                     if(operator != CriterionHandler.OPERATOR_LIKE) {
                         propertyRef = "lower($propertyRef)"
                         parameterRef = "lower($parameterRef)"
@@ -284,7 +284,7 @@ class Neo4jQuery extends Query {
                 @CompileStatic
                 CypherExpression handle(GraphPersistentEntity entity, Query.RLike criterion, CypherBuilder builder, String prefix) {
                     int paramNumber = addBuildParameterForCriterion(builder, entity, criterion)
-                    return new CypherExpression(entity.formatProperty(prefix, criterion.property), "{$paramNumber}", CriterionHandler.OPERATOR_LIKE)
+                    return new CypherExpression(entity.formatProperty(prefix, criterion.property), "\$$paramNumber", CriterionHandler.OPERATOR_LIKE)
                 }
             },
             (Query.In): new CriterionHandler<Query.In>() {
@@ -313,7 +313,7 @@ class Neo4jQuery extends Query {
                         lhs = graphPersistentEntity.formatProperty(prefix, criterion.property)
                     }
                     builder.replaceParamAt(paramNumber, convertEnumsInList(values))
-                    return new CypherExpression(lhs, "{$paramNumber}", CriterionHandler.OPERATOR_IN)
+                    return new CypherExpression(lhs, "\$$paramNumber", CriterionHandler.OPERATOR_IN)
                 }
             },
             (Query.IsNull): new CriterionHandler<Query.IsNull>() {
@@ -366,7 +366,7 @@ class Neo4jQuery extends Query {
                     Neo4jMappingContext mappingContext = (Neo4jMappingContext)entity.mappingContext
                     int paramNumberFrom = builder.addParam( mappingContext.convertToNative(criterion.from) )
                     int parmaNumberTo = builder.addParam( mappingContext.convertToNative(criterion.to) )
-                    new CypherExpression( "{$paramNumberFrom}<=${prefix}.$criterion.property and ${prefix}.$criterion.property<={$parmaNumberTo}")
+                    new CypherExpression( "\$$paramNumberFrom<=${prefix}.$criterion.property and ${prefix}.$criterion.property<=\$$parmaNumberTo")
                 }
             },
             (Query.SizeLessThanEquals): SizeCriterionHandler.LESS_THAN_EQUALS,
@@ -772,7 +772,7 @@ class Neo4jQuery extends Query {
                 }
 
             }
-            return new CypherExpression(lhs, "{$paramNumber}", operator)
+            return new CypherExpression(lhs, "\$$paramNumber", operator)
         }
     }
 
@@ -832,7 +832,7 @@ class Neo4jQuery extends Query {
             int paramNumber = addBuildParameterForCriterion(builder, entity, criterion)
             Association association = entity.getPropertyByName(criterion.property) as Association
             builder.addMatch("(${prefix})${RelationshipUtils.matchForAssociation(association)}() WITH ${prefix},count(*) as count")
-            return new CypherExpression(CriterionHandler.COUNT, "{$paramNumber}", operator)
+            return new CypherExpression(CriterionHandler.COUNT, "\$$paramNumber", operator)
         }
     }
 

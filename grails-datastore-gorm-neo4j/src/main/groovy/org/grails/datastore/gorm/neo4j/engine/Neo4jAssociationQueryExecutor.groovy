@@ -111,7 +111,7 @@ class Neo4jAssociationQueryExecutor implements AssociationQueryExecutor<Serializ
         StringBuilder cypher = new StringBuilder(CypherBuilder.buildRelationshipMatch(parent.labelsAsString, relType, related.labelsAsString))
         cypher.append('( ')
               .append(parent.formatId(RelationshipPersistentEntity.FROM))
-              .append(" = {id} )")
+              .append(" = \$id )")
 
         boolean isLazyToMany = lazy && !isRelationship && association instanceof ToMany
         if(isLazyToMany) {
