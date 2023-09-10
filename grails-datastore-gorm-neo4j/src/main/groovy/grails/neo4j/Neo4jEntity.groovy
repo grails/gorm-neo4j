@@ -148,7 +148,7 @@ trait Neo4jEntity<D> implements GormEntity<D>, DynamicAttributes {
         GormEnhancer.findDatastore(getClass()).withSession { Neo4jSession session ->
             Map<String, Object> arguments
             if (session.getDatastore().multiTenancyMode == MultiTenancySettings.MultiTenancyMode.DISCRIMINATOR) {
-                if (!queryString.contains("{tenantId}")) {
+                if (!queryString.contains("\$tenantId")) {
                     throw new TenantNotFoundException("Query does not specify a tenant id, but multi tenant mode is DISCRIMINATOR!")
                 } else {
                     arguments = new LinkedHashMap<String, Object>()
@@ -265,7 +265,7 @@ trait Neo4jEntity<D> implements GormEntity<D>, DynamicAttributes {
 
     private void includeTenantIdIfNecessary(Neo4jSession session, String queryString, Map<String, Object> paramsMap) {
         if ((this instanceof MultiTenant) && session.getDatastore().multiTenancyMode == MultiTenancySettings.MultiTenancyMode.DISCRIMINATOR) {
-            if (!queryString.contains("{tenantId}")) {
+            if (!queryString.contains("\$tenantId")) {
                 throw new TenantNotFoundException("Query does not specify a tenant id, but multi tenant mode is DISCRIMINATOR!")
             } else {
                 paramsMap.put(GormProperties.TENANT_IDENTITY, Tenants.currentId(Neo4jDatastore))

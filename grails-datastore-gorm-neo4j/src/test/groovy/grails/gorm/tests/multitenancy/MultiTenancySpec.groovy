@@ -60,7 +60,7 @@ class MultiTenancySpec extends Specification {
 
         when:"A cypher query is executed without the tenant id"
         CompanyC.withNewSession {
-            CompanyC.find("MATCH (p:CompanyC) WHERE p.name={name} RETURN p", [name:"Foo"])
+            CompanyC.find("MATCH (p:CompanyC) WHERE p.name=\$name RETURN p", [name:"Foo"])
         }
 
         then:"An exception is thrown"
@@ -68,7 +68,7 @@ class MultiTenancySpec extends Specification {
 
         when:"A cypher query is executed without the tenant id"
         CompanyC result= CompanyC.withNewSession {
-            CompanyC.find("MATCH (p:CompanyC) WHERE p.name={name} AND p.parent={tenantId} RETURN p", [name:"Foo"])
+            CompanyC.find("MATCH (p:CompanyC) WHERE p.name=\$name AND p.parent=\$tenantId RETURN p", [name:"Foo"])
         }
 
         then:"The entity is found"

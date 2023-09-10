@@ -258,7 +258,7 @@ class Neo4jGormStaticApi<D> extends GormStaticApi<D> {
             Relationship<F, T> relationship = null
             if(from != null && to != null) {
                 String query = """MATCH (from)-[r]-(to) 
-WHERE ${fromEntity.formatId(RelationshipPersistentEntity.FROM)} = {start} AND ${toEntity.formatId(RelationshipPersistentEntity.TO)} = {end}
+WHERE ${fromEntity.formatId(RelationshipPersistentEntity.FROM)} = \$start AND ${toEntity.formatId(RelationshipPersistentEntity.TO)} = \$end
 RETURN r
 LIMIT 1"""
                 List<org.neo4j.driver.types.Relationship> results = executeQuery(query, [start:from.ident(), end:to.ident()])
@@ -291,7 +291,7 @@ LIMIT 1"""
                 String skip = params.offset ? " SKIP ${Integer.valueOf(params.offset.toString())}" : ''
                 String limit = params.max ? " LIMIT ${Integer.valueOf(params.max.toString())}" : ''
                 String query = """MATCH (from)-[r]-(to) 
-WHERE ${fromEntity.formatId(RelationshipPersistentEntity.FROM)} = {start} AND ${toEntity.formatId(RelationshipPersistentEntity.TO)} = {end}
+WHERE ${fromEntity.formatId(RelationshipPersistentEntity.FROM)} = \$start AND ${toEntity.formatId(RelationshipPersistentEntity.TO)} = \$end
 RETURN DISTINCT(r)$skip$limit"""
                 List<org.neo4j.driver.types.Relationship> results = (List<org.neo4j.driver.types.Relationship>) executeQuery(query, [start:from.ident(), end:to.ident()])
 
@@ -370,7 +370,7 @@ RETURN DISTINCT(r), from, to$skip$limit"""
                 toEntity.formatNode(RelationshipPersistentEntity.TO)
             }, p = shortestPath((from)-[*..$maxDistance]-(to)) WHERE ${
                 fromEntity.formatId(RelationshipPersistentEntity.FROM)
-            } = {start} AND ${toEntity.formatId(RelationshipPersistentEntity.TO)} = {end} RETURN p"""
+            } = \$start AND ${toEntity.formatId(RelationshipPersistentEntity.TO)} = \$end RETURN p"""
             Result result = cypherStatic(query, [start: fromId, end: toId])
             if(result.hasNext()) {
                 Record record = result.next()
@@ -452,7 +452,7 @@ RETURN DISTINCT(r), from, to$skip$limit"""
                 queryString = query.toString()
             }
             if (persistentEntity.isMultiTenant() && session.getDatastore().multiTenancyMode == MultiTenancySettings.MultiTenancyMode.DISCRIMINATOR) {
-                if (!queryString.contains("{tenantId}")) {
+                if (!queryString.contains("\$tenantId")) {
                     throw new TenantNotFoundException("Query does not specify a tenant id, but multi tenant mode is DISCRIMINATOR!")
                 } else {
                     Map<String,Object> paramsMap = new LinkedHashMap<>()
@@ -511,7 +511,7 @@ RETURN DISTINCT(r), from, to$skip$limit"""
 
     private void includeTenantIdIfNecessary(Neo4jSession session, String queryString, Map<String, Object> paramsMap) {
         if (persistentEntity.isMultiTenant() && session.getDatastore().multiTenancyMode == MultiTenancySettings.MultiTenancyMode.DISCRIMINATOR) {
-            if (!queryString.contains("{tenantId}")) {
+            if (!queryString.contains("\$tenantId")) {
                 throw new TenantNotFoundException("Query does not specify a tenant id, but multi tenant mode is DISCRIMINATOR!")
             } else {
                 paramsMap.put(GormProperties.TENANT_IDENTITY, Tenants.currentId(Neo4jDatastore))

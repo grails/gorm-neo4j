@@ -665,7 +665,7 @@ public class Neo4jSession extends AbstractSession<Session> {
         Map<String, List<Object>> dynamicRelProps = amendMapWithUndeclaredProperties(graphEntity, simpleProps, obj, getMappingContext());
         final String labels = graphEntity.getLabelsWithInheritance(obj);
 
-        String cypher = String.format("(n" + index + "%s {props" + index + "})", labels);
+        String cypher = String.format("(n" + index + "%s $props" + index + ")", labels);
         createCypher.append(cypher);
         params.put("props" + index, simpleProps);
 
@@ -820,12 +820,9 @@ public class Neo4jSession extends AbstractSession<Session> {
         if (!(o instanceof Collection)) {
             return false;
         } else {
-            Collection c = (Collection) o;
-            for (Object obj : c) {
-                if (mappingContext.isPersistentEntity(obj)) return true;
-            }
+            @SuppressWarnings("unchecked") Collection<Object> c = (Collection<Object>) o;
+            return c.stream().anyMatch(mappingContext::isPersistentEntity);
         }
-        return false;
     }
 
 
