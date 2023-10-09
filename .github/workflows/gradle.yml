@@ -2,45 +2,24 @@ name: Java CI
 on:
   push:
     branches:
-      - master
       - '[7-9]+.[0-9]+.x'
   pull_request:
     branches:
-      - master
       - '[7-9]+.[0-9]+.x'
   workflow_dispatch:
-    inputs:
-      message:
-        description: 'Snapshot information (e.g. New Core Snapshot Tue Dec 15 00:07:18 UTC 2020 f212f54)'
-        required: true
-jobs:
+jobs:          
   build:
     runs-on: ubuntu-latest
     env:
       WORKSPACE: ${{ github.workspace }}
       GRADLE_OPTS: -Xmx1500m -Dfile.encoding=UTF-8
     steps:
-      - name: Print Dispatch Information
-        if: github.event_name == 'workflow_dispatch'
-        env:
-          DISPATCH_INFORMATION: ${{ github.event.inputs.message }}
-        run: echo $DISPATCH_INFORMATION
       - uses: actions/checkout@v4
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
           distribution: 'adopt'
           java-version: '11'
-      - name: Run Tests
-        if: github.event_name == 'pull_request'
-        id: tests
-        uses: gradle/gradle-build-action@v2
-        with:
-          arguments: check -Dgeb.env=chromeHeadless
-        env:
-          GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
-          GRADLE_ENTERPRISE_BUILD_CACHE_NODE_USER: ${{ secrets.GRADLE_ENTERPRISE_BUILD_CACHE_NODE_USER }}
-          GRADLE_ENTERPRISE_BUILD_CACHE_NODE_KEY: ${{ secrets.GRADLE_ENTERPRISE_BUILD_CACHE_NODE_KEY }}      
       - name: Run Build
         if: github.event_name == 'push'
         id: build
@@ -51,13 +30,18 @@ jobs:
           GRADLE_ENTERPRISE_BUILD_CACHE_NODE_KEY: ${{ secrets.GRADLE_ENTERPRISE_BUILD_CACHE_NODE_KEY }}          
         with:
           arguments: build -Dgeb.env=chromeHeadless
-      - name: Publish Test Report
-        if: steps.build.outcome == 'failure' || steps.tests.outcome == 'failure'
-        uses: scacap/action-surefire-report@v1
+  publish:
+    runs-on: ubuntu-latest
+    needs: ['build']
+    if: github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          report_paths: '**/build/test-results/test/TEST-*.xml'
-      - name: Publish to repo.grails.org
+          distribution: 'adopt'
+          java-version: '11'   
+      - name: Publish Artifacts (repo.grails.org)
         id: publish
         uses: gradle/gradle-build-action@v2
         if: steps.build.outcome == 'success' && github.event_name == 'push' 
@@ -98,4 +82,4 @@ jobs:
           DOC_SUB_FOLDER: neo4j
           DOC_FOLDER: gh-pages
           COMMIT_EMAIL: behlp@objectcomputing.com
-          COMMIT_NAME: Puneet Behl
+          COMMIT_NAME: Puneet Behl          
