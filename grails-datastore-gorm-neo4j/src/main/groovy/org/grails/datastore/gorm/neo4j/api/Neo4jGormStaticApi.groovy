@@ -8,32 +8,23 @@ import groovy.util.logging.Slf4j
 import org.grails.datastore.gorm.GormEntity
 import org.grails.datastore.gorm.GormStaticApi
 import org.grails.datastore.gorm.finders.FinderMethod
-import org.grails.datastore.gorm.neo4j.CypherBuilder
-import org.grails.datastore.gorm.neo4j.GraphPersistentEntity
-import org.grails.datastore.gorm.neo4j.Neo4jDatastore
-import org.grails.datastore.gorm.neo4j.Neo4jSession
-import org.grails.datastore.gorm.neo4j.RelationshipPersistentEntity
+import org.grails.datastore.gorm.neo4j.*
 import org.grails.datastore.gorm.neo4j.collection.Neo4jPath
 import org.grails.datastore.gorm.neo4j.collection.Neo4jRelationship
 import org.grails.datastore.gorm.neo4j.collection.Neo4jResultList
 import org.grails.datastore.gorm.neo4j.engine.Neo4jEntityPersister
 import org.grails.datastore.gorm.neo4j.extensions.Neo4jExtensions
 import org.grails.datastore.mapping.core.Datastore
+import org.grails.datastore.mapping.core.Session
 import org.grails.datastore.mapping.core.SessionCallback
 import org.grails.datastore.mapping.engine.EntityPersister
 import org.grails.datastore.mapping.model.config.GormProperties
 import org.grails.datastore.mapping.multitenancy.MultiTenancySettings
 import org.grails.datastore.mapping.multitenancy.exceptions.TenantNotFoundException
 import org.grails.datastore.mapping.query.QueryException
-import org.neo4j.cypher.result.QueryResult
 import org.neo4j.driver.QueryRunner
 import org.neo4j.driver.Record
 import org.neo4j.driver.Result
-import org.neo4j.driver.Session
-import org.neo4j.driver.Result
-import org.neo4j.driver.QueryRunner
-import org.neo4j.driver.Value
-import org.neo4j.driver.summary.SummaryCounters
 import org.neo4j.driver.types.Node
 import org.springframework.transaction.PlatformTransactionManager
 
@@ -59,8 +50,9 @@ class Neo4jGormStaticApi<D> extends GormStaticApi<D> {
 
     @Override
     List<D> findAll(CharSequence query, Map params, Map args) {
-        (List<D>)execute({ Neo4jSession session ->
-            QueryRunner boltSession = getStatementRunner(session)
+        execute({ Session session ->
+            Neo4jSession neo4jSession = (Neo4jSession) session
+            QueryRunner boltSession = getStatementRunner(neo4jSession)
             params = new LinkedHashMap(params)
             String queryString
             if(query instanceof GString) {
@@ -70,12 +62,12 @@ class Neo4jGormStaticApi<D> extends GormStaticApi<D> {
                 queryString = query.toString()
             }
 
-            includeTenantIdIfNecessary(session, queryString, params)
+            includeTenantIdIfNecessary(neo4jSession, queryString, params)
             if(log.isDebugEnabled()) {
                 log.debug("QUERY Cypher [$queryString] for params [$params]")
             }
             Result result = boltSession.run( queryString, (Map<String,Object>)params)
-            def persister = session
+            def persister = neo4jSession
                     .getEntityPersister(persistentEntity)
 
             if(result.hasNext()) {
@@ -84,7 +76,7 @@ class Neo4jGormStaticApi<D> extends GormStaticApi<D> {
             else {
                 return Collections.emptyList()
             }
-        } as SessionCallback)
+        } as SessionCallback<List<D>>)
     }
 
 
@@ -93,14 +85,15 @@ class Neo4jGormStaticApi<D> extends GormStaticApi<D> {
         if(query instanceof GString) {
             throw new QueryException("Unsafe query [$query]. GORM cannot automatically escape a GString value when combined with ordinal parameters, so this query is potentially vulnerable to HQL injection attacks. Please embed the parameters within the GString so they can be safely escaped.");
         }
-        (List<D>)execute({ Neo4jSession session ->
-            QueryRunner boltSession = getStatementRunner(session)
+        execute({ Session session ->
+            Neo4jSession neo4jSession = (Neo4jSession) session
+            QueryRunner boltSession = getStatementRunner(neo4jSession)
             if(log.isDebugEnabled()) {
                 log.debug("QUERY Cypher [$query] for params [$params]")
             }
 
             Result result = Neo4jExtensions.execute(boltSession, query.toString(), (List<Object>)params.toList())
-            def persister = session
+            def persister = neo4jSession
                     .getEntityPersister(persistentEntity)
 
             if(result.hasNext()) {
@@ -109,13 +102,14 @@ class Neo4jGormStaticApi<D> extends GormStaticApi<D> {
             else {
                 return Collections.emptyList()
             }
-        } as SessionCallback)
+        } as SessionCallback<List<D>>)
     }
 
     @Override
     D find(CharSequence query, Map params, Map args) {
-        (D)execute({ Neo4jSession session ->
-            QueryRunner boltSession = getStatementRunner(session)
+        execute({ Session session ->
+            Neo4jSession neo4jSession = (Neo4jSession) session
+            QueryRunner boltSession = getStatementRunner(neo4jSession)
             params = new LinkedHashMap(params)
             String queryString
             if(query instanceof GString) {
@@ -124,20 +118,20 @@ class Neo4jGormStaticApi<D> extends GormStaticApi<D> {
             else {
                 queryString = query.toString()
             }
-            includeTenantIdIfNecessary(session, queryString, params)
+            includeTenantIdIfNecessary(neo4jSession, queryString, params)
             if(log.isDebugEnabled()) {
                 log.debug("QUERY Cypher [$queryString] for params [$params]")
             }
 
             Result result = boltSession.run( queryString, (Map<String,Object>)params)
-            def persister = session
+            def persister = neo4jSession
                     .getEntityPersister(persistentEntity)
 
             def resultList = new Neo4jResultList(0, 1, (Iterator) result, persister)
             if( !resultList.isEmpty() ) {
                 return (D)resultList.get(0)
             }
-        } as SessionCallback)
+        } as SessionCallback<D>)
     }
 
     @Override
@@ -146,15 +140,16 @@ class Neo4jGormStaticApi<D> extends GormStaticApi<D> {
             throw new QueryException("Unsafe query [$query]. GORM cannot automatically escape a GString value when combined with ordinal parameters, so this query is potentially vulnerable to HQL injection attacks. Please embed the parameters within the GString so they can be safely escaped.");
         }
 
-        (D)execute({ Neo4jSession session ->
-            QueryRunner boltSession = getStatementRunner(session)
+        execute({ Session session ->
+            Neo4jSession neo4jSession = (Neo4jSession) session
+            QueryRunner boltSession = getStatementRunner(neo4jSession)
             if(log.isDebugEnabled()) {
                 log.debug("QUERY Cypher [$query] for params [$params]")
             }
 
             Result result = Neo4jExtensions.execute(boltSession, query.toString(), (List<Object>)params.toList())
 
-            def persister = session
+            def persister = neo4jSession
                     .getEntityPersister(persistentEntity)
 
             def resultList = new Neo4jResultList(0, 1, (Iterator) result, persister)
@@ -163,7 +158,7 @@ class Neo4jGormStaticApi<D> extends GormStaticApi<D> {
             }
             return null
 
-        } as SessionCallback)
+        } as SessionCallback<D>)
     }
 
     @Override
@@ -172,7 +167,7 @@ class Neo4jGormStaticApi<D> extends GormStaticApi<D> {
         adaptResults(result)
     }
 
-    protected List adaptResults(Result result) {
+    protected static List adaptResults(Result result) {
         result.list({ Record r ->
             def map = r.asMap()
             if (map.size() == 1) {
@@ -191,8 +186,9 @@ class Neo4jGormStaticApi<D> extends GormStaticApi<D> {
 
     @Override
     Integer executeUpdate(CharSequence query, Map params, Map args) {
-        execute({ Neo4jSession session ->
-            QueryRunner boltSession = getStatementRunner(session)
+        execute({ Session session ->
+            Neo4jSession neo4jSession = (Neo4jSession) session
+            QueryRunner boltSession = getStatementRunner(neo4jSession)
             params = new LinkedHashMap(params)
             String queryString
             if(query instanceof GString) {
@@ -201,7 +197,7 @@ class Neo4jGormStaticApi<D> extends GormStaticApi<D> {
             else {
                 queryString = query.toString()
             }
-            includeTenantIdIfNecessary(session, queryString, params)
+            includeTenantIdIfNecessary(neo4jSession, queryString, params)
             if(log.isDebugEnabled()) {
                 log.debug("UPDATE Cypher [$queryString] for params [$params]")
             }
@@ -243,10 +239,11 @@ class Neo4jGormStaticApi<D> extends GormStaticApi<D> {
         return null
     }
 
-    public <F extends GormEntity, T extends GormEntity> Relationship<F, T> findRelationship(F from, T to) {
-        (Relationship<F, T>)execute({ Neo4jSession session ->
-            EntityPersister fromPersister = (EntityPersister) session.getPersister(from)
-            EntityPersister toPersister = (EntityPersister) session.getPersister(to)
+    <F extends GormEntity, T extends GormEntity> Relationship<F, T> findRelationship(F from, T to) {
+        execute({ Session session ->
+            Neo4jSession neo4jSession = (Neo4jSession) session
+            EntityPersister fromPersister = (EntityPersister) neo4jSession.getPersister(from)
+            EntityPersister toPersister = (EntityPersister) neo4jSession.getPersister(to)
             GraphPersistentEntity fromEntity = (GraphPersistentEntity) fromPersister?.getPersistentEntity()
             GraphPersistentEntity toEntity = (GraphPersistentEntity) toPersister?.getPersistentEntity()
             if (fromEntity == null) {
@@ -271,13 +268,14 @@ LIMIT 1"""
             }
             return relationship
 
-        } as SessionCallback)
+        } as SessionCallback<Relationship<F, T>>)
     }
 
-    public <F extends GormEntity, T extends GormEntity> List<Relationship<F, T>>  findRelationships(F from, T to, Map params = Collections.emptyMap()) {
-        (List<Relationship<F, T>>)execute({ Neo4jSession session ->
-            EntityPersister fromPersister = (EntityPersister) session.getPersister(from)
-            EntityPersister toPersister = (EntityPersister) session.getPersister(to)
+    <F extends GormEntity, T extends GormEntity> List<Relationship<F, T>>  findRelationships(F from, T to, Map params = Collections.emptyMap()) {
+        execute({ Session session ->
+            Neo4jSession neo4jSession = (Neo4jSession) session
+            EntityPersister fromPersister = (EntityPersister) neo4jSession.getPersister(from)
+            EntityPersister toPersister = (EntityPersister) neo4jSession.getPersister(to)
             GraphPersistentEntity fromEntity = (GraphPersistentEntity) fromPersister?.getPersistentEntity()
             GraphPersistentEntity toEntity = (GraphPersistentEntity) toPersister?.getPersistentEntity()
             if (fromEntity == null) {
@@ -303,11 +301,11 @@ RETURN DISTINCT(r)$skip$limit"""
             }
             return rels
 
-        } as SessionCallback)
+        } as SessionCallback<List<Relationship<F, T>>>)
     }
 
-    public <F extends GormEntity, T extends GormEntity> List<Relationship<F, T>>  findRelationships(Class<F> from, Class<T> to, Map params = Collections.emptyMap()) {
-        (List<Relationship<F, T>>)execute({ Neo4jSession session ->
+    <F extends GormEntity, T extends GormEntity> List<Relationship<F, T>>  findRelationships(Class<F> from, Class<T> to, Map params = Collections.emptyMap()) {
+        execute({ Session session ->
             Neo4jEntityPersister fromPersister = (Neo4jEntityPersister) session.getPersister(from)
             Neo4jEntityPersister toPersister = (Neo4jEntityPersister) session.getPersister(to)
             GraphPersistentEntity fromEntity = (GraphPersistentEntity) fromPersister?.getPersistentEntity()
@@ -340,11 +338,11 @@ RETURN DISTINCT(r), from, to$skip$limit"""
             }
             return rels
 
-        } as SessionCallback)
+        } as SessionCallback<List<Relationship<F, T>>>)
     }
 
-    public <F, T> Path<F, T> findShortestPath(F from, T to, int maxDistance = 10) {
-        (Path<F, T>)execute({ Neo4jSession session ->
+    <F, T> Path<F, T> findShortestPath(F from, T to, int maxDistance = 10) {
+        execute({ Session session ->
             EntityPersister fromPersister = (EntityPersister) session.getPersister(from)
             EntityPersister toPersister = (EntityPersister) session.getPersister(to)
             GraphPersistentEntity fromEntity = (GraphPersistentEntity) fromPersister?.getPersistentEntity()
@@ -378,7 +376,7 @@ RETURN DISTINCT(r), from, to$skip$limit"""
             }
             return null
 
-        } as SessionCallback)
+        } as SessionCallback<Path<F, T>>)
     }
     /**
      * perform a cypher query
@@ -391,7 +389,8 @@ RETURN DISTINCT(r), from, to$skip$limit"""
             throw new QueryException("Unsafe query [$query]. GORM cannot automatically escape a GString value when combined with ordinal parameters, so this query is potentially vulnerable to HQL injection attacks. Please embed the parameters within the GString so they can be safely escaped.");
         }
 
-        execute({ Neo4jSession session ->
+        execute({ Session session ->
+            Neo4jSession neo4jSession = (Neo4jSession) session
             Map paramsMap = new LinkedHashMap()
             int i = 0
             for(p in params) {
@@ -402,8 +401,8 @@ RETURN DISTINCT(r), from, to$skip$limit"""
                 log.debug("QUERY Cypher [$queryString] for params [$params]")
             }
 
-            includeTenantIdIfNecessary(session, queryString, (Map)paramsMap)
-            QueryRunner boltSession = getStatementRunner(session)
+            includeTenantIdIfNecessary(neo4jSession, queryString, (Map)paramsMap)
+            QueryRunner boltSession = getStatementRunner(neo4jSession)
             boltSession.run(queryString, paramsMap)
         } as SessionCallback<Result>)
     }
@@ -415,8 +414,9 @@ RETURN DISTINCT(r), from, to$skip$limit"""
      * @return
      */
     Result cypherStatic(CharSequence query, Map params ) {
-        execute({ Neo4jSession session ->
-            QueryRunner boltSession = getStatementRunner(session)
+        execute({ Session session ->
+            Neo4jSession neo4jSession = (Neo4jSession) session
+            QueryRunner boltSession = getStatementRunner(neo4jSession)
             params = new LinkedHashMap(params)
             String queryString
             if(query instanceof GString) {
@@ -425,7 +425,7 @@ RETURN DISTINCT(r), from, to$skip$limit"""
             else {
                 queryString = query.toString()
             }
-            includeTenantIdIfNecessary(session, queryString, params)
+            includeTenantIdIfNecessary(neo4jSession, queryString, params)
             if(log.isDebugEnabled()) {
                 log.debug("QUERY Cypher [$queryString] for params [$params]")
             }
@@ -442,7 +442,8 @@ RETURN DISTINCT(r), from, to$skip$limit"""
      * @return
      */
     Result cypherStatic(CharSequence query) {
-        execute({ Neo4jSession session ->
+        execute({ Session session ->
+            Neo4jSession neo4jSession = (Neo4jSession) session
             Map<String, ?> params = [:]
             String queryString
             if(query instanceof GString) {
@@ -451,13 +452,13 @@ RETURN DISTINCT(r), from, to$skip$limit"""
             else {
                 queryString = query.toString()
             }
-            if (persistentEntity.isMultiTenant() && session.getDatastore().multiTenancyMode == MultiTenancySettings.MultiTenancyMode.DISCRIMINATOR) {
+            if (persistentEntity.isMultiTenant() && neo4jSession.getDatastore().multiTenancyMode == MultiTenancySettings.MultiTenancyMode.DISCRIMINATOR) {
                 if (!queryString.contains("\$tenantId")) {
                     throw new TenantNotFoundException("Query does not specify a tenant id, but multi tenant mode is DISCRIMINATOR!")
                 } else {
                     Map<String,Object> paramsMap = new LinkedHashMap<>()
                     paramsMap.put(GormProperties.TENANT_IDENTITY, Tenants.currentId(Neo4jDatastore))
-                    QueryRunner boltSession = getStatementRunner(session)
+                    QueryRunner boltSession = getStatementRunner(neo4jSession)
                     if(log.isDebugEnabled()) {
                         log.debug("QUERY Cypher [$queryString] for params [$paramsMap]")
                     }
@@ -466,7 +467,7 @@ RETURN DISTINCT(r), from, to$skip$limit"""
                 }
             }
             else {
-                QueryRunner boltSession = getStatementRunner(session)
+                QueryRunner boltSession = getStatementRunner(neo4jSession)
                 if(log.isDebugEnabled()) {
                     log.debug("QUERY Cypher [$queryString]")
                 }
@@ -505,7 +506,7 @@ RETURN DISTINCT(r), from, to$skip$limit"""
         return sqlString.toString()
     }
 
-    private QueryRunner getStatementRunner(Neo4jSession session) {
+    private static QueryRunner getStatementRunner(Neo4jSession session) {
         return session.hasTransaction() ? session.getTransaction().getNativeTransaction() : session.getNativeInterface()
     }
 
@@ -518,6 +519,4 @@ RETURN DISTINCT(r), from, to$skip$limit"""
             }
         }
     }
-
-
 }
