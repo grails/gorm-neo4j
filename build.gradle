@@ -53,7 +53,16 @@ if (isReleaseVersion) {
 
 subprojects { subproject ->
 
+    ext['groovyVersion'] = System.getenv('CI_GROOVY_VERSION') ?: project.groovyVersion
+    ext['gorm.version'] = datastoreVersion
+    ext['gorm.hibernate5.version'] = hibernateDatastoreVersion
+    ext['h2.version'] = h2Version
+    ext['jetty.version'] = subproject.jettyVersion
+    ext['spock.version'] = spockVersion
+    ext['junit-jupiter.version'] = junitJupiterVersion
+
     repositories {
+        mavenLocal()
         maven { url "https://repo.grails.org/grails/core" }
         if(groovyVersion && groovyVersion.endsWith('-SNAPSHOT')) {
             maven {
@@ -62,13 +71,6 @@ subprojects { subproject ->
             }
         }
     }
-
-    ext['gorm.version'] = datastoreVersion
-    ext['gorm.hibernate5.version'] = hibernateDatastoreVersion
-    ext['h2.version'] = h2Version
-    ext['jetty.version'] = subproject.jettyVersion
-    ext['spock.version'] = spockVersion
-    ext['junit-jupiter.version'] = junitJupiterVersion
 
     configurations.all {
         resolutionStrategy {
