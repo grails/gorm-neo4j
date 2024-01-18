@@ -2,7 +2,7 @@ package org.grails.datastore.gorm.neo4j.connections;
 
 import org.grails.datastore.mapping.core.connections.DefaultConnectionSource;
 import org.neo4j.driver.Driver;
-import org.neo4j.harness.ServerControls;
+import org.neo4j.harness.Neo4j;
 
 import java.io.IOException;
 
@@ -13,15 +13,15 @@ import java.io.IOException;
  * @since 6.0
  */
 public class Neo4jEmbeddedConnectionSource extends DefaultConnectionSource<Driver, Neo4jConnectionSourceSettings> {
-    protected final ServerControls serverControls;
+    protected final Neo4j neo4j;
 
-    Neo4jEmbeddedConnectionSource(String name, Driver source, Neo4jConnectionSourceSettings settings, ServerControls serverControls) {
+    Neo4jEmbeddedConnectionSource(String name, Driver source, Neo4jConnectionSourceSettings settings, Neo4j neo4j) {
         super(name, source, settings);
-        this.serverControls = serverControls;
+        this.neo4j = neo4j;
     }
 
-    public ServerControls getServerControls() {
-        return serverControls;
+    public Neo4j getServerInstance() {
+        return neo4j;
     }
 
     @Override
@@ -29,7 +29,7 @@ public class Neo4jEmbeddedConnectionSource extends DefaultConnectionSource<Drive
         try {
             super.close();
         } finally {
-            serverControls.close();
+            neo4j.close();
         }
     }
 }

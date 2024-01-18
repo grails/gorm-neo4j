@@ -1,12 +1,13 @@
 package org.grails.datastore.gorm.neo4j.util;
 
+import java.nio.file.Path;
 import org.grails.datastore.mapping.reflect.ClassUtils;
-import org.neo4j.graphdb.factory.GraphDatabaseSettings;
-import org.neo4j.harness.ServerControls;
-import org.neo4j.harness.TestServerBuilder;
-import org.neo4j.harness.TestServerBuilders;
-import org.neo4j.kernel.configuration.BoltConnector;
-import org.neo4j.kernel.configuration.Connector;
+import org.neo4j.configuration.SettingBuilder;
+import org.neo4j.configuration.connectors.BoltConnector;
+import org.neo4j.configuration.helpers.SocketAddress;
+import org.neo4j.harness.Neo4j;
+import org.neo4j.harness.Neo4jBuilder;
+import org.neo4j.harness.Neo4jBuilders;
 import org.neo4j.server.ServerStartupException;
 
 import java.io.File;
@@ -16,8 +17,9 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.Map;
 
-import static org.neo4j.kernel.configuration.BoltConnector.EncryptionLevel.DISABLED;
-import static org.neo4j.graphdb.factory.GraphDatabaseSettings.data_directory;
+import static org.neo4j.configuration.SettingValueParsers.STRING;
+import static org.neo4j.configuration.connectors.BoltConnector.EncryptionLevel.DISABLED;
+import static org.neo4j.configuration.GraphDatabaseSettings.data_directory;
 
 /**
  * Helper class for starting a Neo4j 3.x embedded server
@@ -31,7 +33,7 @@ public class EmbeddedNeo4jServer {
      * @return Whether the embedded server capability is available or not
      */
     public static boolean isAvailable() {
-        return ClassUtils.isPresent("org.neo4j.harness.ServerControls", EmbeddedNeo4jServer.class.getClassLoader());
+        return ClassUtils.isPresent("org.neo4j.harness.Neo4j", EmbeddedNeo4jServer.class.getClassLoader());
     }
 
     /**
@@ -40,7 +42,7 @@ public class EmbeddedNeo4jServer {
      * @return The server controls
      * @param dataLocation The data location
      */
-    public static ServerControls start(File dataLocation) throws IOException {
+    public static Neo4j start(File dataLocation) throws IOException {
         return attemptStartServer(0, dataLocation, Collections.<String, Object>emptyMap());
     }
 
@@ -50,7 +52,7 @@ public class EmbeddedNeo4jServer {
      * @return The server controls
      * @param dataLocation The data location
      */
-    public static ServerControls start(File dataLocation, Map<String, Object> options) throws IOException {
+    public static Neo4j start(File dataLocation, Map<String, Object> options) throws IOException {
         return attemptStartServer(0, dataLocation, options);
     }
 
@@ -61,9 +63,9 @@ public class EmbeddedNeo4jServer {
      *
      * @param inetAddr The inet address
      *
-     * @return The {@link ServerControls}
+     * @return The {@link Neo4j}
      */
-    public static ServerControls start(InetSocketAddress inetAddr) {
+    public static Neo4j start(InetSocketAddress inetAddr) {
         return start(inetAddr.getHostName(),inetAddr.getPort(), null);
     }
 
@@ -72,9 +74,9 @@ public class EmbeddedNeo4jServer {
      *
      * @param inetAddr The inet address
      *
-     * @return The {@link ServerControls}
+     * @return The {@link Neo4j}
      */
-    public static ServerControls start(InetSocketAddress inetAddr, File dataLocation) {
+    public static Neo4j start(InetSocketAddress inetAddr, File dataLocation) {
         return start(inetAddr.getHostName(),inetAddr.getPort(), dataLocation);
     }
 
@@ -83,9 +85,9 @@ public class EmbeddedNeo4jServer {
      *
      * @param inetAddr The inet address
      *
-     * @return The {@link ServerControls}
+     * @return The {@link Neo4j}
      */
-    public static ServerControls start(InetSocketAddress inetAddr, File dataLocation, Map<String, Object> options) {
+    public static Neo4j start(InetSocketAddress inetAddr, File dataLocation, Map<String, Object> options) {
         return start(inetAddr.getHostName(),inetAddr.getPort(), dataLocation,options);
     }
 
@@ -94,9 +96,9 @@ public class EmbeddedNeo4jServer {
      *
      * @param address The address
      *
-     * @return The {@link ServerControls}
+     * @return The {@link Neo4j}
      */
-    public static ServerControls start(String address) {
+    public static Neo4j start(String address) {
         URI uri = URI.create(address);
         return start(new InetSocketAddress(uri.getHost(), uri.getPort()));
     }
@@ -106,9 +108,9 @@ public class EmbeddedNeo4jServer {
      *
      * @param address The address
      *
-     * @return The {@link ServerControls}
+     * @return The {@link Neo4j}
      */
-    public static ServerControls start(String address, File dataLocation) {
+    public static Neo4j start(String address, File dataLocation) {
         URI uri = URI.create(address);
         return start(uri.getHost(), uri.getPort(), dataLocation);
     }
@@ -119,9 +121,9 @@ public class EmbeddedNeo4jServer {
      *
      * @param address The address
      *
-     * @return The {@link ServerControls}
+     * @return The {@link Neo4j}
      */
-    public static ServerControls start(String address, File dataLocation,Map<String, Object> options) {
+    public static Neo4j start(String address, File dataLocation,Map<String, Object> options) {
         URI uri = URI.create(address);
         return start(uri.getHost(), uri.getPort(), dataLocation, options);
     }
@@ -132,9 +134,9 @@ public class EmbeddedNeo4jServer {
      * @param host The host
      * @param port The port
      *
-     * @return The {@link ServerControls}
+     * @return The {@link Neo4j}
      */
-    public static ServerControls start(String host, int port) {
+    public static Neo4j start(String host, int port) {
         return start(host, port,  null);
     }
     /**
@@ -143,9 +145,9 @@ public class EmbeddedNeo4jServer {
      * @param host The host
      * @param port The port
      *
-     * @return The {@link ServerControls}
+     * @return The {@link Neo4j}
      */
-    public static ServerControls start(String host, int port, File dataLocation) {
+    public static Neo4j start(String host, int port, File dataLocation) {
         return start(host, port, dataLocation, Collections.<String, Object>emptyMap());
     }
 
@@ -155,29 +157,28 @@ public class EmbeddedNeo4jServer {
      * @param host The host
      * @param port The port
      *
-     * @return The {@link ServerControls}
+     * @return The {@link Neo4j}
      */
-    public static ServerControls start(String host, int port, File dataLocation, Map<String, Object> options) {
-        String myBoltAddress = String.format("%s:%d", host, port);
+    public static Neo4j start(String host, int port, File dataLocation, Map<String, Object> options) {
+        SocketAddress myBoltAddress = new SocketAddress(host, port);
 
-        TestServerBuilder serverBuilder = TestServerBuilders.newInProcessBuilder()
-                .withConfig(new BoltConnector("0").enabled, "true")
-                .withConfig(new BoltConnector("0").type, Connector.ConnectorType.BOLT.name())
-                .withConfig(new BoltConnector("0").encryption_level, DISABLED.name())
-                .withConfig(new BoltConnector("0").listen_address, myBoltAddress);
+        Neo4jBuilder serverBuilder = Neo4jBuilders.newInProcessBuilder()
+                .withConfig(BoltConnector.enabled, true)
+                .withConfig(BoltConnector.encryption_level, DISABLED)
+                .withConfig(BoltConnector.listen_address, myBoltAddress);
         if(dataLocation != null) {
-            serverBuilder = serverBuilder.withConfig(data_directory,  dataLocation.getPath());
+            serverBuilder = serverBuilder.withConfig(data_directory,  Path.of(dataLocation.toURI()));
         }
 
         for (String name : options.keySet()) {
-            serverBuilder.withConfig(name, options.get(name).toString());
+            serverBuilder.withConfig(SettingBuilder.newBuilder(name, STRING, null).build(), options.get(name).toString());
         }
 
         return serverBuilder
-                .newServer();
+                .build();
     }
 
-    private static ServerControls attemptStartServer(int retryCount, File dataLocation, Map<String, Object> options) throws IOException {
+    private static Neo4j attemptStartServer(int retryCount, File dataLocation, Map<String, Object> options) throws IOException {
 
         try {
             //In the new driver 0 implicitly means a random port

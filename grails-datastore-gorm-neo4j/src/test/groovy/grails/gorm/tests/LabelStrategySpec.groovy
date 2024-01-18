@@ -24,7 +24,7 @@ class LabelStrategySpec extends GormDatastoreSpec {
 
     Transaction tx
     def setup() {
-        def graph = serverControls.graph()
+        def graph = serverInstance.defaultDatabaseService()
         tx = graph.beginTx()
     }
 
