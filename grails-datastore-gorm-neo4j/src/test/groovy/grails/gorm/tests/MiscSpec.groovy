@@ -216,17 +216,17 @@ class MiscSpec extends GormDatastoreSpec {
         setup: "by default test suite runs without indexes, so we need to build them"
 
         Thread.start {
-            def tx = serverControls.graph().beginTx()
+            def tx = serverInstance.defaultDatabaseService().beginTx()
             try {
                 session.datastore.setupIndexing()
-                tx.success()
+                tx.commit()
             } finally {
                 tx.close()
             }
-            tx = serverControls.graph().beginTx()
+            tx = serverInstance.defaultDatabaseService().beginTx()
             try {
-                serverControls.graph().schema().awaitIndexesOnline(10, TimeUnit.SECONDS)
-                tx.success()
+                tx.schema().awaitIndexesOnline(10, TimeUnit.SECONDS)
+                tx.commit()
             } finally {
                 tx.close()
             }
@@ -241,12 +241,12 @@ class MiscSpec extends GormDatastoreSpec {
         when:
 
         def indexedProperties
-        def tx = serverControls.graph().beginTx()
+        def tx = serverInstance.defaultDatabaseService().beginTx()
         try {
-            indexedProperties = serverControls.graph().schema().getIndexes(Label.label("Task")).collect {
+            indexedProperties = tx.schema().getIndexes(Label.label("Task")).collect {
                 IteratorUtil.single(it.propertyKeys)
             }
-            tx.success()
+            tx.commit()
         } finally {
             tx.close()
         }

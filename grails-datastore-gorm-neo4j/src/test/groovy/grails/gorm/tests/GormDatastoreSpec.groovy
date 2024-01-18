@@ -13,7 +13,7 @@ import org.grails.datastore.mapping.core.DatastoreUtils
 import org.grails.datastore.mapping.model.MappingContext
 import org.grails.datastore.mapping.model.PersistentEntity
 import org.neo4j.driver.Driver
-import org.neo4j.harness.ServerControls
+import org.neo4j.harness.Neo4j
 import org.springframework.context.support.GenericApplicationContext
 import org.springframework.context.support.StaticMessageSource
 import org.springframework.validation.Validator
@@ -33,7 +33,7 @@ abstract class GormDatastoreSpec extends Specification {
     }
 
     @Shared @AutoCleanup Neo4jDatastore neo4jDatastore
-    @Shared ServerControls serverControls
+    @Shared Neo4j serverInstance
     @Shared Driver boltDriver
     @Shared GrailsApplication grailsApplication
     @Shared MappingContext mappingContext
@@ -52,7 +52,7 @@ abstract class GormDatastoreSpec extends Specification {
                 new ConfigurableApplicationContextEventPublisher(ctx),
                 allClasses
         )
-        serverControls = (ServerControls)neo4jDatastore.connectionSources.defaultConnectionSource.serverControls
+        serverInstance = (Neo4j)neo4jDatastore.connectionSources.defaultConnectionSource.serverInstance
         boltDriver = neo4jDatastore.boltDriver
         mappingContext = neo4jDatastore.mappingContext
 

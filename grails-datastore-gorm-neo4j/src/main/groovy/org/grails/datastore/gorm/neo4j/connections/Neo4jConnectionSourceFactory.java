@@ -12,7 +12,7 @@ import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Config;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
-import org.neo4j.harness.ServerControls;
+import org.neo4j.harness.Neo4j;
 import org.springframework.core.env.PropertyResolver;
 
 import java.io.File;
@@ -70,13 +70,13 @@ public class Neo4jConnectionSourceFactory extends AbstractConnectionSourceFactor
                 if(embeddedSettings.isEphemeral()) {
                     dataDir.deleteOnExit();
                 }
-                ServerControls serverControls;
+                Neo4j neo4j;
                 try {
-                    serverControls = url != null ? EmbeddedNeo4jServer.start(url, dataDir, options) : EmbeddedNeo4jServer.start(dataDir, options);
+                    neo4j = url != null ? EmbeddedNeo4jServer.start(url, dataDir, options) : EmbeddedNeo4jServer.start(dataDir, options);
                     Config config = Config.builder().withoutEncryption().build();
-                    URI boltURI = serverControls.boltURI();
+                    URI boltURI = neo4j.boltURI();
                     Driver driver =  GraphDatabase.driver(boltURI, config);
-                    return new Neo4jEmbeddedConnectionSource(name, driver, settings, serverControls);
+                    return new Neo4jEmbeddedConnectionSource(name, driver, settings, neo4j);
                 } catch (Throwable e) {
                     throw new DatastoreConfigurationException("Unable to start embedded Neo4j server: " + e.getMessage(), e);
                 }
@@ -107,7 +107,7 @@ public class Neo4jConnectionSourceFactory extends AbstractConnectionSourceFactor
      * @return Whether the embedded server capability is available or not
      */
     public static boolean isEmbeddedAvailable() {
-        return ClassUtils.isPresent("org.neo4j.harness.ServerControls", Neo4jConnectionSourceFactory.class.getClassLoader());
+        return ClassUtils.isPresent("org.neo4j.harness.Neo4j", Neo4jConnectionSourceFactory.class.getClassLoader());
     }
 
 }
