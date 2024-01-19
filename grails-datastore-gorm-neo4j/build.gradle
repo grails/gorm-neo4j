@@ -8,10 +8,9 @@ dependencies {
 
     // only needed for web dependencies
     compileOnly "org.grails:grails-datastore-web:$datastoreVersion"
-    compileOnly "org.neo4j.test:neo4j-harness:$neo4jVersion"
 
     implementation "org.javassist:javassist:$javassistVersion"
-    testImplementation "org.neo4j.test:neo4j-harness:$neo4jVersion"
+    implementation "org.neo4j.test:neo4j-harness:$neo4jVersion"
     testImplementation "org.grails:grails-datastore-gorm-test:$datastoreVersion",
                 "org.grails:grails-datastore-gorm-tck:$datastoreVersion"
     testImplementation "org.hibernate:hibernate-validator:$hibernateValidatorVersion"
