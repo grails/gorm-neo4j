@@ -15,6 +15,7 @@
  */
 package org.grails.datastore.gorm.neo4j.engine
 
+import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.grails.datastore.gorm.neo4j.CypherBuilder
@@ -78,6 +79,7 @@ class Neo4jAssociationQueryExecutor implements AssociationQueryExecutor<Serializ
     }
 
     @Override
+    @CompileDynamic
     List<Object> query(Serializable primaryKey) {
 
         QueryRunner statementRunner = session.hasTransaction() ? session.getTransaction().getNativeTransaction() : (Session)session.nativeInterface

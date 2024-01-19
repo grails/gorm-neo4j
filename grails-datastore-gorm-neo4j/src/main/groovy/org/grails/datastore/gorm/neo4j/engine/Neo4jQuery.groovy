@@ -14,6 +14,7 @@
  */
 package org.grails.datastore.gorm.neo4j.engine
 
+import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 import groovy.util.logging.Slf4j
@@ -401,6 +402,7 @@ class Neo4jQuery extends Query {
     }
 
     @Override
+    @CompileDynamic
     protected List executeQuery(PersistentEntity persistentEntity, Query.Junction criteria) {
 
         CypherBuilder cypherBuilder = buildBaseQuery(persistentEntity, criteria)
