@@ -15,6 +15,7 @@
  */
 package org.grails.datastore.gorm.neo4j.extensions
 
+import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import org.codehaus.groovy.runtime.typehandling.GroovyCastException
 import org.grails.datastore.gorm.neo4j.Neo4jDatastore
@@ -173,6 +174,7 @@ class Neo4jExtensions {
      * @param positionalParameters The position parameters
      * @return The query result
      */
+    @CompileDynamic
     static Result execute(QueryRunner session, String cypher, List<Object> positionalParameters) {
         Map<String,Object> params = new LinkedHashMap<>()
         int i = 0;
