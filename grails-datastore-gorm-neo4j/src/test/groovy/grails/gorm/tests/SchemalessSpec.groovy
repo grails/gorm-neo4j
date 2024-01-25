@@ -188,7 +188,7 @@ class SchemalessSpec extends GormDatastoreSpec {
         session.clear()
 
         when:
-        def result = session.transaction.nativeTransaction.execute("MATCH (n:Pet)-[:buddy]->(l) WHERE ID(n) = {1} return l", [cosima.id])
+        def result = session.transaction.nativeTransaction.execute("MATCH (n:Pet)-[:buddy]->(l) WHERE ID(n) = \$1 return l", [cosima.id])
 
         then:
         IteratorUtil.count(result) == 1
@@ -230,7 +230,7 @@ class SchemalessSpec extends GormDatastoreSpec {
         session.clear()
 
         when:
-        def result = session.transaction.nativeTransaction.execute("MATCH (n:Pet)-[:buddies]->(l) WHERE ID(n) = {1} return l", [cosima.id])
+        def result = session.transaction.nativeTransaction.execute("MATCH (n:Pet)-[:buddies]->(l) WHERE ID(n) = \$1 return l", [cosima.id])
 
         then:
         IteratorUtil.count(result) == 2
@@ -240,7 +240,7 @@ class SchemalessSpec extends GormDatastoreSpec {
         pet.buddies.clear()
         pet.save(flush:true)
         session.clear()
-        result = session.transaction.nativeTransaction.execute("MATCH (n:Pet)-[:buddies]->(l) WHERE ID(n) = {1} return l", [cosima.id])
+        result = session.transaction.nativeTransaction.execute("MATCH (n:Pet)-[:buddies]->(l) WHERE ID(n) = \$1 return l", [cosima.id])
 
         then:"The relationship is empty"
         Pet.findByName("Cosima").buddies == null
@@ -254,7 +254,7 @@ class SchemalessSpec extends GormDatastoreSpec {
         pet.save(flush:true)
         session.clear()
 
-        result = session.transaction.nativeTransaction.execute("MATCH (n:Pet)-[:buddies]->(l) WHERE ID(n) = {1} return l", [cosima.id])
+        result = session.transaction.nativeTransaction.execute("MATCH (n:Pet)-[:buddies]->(l) WHERE ID(n) = \$1 return l", [cosima.id])
 
         then:
         IteratorUtil.count(result) == 1
@@ -273,7 +273,7 @@ class SchemalessSpec extends GormDatastoreSpec {
         session.clear()
 
         when:
-        def result = session.transaction.nativeTransaction.execute("MATCH (n:Pet)-[:buddies]->(l) WHERE ID(n) = {1} return l", [cosima.id])
+        def result = session.transaction.nativeTransaction.execute("MATCH (n:Pet)-[:buddies]->(l) WHERE ID(n) = \$1 return l", [cosima.id])
 
         then:
         IteratorUtil.count(result) == 2

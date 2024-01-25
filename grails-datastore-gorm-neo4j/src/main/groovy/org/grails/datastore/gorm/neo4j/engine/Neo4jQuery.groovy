@@ -391,12 +391,12 @@ class Neo4jQuery extends Query {
 
         if (offset != 0) {
             int skipParam = cypherBuilder.addParam(offset)
-            cypher << " SKIP {$skipParam}"
+            cypher << " SKIP \$$skipParam"
         }
 
         if (max != -1) {
             int limitParam = cypherBuilder.addParam(max)
-            cypher << " LIMIT {$limitParam}"
+            cypher << " LIMIT \$$limitParam"
         }
         cypher.toString()
     }
