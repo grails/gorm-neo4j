@@ -12,6 +12,7 @@ dependencies {
     implementation "org.grails:grails-core:$grailsVersion"
     implementation "org.grails:grails-dependencies:$grailsVersion"
     implementation "org.grails:grails-web-boot:$grailsVersion"
+    implementation "org.neo4j.driver:neo4j-java-driver:$neo4jDriverVersion"
 
     // in a real app this would be org.grails.plugins:neo4j
     implementation project(":grails-plugin")
