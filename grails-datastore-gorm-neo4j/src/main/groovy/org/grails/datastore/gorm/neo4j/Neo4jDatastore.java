@@ -507,7 +507,7 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
                 StringBuilder sb = new StringBuilder();
                 IdGenerator.Type idGeneratorType = graphPersistentEntity.getIdGeneratorType();
                 if(graphPersistentEntity.getIdGenerator() != null && idGeneratorType.equals(IdGenerator.Type.SNOWFLAKE)) {
-                    sb.append("CREATE CONSTRAINT ON (n:").append(label).append(") ASSERT n.").append(CypherBuilder.IDENTIFIER).append(" IS UNIQUE");
+                    sb.append("CREATE CONSTRAINT FOR (n:").append(label).append(") REQUIRE n.").append(CypherBuilder.IDENTIFIER).append(" IS UNIQUE");
                     schemaStrings.add(sb.toString());
                 }
                 else if(!graphPersistentEntity.isNativeId()) {
@@ -524,7 +524,7 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
                         }
                         else if(mappedForm.isIndex()) {
                             sb = new StringBuilder();
-                            sb.append("CREATE INDEX ON :").append(label).append("(").append(persistentProperty.getName()).append(")");
+                            sb.append("CREATE INDEX FOR (e:").append(label).append(") ON (e.").append(persistentProperty.getName()).append(")");
                             schemaStrings.add(sb.toString());
                             if(log.isDebugEnabled()) {
                                 log.debug("setting up indexing for " + label + " property " + persistentProperty.getName());
@@ -563,7 +563,7 @@ public class Neo4jDatastore extends AbstractDatastore implements Closeable, Stat
         StringBuilder sb;
         sb = new StringBuilder();
 
-        sb.append("CREATE CONSTRAINT ON (n:").append(label).append(") ASSERT n.").append(persistentProperty.getName()).append(" IS UNIQUE");
+        sb.append("CREATE CONSTRAINT FOR (n:").append(label).append(") REQUIRE n.").append(persistentProperty.getName()).append(" IS UNIQUE");
         schemaStrings.add(sb.toString());
     }
 
