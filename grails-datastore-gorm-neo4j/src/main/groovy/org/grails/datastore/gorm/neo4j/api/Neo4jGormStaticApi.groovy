@@ -498,7 +498,7 @@ RETURN DISTINCT(r), from, to$skip$limit"""
             sqlString.append(str)
             if (i < values.length) {
                 String parameterName = "p$i"
-                sqlString.append('{').append(parameterName).append('}')
+                sqlString.append('$').append(parameterName)
                 params.put(parameterName, values[i++])
             }
         }

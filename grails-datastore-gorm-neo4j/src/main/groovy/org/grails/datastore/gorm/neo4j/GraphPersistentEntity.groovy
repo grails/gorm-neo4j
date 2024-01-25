@@ -469,12 +469,12 @@ ${formatAssociationMerge(association, parentVariable, variableId)})"""
 
         if(RelationshipUtils.useReversedMappingFor(association)) {
             return """MATCH ${parent.formatNode(FROM)}${associationMatch}${child.formatNode(TO)}
-WHERE ${parent.formatId(FROM)} = {${GormProperties.IDENTITY}}
+WHERE ${parent.formatId(FROM)} = \$${GormProperties.IDENTITY}
 DELETE r"""
         }
         else {
             return """MATCH ${parent.formatNode(FROM)}${associationMatch}${child.formatNode(TO)}
-WHERE ${parent.formatId(FROM)} = {${CypherBuilder.START}} AND ${parent.formatId(TO)} IN {${CypherBuilder.END}}
+WHERE ${parent.formatId(FROM)} = \$${CypherBuilder.START} AND ${parent.formatId(TO)} IN \$${CypherBuilder.END}
 DELETE r"""
         }
     }

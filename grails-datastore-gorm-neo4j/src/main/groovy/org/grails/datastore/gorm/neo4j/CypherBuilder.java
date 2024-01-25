@@ -29,7 +29,7 @@ public class CypherBuilder {
     public static final String SPACE = " ";
     public static final String OPTIONAL_MATCH = "OPTIONAL MATCH";
     public static final String CYPHER_CREATE = "CREATE ";
-    public static final String CYPHER_MATCH_ID = "MATCH (n%s) WHERE %s = {id}";
+    public static final String CYPHER_MATCH_ID = "MATCH (n%s) WHERE %s = $id";
     public static final String CYPHER_FROM_TO_NODES_MATCH = "MATCH (from%s),(to%s) WHERE ";
     public static final String NODE_LABELS = "labels";
     public static final String NODE_DATA = "data";
@@ -204,7 +204,7 @@ public class CypherBuilder {
         }
 
         if(sets != null) {
-            cypher.append("\nSET n += {").append(setIndex).append("}\n");
+            cypher.append("\nSET n += $").append(setIndex).append("\n");
         }
 
         if (returnColumns.isEmpty()) {
