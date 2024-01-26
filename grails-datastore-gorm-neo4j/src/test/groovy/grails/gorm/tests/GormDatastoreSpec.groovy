@@ -47,8 +47,7 @@ abstract class GormDatastoreSpec extends Specification {
 
         neo4jDatastore = new Neo4jDatastore(
                 [(Settings.SETTING_NEO4J_TYPE)                 : Settings.DATABASE_TYPE_EMBEDDED,
-                 (Settings.SETTING_NEO4J_EMBEDDED_EPHEMERAL)   : true,
-                 'grails.neo4j.embedded.options.dbms.shell':'true'] << getConfiguration(),
+                 (Settings.SETTING_NEO4J_EMBEDDED_EPHEMERAL)   : true] << getConfiguration(),
                 new ConfigurableApplicationContextEventPublisher(ctx),
                 allClasses
         )
