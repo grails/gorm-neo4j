@@ -274,8 +274,8 @@ class Neo4jQuery extends Query {
                     String propertyRef = entity.formatProperty(prefix, criterion.property)
                     String parameterRef = "\$$paramNumber"
                     if(operator != CriterionHandler.OPERATOR_LIKE) {
-                        propertyRef = "lower($propertyRef)"
-                        parameterRef = "lower($parameterRef)"
+                        propertyRef = "toLower($propertyRef)"
+                        parameterRef = "toLower($parameterRef)"
                     }
                     return new CypherExpression(propertyRef, parameterRef, operator)
                 }
@@ -328,14 +328,14 @@ class Neo4jQuery extends Query {
                 @Override
                 @CompileStatic
                 CypherExpression handle(GraphPersistentEntity entity, Query.IsEmpty criterion, CypherBuilder builder, String prefix) {
-                    return new CypherExpression("length(${entity.formatProperty(prefix, criterion.property)}) = 0")
+                    return new CypherExpression("size(${entity.formatProperty(prefix, criterion.property)}) = 0")
                 }
             },
             (Query.IsNotEmpty): new CriterionHandler<Query.IsNotEmpty>() {
                 @Override
                 @CompileStatic
                 CypherExpression handle(GraphPersistentEntity entity, Query.IsNotEmpty criterion, CypherBuilder builder, String prefix) {
-                    return new CypherExpression("length(${entity.formatProperty(prefix, criterion.property)}) > 0")
+                    return new CypherExpression("size(${entity.formatProperty(prefix, criterion.property)}) > 0")
                 }
             },
             (Query.IsNotNull): new CriterionHandler<Query.IsNotNull>() {
