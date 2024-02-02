@@ -11,7 +11,7 @@ import org.grails.datastore.mapping.multitenancy.exceptions.TenantNotFoundExcept
 import org.grails.datastore.mapping.multitenancy.resolvers.SystemPropertyTenantResolver
 import org.neo4j.driver.exceptions.ClientException
 import org.neo4j.driver.exceptions.ServiceUnavailableException
-import org.neo4j.harness.ServerControls
+import org.neo4j.harness.Neo4j
 import org.springframework.util.SocketUtils
 import spock.lang.AutoCleanup
 import spock.lang.Ignore
@@ -26,7 +26,7 @@ import spock.lang.Specification
 // when the Neo4j server is down so this test is no longer possible
 class SingleTenancySpec extends Specification {
     @Shared @AutoCleanup Neo4jDatastore datastore
-    @Shared @AutoCleanup ServerControls serverControls
+    @Shared @AutoCleanup Neo4j serverInstance
     @Shared int port1 = SocketUtils.findAvailableTcpPort(7600)
     @Shared int port2 = SocketUtils.findAvailableTcpPort(7600)
     void setupSpec() {
@@ -46,7 +46,7 @@ class SingleTenancySpec extends Specification {
                 ]
         ]
         this.datastore = new Neo4jDatastore(config, getDomainClasses() as Class[])
-        this.serverControls = EmbeddedNeo4jServer.start("localhost", port1)
+        this.serverInstance = EmbeddedNeo4jServer.start("localhost", port1)
     }
 
     void setup() {

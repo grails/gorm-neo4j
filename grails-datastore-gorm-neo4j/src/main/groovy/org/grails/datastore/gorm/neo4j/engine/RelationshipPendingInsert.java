@@ -164,7 +164,7 @@ public class RelationshipPendingInsert extends PendingInsertAdapter<Object, Seri
                 cypher.append(graphChild.formatId(TO));
                 deleteParams = Collections.<String, Object>singletonMap(CypherBuilder.START, targetIdentifiers);
             }
-            cypher.append(" IN {start} DELETE r");
+            cypher.append(" IN $start DELETE r");
             if(log.isDebugEnabled()) {
                 log.debug("DELETE Cypher [{}] for parameters [{}]", cypher, deleteParams);
             }
@@ -174,13 +174,13 @@ public class RelationshipPendingInsert extends PendingInsertAdapter<Object, Seri
         StringBuilder cypherQuery = new StringBuilder(String.format(CypherBuilder.CYPHER_FROM_TO_NODES_MATCH, labelsFrom, labelsTo));
 
         cypherQuery.append(graphParent.formatId(RelationshipPersistentEntity.FROM))
-                   .append(" = {start} AND ")
+                   .append(" = $start AND ")
                    .append(graphChild.formatId(RelationshipPersistentEntity.TO))
-                   .append(" IN {end} MERGE (from)")
+                   .append(" IN $end MERGE (from)")
                    .append(relMatch)
                    .append("(to)");
         if(isRelationshipAssociation) {
-            cypherQuery.append(" ON CREATE SET r={rProps}");
+            cypherQuery.append(" ON CREATE SET r=$rProps");
         }
 
         String cypher = cypherQuery.toString();

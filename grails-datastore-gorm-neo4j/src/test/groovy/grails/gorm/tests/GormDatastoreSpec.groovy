@@ -13,7 +13,7 @@ import org.grails.datastore.mapping.core.DatastoreUtils
 import org.grails.datastore.mapping.model.MappingContext
 import org.grails.datastore.mapping.model.PersistentEntity
 import org.neo4j.driver.Driver
-import org.neo4j.harness.ServerControls
+import org.neo4j.harness.Neo4j
 import org.springframework.context.support.GenericApplicationContext
 import org.springframework.context.support.StaticMessageSource
 import org.springframework.validation.Validator
@@ -33,7 +33,7 @@ abstract class GormDatastoreSpec extends Specification {
     }
 
     @Shared @AutoCleanup Neo4jDatastore neo4jDatastore
-    @Shared ServerControls serverControls
+    @Shared Neo4j serverInstance
     @Shared Driver boltDriver
     @Shared GrailsApplication grailsApplication
     @Shared MappingContext mappingContext
@@ -47,12 +47,11 @@ abstract class GormDatastoreSpec extends Specification {
 
         neo4jDatastore = new Neo4jDatastore(
                 [(Settings.SETTING_NEO4J_TYPE)                 : Settings.DATABASE_TYPE_EMBEDDED,
-                 (Settings.SETTING_NEO4J_EMBEDDED_EPHEMERAL)   : true,
-                 'grails.neo4j.embedded.options.dbms.shell':'true'] << getConfiguration(),
+                 (Settings.SETTING_NEO4J_EMBEDDED_EPHEMERAL)   : true] << getConfiguration(),
                 new ConfigurableApplicationContextEventPublisher(ctx),
                 allClasses
         )
-        serverControls = (ServerControls)neo4jDatastore.connectionSources.defaultConnectionSource.serverControls
+        serverInstance = (Neo4j)neo4jDatastore.connectionSources.defaultConnectionSource.serverInstance
         boltDriver = neo4jDatastore.boltDriver
         mappingContext = neo4jDatastore.mappingContext
 
