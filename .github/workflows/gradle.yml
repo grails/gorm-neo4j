@@ -21,7 +21,6 @@ jobs:
           distribution: 'adopt'
           java-version: '11'
       - name: Run Build
-        if: github.event_name == 'push'
         id: build
         uses: gradle/gradle-build-action@v2
         env:
