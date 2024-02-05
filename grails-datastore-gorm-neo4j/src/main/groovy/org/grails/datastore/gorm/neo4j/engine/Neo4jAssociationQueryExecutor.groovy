@@ -55,7 +55,7 @@ class Neo4jAssociationQueryExecutor implements AssociationQueryExecutor<Serializ
     final boolean lazy
     final boolean singleResult
 
-    Neo4jAssociationQueryExecutor(Neo4jSession session, Association association, boolean lazy = association.mapping.mappedForm.isLazy(), boolean singleResult = false) {
+    Neo4jAssociationQueryExecutor(Neo4jSession session, Association association, boolean lazy = (association.mapping.mappedForm as Property).isLazy(), boolean singleResult = false) {
         this.session = session
         PersistentEntity associatedEntity = association.associatedEntity
         if(associatedEntity != null) {
