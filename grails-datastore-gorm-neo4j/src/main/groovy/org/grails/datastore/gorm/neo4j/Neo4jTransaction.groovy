@@ -19,10 +19,13 @@ import groovy.util.logging.Slf4j
 import org.neo4j.driver.AccessMode
 import org.neo4j.driver.Driver
 import org.neo4j.driver.Session
+import org.neo4j.driver.TransactionConfig
 import org.grails.datastore.mapping.transactions.Transaction
 import org.neo4j.driver.SessionConfig
 import org.springframework.transaction.TransactionDefinition
 import org.springframework.transaction.support.DefaultTransactionDefinition
+
+import java.time.Duration
 
 /**
  * Represents a Neo4j transaction
@@ -48,7 +51,11 @@ class Neo4jTransaction implements Transaction<org.neo4j.driver.Transaction>, Clo
 
         log.debug("TX START: Neo4J beginTx()")
         this.boltSession = boltDriver.session(SessionConfig.builder().withDefaultAccessMode(transactionDefinition.readOnly ? AccessMode.READ : AccessMode.WRITE).build())
-        transaction = boltSession.beginTransaction()
+        final TransactionConfig.Builder config = TransactionConfig.builder()
+        if (transactionDefinition.timeout != TransactionDefinition.TIMEOUT_DEFAULT) {
+            config.withTimeout(Duration.ofSeconds(transactionDefinition.timeout))
+        }
+        transaction = boltSession.beginTransaction(config.build())
         this.transactionDefinition = transactionDefinition
         this.sessionCreated = sessionCreated
     }
@@ -98,6 +105,10 @@ class Neo4jTransaction implements Transaction<org.neo4j.driver.Transaction>, Clo
     }
 
     void setTimeout(int timeout) {
-        throw new UnsupportedOperationException()
+        log.debug("TX TIMEOUT: Neo4j tx.setTimeout({})", timeout);
+        // Neo4j tx config is immutable
+        if (timeout != transactionDefinition.timeout) {
+            log.warn("Transaction timeout for '{}' was already configured to {} seconds", transactionDefinition.name, transactionDefinition.timeout)
+        }
     }
 }
