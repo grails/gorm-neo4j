@@ -2,6 +2,7 @@ package example
 
 import grails.gorm.transactions.Rollback
 import grails.testing.mixin.integration.Integration
+import org.neo4j.driver.exceptions.ClientException
 import org.springframework.beans.factory.annotation.Autowired
 import spock.lang.Specification
 
@@ -21,6 +22,22 @@ class TestServiceSpec extends Specification {
 
         then:
         noExceptionThrown()
+    }
+
+    void "test transaction with long timeout"() {
+        when:
+        testService.testDataServiceWithLongTimeout()
+
+        then:
+        noExceptionThrown()
+    }
+
+    void "test transaction with short timeout"() {
+        when:
+        testService.testDataServiceWithShortTimeout()
+
+        then:
+        thrown(ClientException)
     }
 
     void "test autowire by type"() {

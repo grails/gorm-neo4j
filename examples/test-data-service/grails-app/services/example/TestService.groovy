@@ -8,6 +8,14 @@ class TestService {
         libraryService.bookExists(id)
     }
 
+    Book testDataServiceWithLongTimeout(Serializable id)  {
+        libraryService.getBookWithLongTimeout(id)
+    }
+
+    Book testDataServiceWithShortTimeout(Serializable id)  {
+        libraryService.getBookWithShortTimeout(id)
+    }
+
     Person save(String firstName, String lastName) {
         libraryService.addMember(firstName, lastName)
     }
