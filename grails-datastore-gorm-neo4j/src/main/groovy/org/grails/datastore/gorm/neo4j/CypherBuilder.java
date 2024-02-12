@@ -73,7 +73,10 @@ public class CypherBuilder {
 
     public void addMatch(String match) {
         if(!matches.contains(match)) {
-            matches.add(match);
+            // Add empty match if the target entity is already defined
+            final String lastNode = match.substring(match.lastIndexOf('('));
+            final boolean alreadyDefined = matches.stream().anyMatch(m -> m.endsWith(lastNode));
+            matches.add(alreadyDefined ? "" : match);
         }
     }
 
@@ -174,6 +177,8 @@ public class CypherBuilder {
         }
 
         for (String m : matches) {
+            // Skip empty matches
+            if (m.isEmpty()) continue;
             cypher.append(COMMAND_SEPARATOR).append(m);
         }
 
