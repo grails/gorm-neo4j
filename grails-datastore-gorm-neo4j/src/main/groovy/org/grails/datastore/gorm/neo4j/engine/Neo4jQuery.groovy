@@ -712,11 +712,18 @@ class Neo4jQuery extends Query {
             }
             else {
                 String targetNodeName = "m_${builder.getNextMatchNumber()}"
+                String nextPrefix = targetNodeName
+                String relationship = ""
                 Association association = (Association)aq.association
+                if (criterion.entity instanceof RelationshipPersistentEntity) {
+                    String type = (criterion.entity as RelationshipPersistentEntity).type()
+                    relationship = "$nextPrefix:$type"
+                    targetNodeName = "m_${builder.getNextMatchNumber() + 1}"
+                }
                 builder.addMatch(
-                    entity.formatAssociationPatternFromExisting(association, "", prefix, targetNodeName)
+                    entity.formatAssociationPatternFromExisting(association, relationship, prefix, targetNodeName)
                 )
-                def s = CRITERION_HANDLERS.get(aq.criteria.getClass()).handle(entity, aq.criteria, builder, targetNodeName)
+                def s = CRITERION_HANDLERS.get(aq.criteria.getClass()).handle(entity, aq.criteria, builder, nextPrefix)
                 return new CypherExpression(s)
             }
 
