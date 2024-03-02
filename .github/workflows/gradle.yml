@@ -22,7 +22,7 @@ jobs:
           java-version: '11'
       - name: Run Build
         id: build
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v3
         env:
           GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
         with:
@@ -40,7 +40,7 @@ jobs:
           java-version: '11'   
       - name: Publish Artifacts (repo.grails.org)
         id: publish
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v3
         if: steps.build.outcome == 'success' && github.event_name == 'push' 
         env:
           GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
@@ -51,7 +51,7 @@ jobs:
       - name: Build Docs
         id: docs
         if: steps.build.outcome == 'success' && github.event_name == 'push' 
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v3
         env:
           GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
         with:
