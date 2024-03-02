@@ -174,6 +174,7 @@ public class EmbeddedNeo4jServer {
         }
 
         return serverBuilder
+                .withProcedure(GrailsProcedures.class)
                 .newServer();
     }
 

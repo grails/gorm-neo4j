@@ -58,6 +58,11 @@ public class Neo4jDatastoreTransactionManager extends DatastoreTransactionManage
         try {
             session = (Neo4jSession) txObject.getSessionHolder().getSession();
 
+            if (definition.getPropagationBehavior() == TransactionDefinition.PROPAGATION_REQUIRES_NEW) {
+                session = (Neo4jSession) getDatastore().connect();
+                txObject.setSession(session);
+            }
+
             if (definition.isReadOnly()) {
                 // Just set to NEVER in case of a new Session for this transaction.
                 session.setFlushMode(FlushModeType.COMMIT);
